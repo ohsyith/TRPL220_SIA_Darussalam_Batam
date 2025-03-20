@@ -23,7 +23,7 @@
                 <a href="./index.html" class="text-nowrap logo-img text-center d-block py-3 w-100">
                   <img src="../assets/images/logos/SIAD.png" alt="" width="300" />
                 </a>
-                <p class="text-center">Sistem Informasi Akuntansi Yayasan Darussalam</p>
+                <p class="text-center">Sistem Informasi Akuntansi Yayasan Darussalam Branch sendiri</p>
                 <form>
                   <div class="mb-3">
                     <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Username">
