@@ -15,8 +15,9 @@
 
     .dot-red {
         position: absolute;
-        top: 5px;
-        left: 5px;
+        top: 8px;
+        left: 8px;
+        /* Ubah dari right menjadi left */
         width: 10px;
         height: 10px;
         background-color: red;
@@ -170,10 +171,10 @@
                                                             </th> --}}
 
                                                             <th scope="row"
-                                                                class="ps-0 fw-medium {{ in_array($data->jurnal_umum->id, $postedJurnalIds) ? '' : 'position-relative th-with-dot' }}"
+                                                                class="ps-0 fw-medium {{ in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds) ? '' : 'th-with-dot' }}"
                                                                 rowspan="{{ $rowspan }}">
 
-                                                                @if (!in_array($data->jurnal_umum->id, $postedJurnalIds))
+                                                                @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
                                                                     <span class="dot-red" data-bs-toggle="modal"
                                                                         data-bs-target="#postingModal"></span>
                                                                 @endif
