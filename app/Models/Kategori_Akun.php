@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Kategori_Akun;
+use App\Models\Sub_Kategori_Akun;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Kategori_Akun extends Model
 {
@@ -12,4 +15,11 @@ class Kategori_Akun extends Model
     protected $table = 'kategori_akun';
 
     protected $primaryKey = 'id_kategori_akun';
+
+    public function sub_kategori_akun(): HasMany
+    {
+        return $this->hasMany(Sub_Kategori_Akun::class, 'id_sub_kategori_akun');
+    }
+
+
 }

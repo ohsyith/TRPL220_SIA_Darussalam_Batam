@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AkunController;
 use App\Http\Controllers\BukuBesarController;
 use App\Http\Controllers\JurnalUmumController;
+use App\Http\Controllers\NeracaSaldoController;
 use App\Http\Controllers\KategoriAkunController;
 use App\Http\Controllers\SubKategoriAkunController;
 
@@ -46,4 +47,6 @@ Route::post('/store-jurnal_umum', [JurnalUmumController::class, 'store']);;
 Route::get('/jurnal-umum', [JurnalUmumController::class, 'index'])->name('jurnal-umum.index'); //Halaman Jurnal Umum
 
 Route::get('/buku-besar', [BukuBesarController::class, 'index'])->name('buku-besar.index');
+
+Route::get('/neraca-saldo', [NeracaSaldoController::class, 'index'])->name('neraca-saldo.index'); //Halaman Neraca Saldo
 

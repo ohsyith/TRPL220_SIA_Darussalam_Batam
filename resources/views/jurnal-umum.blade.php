@@ -10,20 +10,19 @@
 </head>
 <style>
     .th-with-dot {
-        position: relative;
-    }
+    position: relative;
+}
 
-    .dot-red {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        /* Ubah dari right menjadi left */
-        width: 10px;
-        height: 10px;
-        background-color: red;
-        border-radius: 50%;
-        cursor: pointer;
-    }
+.dot-red {
+    position: absolute;
+    top: 8px;
+    left: 8px; /* Ubah dari right menjadi left */
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    cursor: pointer;
+}
 </style>
 
 <body>
@@ -147,7 +146,7 @@
                                                 <th scope="col" class="text-center">Kd P&H</th>
                                                 <th scope="col" class="text-center">Akun Debit (Rp)</th>
                                                 <th scope="col" class="text-center">Akun Kredit (Rp)</th>
-                                                <th scope="col" class="text-center">Jumlah</th>
+                                                {{-- <th scope="col" class="text-center">Jumlah</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody class="table-group-divider">
@@ -234,10 +233,10 @@
                                                                 @php $totalKredit += $data->nominal; @endphp
                                                             @endif
                                                         </td>
-                                                        <td class="text-center fw-medium">
+                                                        {{-- <td class="text-center fw-medium">
                                                             Rp {{ number_format($data->nominal) }}
                                                             @php $totalKeseluruhan += $data->nominal; @endphp
-                                                        </td>
+                                                        </td> --}}
                                                     </tr>
                                                 @endforeach
                                             @endforeach
@@ -247,7 +246,7 @@
                                                 <td colspan="8" class="text-end">Total</td>
                                                 <td class="text-center">Rp {{ number_format($totalDebit) }}</td>
                                                 <td class="text-center">Rp {{ number_format($totalKredit) }}</td>
-                                                <td class="text-center">Rp {{ number_format($totalKeseluruhan) }}</td>
+                                                {{-- <td class="text-center">Rp {{ number_format($totalKeseluruhan) }}</td> --}}
                                             </tr>
 
                                         </tbody>

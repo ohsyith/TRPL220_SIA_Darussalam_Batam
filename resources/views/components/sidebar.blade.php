@@ -83,6 +83,14 @@
               <span class="hide-menu">Buku Besar</span>
             </a>
           </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="/neraca-saldo" aria-expanded="false">
+              <span>
+                <iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon>
+              </span>
+              <span class="hide-menu">Neraca Saldo</span>
+            </a>
+          </li>
           
           
 
