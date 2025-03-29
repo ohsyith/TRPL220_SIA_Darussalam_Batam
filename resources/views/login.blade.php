@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SIA</title>
+  <title>SIA update</title>
   <link rel="shortcut icon" type="image/png" href="../assets/images/logos/seodashlogo.png" />
   <link rel="stylesheet" href="../assets/css/styles.min.css" />
 </head>
@@ -23,7 +23,7 @@
                 <a href="./index.html" class="text-nowrap logo-img text-center d-block py-3 w-100">
                   <img src="../assets/images/logos/SIAD.png" alt="" width="300" />
                 </a>
-                <p class="text-center">Sistem Informasi Akuntansi Yayasan Darussalam</p>
+                <p class="text-center">Sistem Informasi Akuntansi Yayasan Darussalam Branch sendiri</p>
                 <form>
                   <div class="mb-3">
                     <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Username">

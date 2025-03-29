@@ -95,6 +95,47 @@
           
 
 
+
+          <li class="nav-small-cap">
+            <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+            <span class="hide-menu">Laporan</span>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="/laporan-komprehensif" aria-expanded="false">
+              <span>
+                <iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon>
+              </span>
+              <span class="hide-menu">Laporan Komprehensif</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="/jurnal-umum" aria-expanded="false">
+              <span>
+                <iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon>
+              </span>
+              <span class="hide-menu">Jurnal Umum</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="/buku-besar" aria-expanded="false">
+              <span>
+                <iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon>
+              </span>
+              <span class="hide-menu">Buku Besar</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="/neraca-saldo" aria-expanded="false">
+              <span>
+                <iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon>
+              </span>
+              <span class="hide-menu">Neraca Saldo</span>
+            </a>
+          </li>
+          
+          
+
+
           
           <li class="nav-small-cap">
             <i class="ti ti-dots nav-small-cap-icon fs-6"></i>

@@ -75,7 +75,7 @@ class JurnalUmumController extends Controller
         $request->validate([
             'tanggal' => 'required|date',
             'keterangan' => 'required|string',
-            'id_jenis_transaksi' => 'required|exists:jenis_transaksi,id_jenis_transaksi',
+            'jenis_transaksi' => 'required|string',
             'id_unit' => 'required|exists:unit,id_unit',
             'id_divisi' => 'required|exists:divisi,id_divisi',
             'id_akun' => 'required|array',
@@ -102,7 +102,7 @@ class JurnalUmumController extends Controller
                 'tanggal' => $request->tanggal,
                 'no_bukti' => $no_bukti,
                 'keterangan' => $request->keterangan,
-                'id_jenis_transaksi' => $request->id_jenis_transaksi,
+                'jenis_transaksi' => $request->jenis_transaksi,
                 'id_unit' => $request->id_unit,
                 'id_divisi' => $request->id_divisi,
                 'kode_sumbangan' => $request->kode_sumbangan ?? '',

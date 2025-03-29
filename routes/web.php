@@ -7,6 +7,7 @@ use App\Http\Controllers\JurnalUmumController;
 use App\Http\Controllers\NeracaSaldoController;
 use App\Http\Controllers\KategoriAkunController;
 use App\Http\Controllers\SubKategoriAkunController;
+use App\Http\Controllers\LaporanKomprehensifController;
 
 // Authentication
 Route::get('/login', function () {
@@ -50,3 +51,7 @@ Route::get('/buku-besar', [BukuBesarController::class, 'index'])->name('buku-bes
 
 Route::get('/neraca-saldo', [NeracaSaldoController::class, 'index'])->name('neraca-saldo.index'); //Halaman Neraca Saldo
 
+
+
+// laporan
+Route::get('/laporan-komprehensif', [LaporanKomprehensifController::class, 'index']);

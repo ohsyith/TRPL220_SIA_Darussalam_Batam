@@ -200,7 +200,7 @@
                                                             </td>
                                                             <td class="text-center fw-medium"
                                                                 rowspan="{{ $rowspan }}">
-                                                                {{ $data->jurnal_umum->jenis_transaksi->jenis_transaksi }}
+                                                                {{ $data->jurnal_umum->jenis_transaksi }}
                                                             </td>
                                                             <td class="text-center fw-medium"
                                                                 rowspan="{{ $rowspan }}">

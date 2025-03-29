@@ -16,10 +16,9 @@ return new class extends Migration
             $table->date('tanggal');
             $table->string('no_bukti');
             $table->string('keterangan');
+            $table->string('jenis_transaksi');
 
-            $table->unsignedBigInteger('id_jenis_transaksi');
-            $table->foreign('id_jenis_transaksi')->references('id_jenis_transaksi')->on('jenis_transaksi');
-            
+
             $table->unsignedBigInteger('id_unit');
             $table->foreign('id_unit')->references('id_unit')->on('unit');
 

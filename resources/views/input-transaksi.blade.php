@@ -95,12 +95,10 @@
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label">Jenis Transaksi</label>
-                                            <select name="id_jenis_transaksi" class="form-select" required>
+                                            <select name="jenis_transaksi" class="form-select" required>
                                                 <option value="" disabled selected>Pilih Jenis Transaksi</option>
-                                                @foreach ($jenis_transaksi as $data)
-                                                    <option value="{{ $data->id_jenis_transaksi }}">
-                                                        {{ $data->jenis_transaksi }}</option>
-                                                @endforeach
+                                                    <option value="Terikat">Terikat</option>
+                                                    <option value="Tidak Terikat">Tidak Terikat</option>
                                             </select>
                                         </div>
                                         <div class="col-md-3">

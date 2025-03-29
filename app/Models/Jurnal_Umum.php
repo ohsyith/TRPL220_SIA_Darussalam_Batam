@@ -17,12 +17,12 @@ class Jurnal_Umum extends Model
     protected $table = 'jurnal_umum';
     protected $primaryKey = 'id_jurnal_umum';
 
-    protected $fillable = ['tanggal', 'no_bukti', 'keterangan', 'id_jenis_transaksi', 'id_unit', 'id_divisi', 'kode_sumbangan', 'kode_ph'];
+    protected $fillable = ['tanggal', 'no_bukti', 'keterangan', 'jenis_transaksi', 'id_unit', 'id_divisi', 'kode_sumbangan', 'kode_ph'];
 
 
     public function jenis_transaksi(): BelongsTo
     {
-        return $this->belongsTo(Jenis_Transaksi::class, 'id_jenis_transaksi', 'id_jenis_transaksi');
+        return $this->belongsTo(Jenis_Transaksi::class, 'jenis_transaksi', 'jenis_transaksi');
     }
 
     public function unit(): BelongsTo
