@@ -32,7 +32,7 @@
 <body>
 
     @php
-        $user = Auth::user();
+    $user = Auth::user();
     @endphp
 
     <!--  Body Wrapper -->
@@ -41,7 +41,7 @@
         <!-- Sidebar Start -->
         <x-sidebar></x-sidebar>
         <!--  Sidebar End -->
-        
+
         <!--  Main wrapper -->
         <div class="body-wrapper">
 
@@ -80,7 +80,7 @@
         {{-- sidebar --}}
         <script src="../js/sidebar.js"></script>
 
-        
+
 </body>
 
 </html>

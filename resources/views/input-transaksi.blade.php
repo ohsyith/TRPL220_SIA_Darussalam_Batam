@@ -97,8 +97,8 @@
                                             <label class="form-label">Jenis Transaksi</label>
                                             <select name="jenis_transaksi" class="form-select" required>
                                                 <option value="" disabled selected>Pilih Jenis Transaksi</option>
-                                                    <option value="Terikat">Terikat</option>
-                                                    <option value="Tidak Terikat">Tidak Terikat</option>
+                                                <option value="Terikat">Terikat</option>
+                                                <option value="Tidak Terikat">Tidak Terikat</option>
                                             </select>
                                         </div>
                                         <div class="col-md-3">
@@ -106,8 +106,9 @@
                                             <select name="id_unit" class="form-select" required>
                                                 <option value="">Pilih Unit</option>
                                                 @foreach ($unit as $data_unit)
-                                                    <option value="{{ $data_unit->id_unit }}">
-                                                        {{ $data_unit->kode_unit }} - {{ $data_unit->unit }}</option>
+                                                <option value="{{ $data_unit->id_unit }}">
+                                                    {{ $data_unit->kode_unit }} - {{ $data_unit->unit }}
+                                                </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -116,8 +117,9 @@
                                             <select name="id_divisi" class="form-select" required>
                                                 <option value="">Pilih Divisi</option>
                                                 @foreach ($divisi as $data_divisi)
-                                                    <option value="{{ $data_divisi->id_divisi }}">
-                                                        {{ $data_divisi->divisi }}</option>
+                                                <option value="{{ $data_divisi->id_divisi }}">
+                                                    {{ $data_divisi->divisi }}
+                                                </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -148,9 +150,9 @@
                                                 <select name="id_akun[]" class="form-select" required>
                                                     <option value="">Pilih Akun</option>
                                                     @foreach ($akun as $data_akun)
-                                                        <option value="{{ $data_akun->id_akun }}">
-                                                            {{ $data_akun->kode_akun }} - {{ $data_akun->akun }}
-                                                        </option>
+                                                    <option value="{{ $data_akun->id_akun }}">
+                                                        {{ $data_akun->kode_akun }} - {{ $data_akun->akun }}
+                                                    </option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -177,9 +179,9 @@
                                                 <select name="id_akun[]" class="form-select" required>
                                                     <option value="">Pilih Akun</option>
                                                     @foreach ($akun as $data_akun)
-                                                        <option value="{{ $data_akun->id_akun }}">
-                                                            {{ $data_akun->kode_akun }} - {{ $data_akun->akun }}
-                                                        </option>
+                                                    <option value="{{ $data_akun->id_akun }}">
+                                                        {{ $data_akun->kode_akun }} - {{ $data_akun->akun }}
+                                                    </option>
                                                     @endforeach
                                                 </select>
                                             </div>
