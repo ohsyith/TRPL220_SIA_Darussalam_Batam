@@ -10,13 +10,13 @@ use App\Http\Controllers\SubKategoriAkunController;
 use App\Http\Controllers\LaporanKomprehensifController;
 
 // Authentication
-Route::get('/login', function () {
-    return view('login');
-});
+Route::get('/login', [AuthController::class, 'login_form'])->name('login');
 
-Route::get('/register', function () {
-    return view('register');
-});
+// Proses login
+Route::post('/login', [AuthController::class, 'login']);
+
+// Logout
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // dahsboard
 Route::get('/', function () {
