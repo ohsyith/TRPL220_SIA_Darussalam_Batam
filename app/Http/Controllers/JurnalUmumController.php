@@ -76,11 +76,88 @@ class JurnalUmumController extends Controller
         }
 
 
+
         $unit = Unit::all();
         $divisi = Divisi::all();
         $akun = Akun::all();
 
         return view('input-transaksi', compact('unit', 'divisi', 'akun', 'id_unit', 'id_divisi'));
+    }
+
+    public function store(Request $request)
+    {
+        DB::statement("SET @current_user_id = 1");
+
+        $request->validate([
+            'tanggal' => 'required|date',
+            'keterangan' => 'required|string',
+            'jenis_transaksi' => 'required|string',
+            'id_unit' => 'required|exists:unit,id_unit',
+            'id_divisi' => 'required|exists:divisi,id_divisi',
+            'id_akun' => 'required|array',
+            'id_akun.*' => 'exists:akun,id_akun',
+            'debit' => 'required|array',
+            'kredit' => 'required|array',
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            // Format tanggal menjadi YYYYMMDD
+            $tanggalFormatted = date('Ymd', strtotime($request->tanggal));
+
+            // Hitung jumlah entri dengan tanggal yang sama
+            $count = Jurnal_Umum::whereDate('tanggal', $request->tanggal)->count() + 1;
+
+            // Format urutan menjadi 3 digit, misalnya 003, 012, dll.
+            $urutan = str_pad($count, 3, '0', STR_PAD_LEFT);
+
+            // Buat no_bukti
+            $no_bukti = "INV-$tanggalFormatted-$urutan";
+
+            // Simpan ke tabel jurnal_umum
+            $jurnal = Jurnal_Umum::create([
+                'tanggal' => $request->tanggal,
+                'no_bukti' => $no_bukti,
+                'keterangan' => $request->keterangan,
+                'jenis_transaksi' => $request->jenis_transaksi,
+                'id_unit' => $request->id_unit,
+                'id_divisi' => $request->id_divisi,
+                'kode_sumbangan' => $request->kode_sumbangan ?? '',
+                'kode_ph' => $request->kode_ph ?? ''
+            ]);
+
+            // Simpan ke tabel detail_jurnal_umum
+            foreach ($request->id_akun as $key => $id_akun) {
+                $debit = (int) preg_replace('/\D/', '', $request->debit[$key]) ?: 0;
+                $kredit = (int) preg_replace('/\D/', '', $request->kredit[$key]) ?: 0;
+
+                if ($debit > 0) {
+                    Detail_Jurnal_Umum::create([
+                        'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                        'id_akun' => $id_akun,
+                        'nominal' => $debit,
+                        'debit_kredit' => 'debit'
+                    ]);
+                }
+
+                if ($kredit > 0) {
+                    Detail_Jurnal_Umum::create([
+                        'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                        'id_akun' => $id_akun,
+                        'nominal' => $kredit,
+                        'debit_kredit' => 'kredit'
+                    ]);
+                }
+            }
+
+            // Jika checkbox "Posting ke Buku Besar" dicentang, insert ke buku_besar
+            if ($request->has('postingBukuBesar')) {
+                Buku_Besar::create([
+                    'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                ]);
+            }
+
+            return response()->json(['message' => 'Data berhasil disimpan', 'no_bukti' => $no_bukti]);
+        });
     }
 
 
