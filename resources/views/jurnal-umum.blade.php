@@ -7,22 +7,39 @@
     <title>SIA Yayasan Darussalam | Jurnal Umum</title>
     <link rel="shortcut icon" type="image/png" href="../assets/images/logos/YDB_PNG.png" />
     <link rel="stylesheet" href="../assets/css/styles.min.css" />
+    <link rel="stylesheet" href="../css/sidebar.css" />
+
 </head>
 <style>
     .th-with-dot {
-    position: relative;
-}
+        position: relative;
+    }
 
-.dot-red {
-    position: absolute;
-    top: 8px;
-    left: 8px; /* Ubah dari right menjadi left */
-    width: 10px;
-    height: 10px;
-    background-color: red;
-    border-radius: 50%;
-    cursor: pointer;
-}
+    .dot-red {
+        position: absolute;
+        top: -35px;
+        left: 28px;
+        /* Ubah dari right menjadi left */
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .dot-container {
+        /* position: relative; */
+        display: flex;
+        align-items: center;
+        gap: 200px;
+    }
+
+    .ellipsis-dropdown {
+        position: absolute;
+        top: -40px;
+        left: 1px;
+
+    }
 </style>
 
 <body>
@@ -35,61 +52,10 @@
         <!--  Main wrapper -->
         <div class="body-wrapper">
             <!--  Header Start -->
-            <header class="app-header">
-                <nav class="navbar navbar-expand-lg navbar-light">
-                    <ul class="navbar-nav">
-                        <li class="nav-item d-block d-xl-none">
-                            <a class="nav-link sidebartoggler nav-icon-hover" id="headerCollapse"
-                                href="javascript:void(0)">
-                                <i class="ti ti-menu-2"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-icon-hover" href="javascript:void(0)">
-                                <i class="ti ti-bell-ringing"></i>
-                                <div class="notification bg-primary rounded-circle"></div>
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
-                        <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="../assets/images/profile/user-1.jpg" alt="" width="35"
-                                        height="35" class="rounded-circle">
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up"
-                                    aria-labelledby="drop2">
-                                    <div class="message-body">
-                                        <a href="javascript:void(0)"
-                                            class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-user fs-6"></i>
-                                            <p class="mb-0 fs-3">My Profile</p>
-                                        </a>
-                                        <a href="javascript:void(0)"
-                                            class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-mail fs-6"></i>
-                                            <p class="mb-0 fs-3">My Account</p>
-                                        </a>
-                                        <a href="javascript:void(0)"
-                                            class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-list-check fs-6"></i>
-                                            <p class="mb-0 fs-3">My Task</p>
-                                        </a>
-                                        <a href="./authentication-login.html"
-                                            class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </header>
+            <x-header></x-header>
             <!--  Header End -->
             <div class="container-fluid">
                 <div class="row">
-
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
@@ -132,6 +98,19 @@
 
                                     <br>
 
+                                    @if (session('success'))
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                            {{ session('success') }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    @endif
+
+                                    @if (session('error'))
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            {{ session('error') }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    @endif
 
                                     <table class="table text-nowrap align-middle mb-0">
                                         <thead>
@@ -146,7 +125,6 @@
                                                 <th scope="col" class="text-center">Kd P&H</th>
                                                 <th scope="col" class="text-center">Akun Debit (Rp)</th>
                                                 <th scope="col" class="text-center">Akun Kredit (Rp)</th>
-                                                {{-- <th scope="col" class="text-center">Jumlah</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody class="table-group-divider">
@@ -162,32 +140,53 @@
                                                 @foreach ($group as $index => $data)
                                                     <tr>
                                                         @if ($index === 0)
-                                                            {{-- <th scope="row" class="ps-0 fw-medium" --}}
-
-                                                            {{-- <th scope="row" class="ps-0 fw-medium th-with-dot"
-                                                                rowspan="{{ $rowspan }}">
-                                                                {{ $data->jurnal_umum->tanggal }}
-                                                            </th> --}}
-
-                                                            <th scope="row"
-                                                                class="ps-0 fw-medium {{ in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds) ? '' : 'th-with-dot' }}"
+                                                            <th scope="row" class="ps-0 fw-medium th-with-dot"
                                                                 rowspan="{{ $rowspan }}">
 
-                                                                @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
-                                                                    <span class="dot-red" data-bs-toggle="modal"
-                                                                        data-bs-target="#postingModal"></span>
-                                                                @endif
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-start position-relative">
+                                                                    @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
+                                                                        <span class="dot-red"
+                                                                            data-id="{{ $data->jurnal_umum->id_jurnal_umum }}"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#postingModal"></span>
+                                                                    @endif
+
+                                                                    <div class="dropdown ellipsis-dropdown ms-auto">
+                                                                        <button
+                                                                            class="btn btn-sm p-0 border-0 bg-transparent"
+                                                                            type="button"
+                                                                            id="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}"
+                                                                            data-bs-toggle="dropdown"
+                                                                            aria-expanded="false"
+                                                                            style="font-size: 20px; line-height: 1;">
+                                                                            &#8942;
+                                                                        </button>
+                                                                        <ul class="dropdown-menu"
+                                                                            aria-labelledby="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}">
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ url('/jurnal-umum/' . $data->jurnal_umum->id_jurnal_umum) }}">Edit</a>
+                                                                            </li>
+
+                                                                            <form
+                                                                                action="{{ route('jurnal-umum.destroy', $data->jurnal_umum->id_jurnal_umum) }}"
+                                                                                method="POST"
+                                                                                onsubmit="return confirm('Yakin ingin menghapus?')">
+                                                                                @csrf
+                                                                                @method('DELETE')
+                                                                                <button
+                                                                                    class="dropdown-item text-danger"
+                                                                                    type="submit">Hapus</button>
+                                                                            </form>
+
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
 
                                                                 {{ $data->jurnal_umum->tanggal }}
                                                             </th>
-
-
-
-
-
-
-
-
 
 
                                                             <td class="text-center fw-medium"
@@ -233,10 +232,7 @@
                                                                 @php $totalKredit += $data->nominal; @endphp
                                                             @endif
                                                         </td>
-                                                        {{-- <td class="text-center fw-medium">
-                                                            Rp {{ number_format($data->nominal) }}
-                                                            @php $totalKeseluruhan += $data->nominal; @endphp
-                                                        </td> --}}
+
                                                     </tr>
                                                 @endforeach
                                             @endforeach
@@ -246,7 +242,6 @@
                                                 <td colspan="8" class="text-end">Total</td>
                                                 <td class="text-center">Rp {{ number_format($totalDebit) }}</td>
                                                 <td class="text-center">Rp {{ number_format($totalKredit) }}</td>
-                                                {{-- <td class="text-center">Rp {{ number_format($totalKeseluruhan) }}</td> --}}
                                             </tr>
 
                                         </tbody>
@@ -268,10 +263,19 @@
                                                     Posting ke Buku Besar?
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary btn-sm"
-                                                        data-bs-dismiss="modal">Batal</button>
-                                                    <button type="button"
-                                                        class="btn btn-primary btn-sm">Posting</button>
+                                                    <form id="postingForm" method="POST"
+                                                        action="{{ route('buku-besar.store') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="id_jurnal_umum"
+                                                            id="idJurnalUmum">
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary btn-sm"
+                                                                data-bs-dismiss="modal">Batal</button>
+                                                            <button type="submit"
+                                                                class="btn btn-primary btn-sm">Posting</button>
+                                                        </div>
+                                                    </form>
+
                                                 </div>
                                             </div>
                                         </div>
@@ -297,6 +301,21 @@
         <script src="../assets/js/app.min.js"></script>
         <script src="../assets/js/dashboard.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+        {{-- sidebar --}}
+        <script src="../js/sidebar.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll('.dot-red').forEach(dot => {
+                    dot.addEventListener('click', function() {
+                        const jurnalId = this.getAttribute('data-id');
+                        document.getElementById('idJurnalUmum').value = jurnalId;
+                    });
+                });
+            });
+        </script>
+
+
 </body>
 
 </html>
