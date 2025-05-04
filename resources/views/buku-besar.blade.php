@@ -7,6 +7,8 @@
     <title>SIA Yayasan Darussalam | Buku Besar</title>
     <link rel="shortcut icon" type="image/png" href="../assets/images/logos/YDB_PNG.png" />
     <link rel="stylesheet" href="../assets/css/styles.min.css" />
+    <link rel="stylesheet" href="../css/sidebar.css" />
+
 </head>
 
 <body>
@@ -19,57 +21,8 @@
         <!--  Main wrapper -->
         <div class="body-wrapper">
             <!--  Header Start -->
-            <header class="app-header">
-                <nav class="navbar navbar-expand-lg navbar-light">
-                    <ul class="navbar-nav">
-                        <li class="nav-item d-block d-xl-none">
-                            <a class="nav-link sidebartoggler nav-icon-hover" id="headerCollapse"
-                                href="javascript:void(0)">
-                                <i class="ti ti-menu-2"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-icon-hover" href="javascript:void(0)">
-                                <i class="ti ti-bell-ringing"></i>
-                                <div class="notification bg-primary rounded-circle"></div>
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
-                        <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="../assets/images/profile/user-1.jpg" alt="" width="35"
-                                        height="35" class="rounded-circle">
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up"
-                                    aria-labelledby="drop2">
-                                    <div class="message-body">
-                                        <a href="javascript:void(0)"
-                                            class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-user fs-6"></i>
-                                            <p class="mb-0 fs-3">My Profile</p>
-                                        </a>
-                                        <a href="javascript:void(0)"
-                                            class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-mail fs-6"></i>
-                                            <p class="mb-0 fs-3">My Account</p>
-                                        </a>
-                                        <a href="javascript:void(0)"
-                                            class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-list-check fs-6"></i>
-                                            <p class="mb-0 fs-3">My Task</p>
-                                        </a>
-                                        <a href="./authentication-login.html"
-                                            class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </header>
+            <x-header></x-header>
+
             <!--  Header End -->
             <div class="container-fluid">
                 <div class="row">
@@ -81,17 +34,29 @@
                                 <div class="table-responsive">
                                     <form method="GET" action="{{ route('buku-besar.index') }}">
                                         <div class="row mb-3">
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label for="start_date" class="form-label">Dari Tanggal</label>
                                                 <input type="date" class="form-control" name="start_date"
                                                     value="{{ request('start_date') }}">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label for="end_date" class="form-label">Sampai Tanggal</label>
                                                 <input type="date" class="form-control" name="end_date"
                                                     value="{{ request('end_date') }}">
                                             </div>
                                             <div class="col-md-3">
+                                                <label for="akun" class="form-label">Filter Akun</label>
+                                                <select class="form-control" name="akun">
+                                                    <option value="">-- Pilih Akun --</option>
+                                                    @foreach ($akunList as $akun)
+                                                        <option value="{{ $akun->id_akun }}"
+                                                            {{ request('akun', 1) == $akun->id_akun ? 'selected' : '' }}>
+                                                            {{ $akun->akun }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
                                                 <label for="search" class="form-label">Cari</label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" name="search"
@@ -101,18 +66,8 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-3">
-                                                <label for="akun" class="form-label">Filter Akun</label>
-                                                <select class="form-control" name="akun">
-                                                    <option value="">-- Pilih Akun --</option>
-                                                    @foreach ($akunList as $akun)
-                                                        <option value="{{ $akun->id_akun }}"
-                                                            {{ request('akun') == $akun->id_akun ? 'selected' : '' }}>
-                                                            {{ $akun->akun }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                                            
+
                                         </div>
 
                                         <!-- Tombol Reset -->
@@ -145,13 +100,9 @@
                                                 {{-- <th scope="col" class="text-center">Jumlah</th> --}}
                                             </tr>
                                         </thead>
-                                        @php
-                                            $total_debit = 0;
-                                            $total_kredit = 0;
-                                        @endphp
 
                                         <tbody class="table-group-divider">
-                                            @foreach ($detail_jurnal as $detail)
+                                            {{-- @foreach ($detail_jurnal as $detail)
                                                 @php
                                                     if ($detail->debit_kredit === 'debit') {
                                                         $total_debit += $detail->nominal;
@@ -166,7 +117,7 @@
                                                     <td class="text-center fw-medium">
                                                         {{ $detail->jurnal_umum->keterangan }}</td>
                                                     <td class="text-center fw-medium">
-                                                        {{ $detail->jurnal_umum->jenis_transaksi->jenis_transaksi ?? '-' }}
+                                                        {{ $detail->jurnal_umum->jenis_transaksi ?? '-' }}
                                                     </td>
                                                     <td class="text-center fw-medium">
                                                         {{ $detail->jurnal_umum->unit->unit ?? '-' }}</td>
@@ -188,9 +139,34 @@
                                                             (Rp {{ number_format($detail->nominal) }})
                                                         @endif
                                                     </td>
-                                                    {{-- <td class="text-center fw-medium">
-                                                        Rp {{ number_format($detail->nominal) }}
-                                                    </td> --}}
+                                                </tr>
+                                            @endforeach --}}
+
+                                            @foreach ($detail_jurnal as $detail)
+                                                <tr>
+                                                    <td class="ps-0 fw-medium">{{ $detail->tanggal }}</td>
+                                                    <td class="text-center fw-medium">{{ $detail->no_bukti }}</td>
+                                                    <td class="text-center fw-medium">{{ $detail->keterangan }}</td>
+                                                    <td class="text-center fw-medium">{{ $detail->jenis ?? '-' }}</td>
+                                                    <td class="text-center fw-medium">{{ $detail->unit ?? '-' }}</td>
+                                                    <td class="text-center fw-medium">{{ $detail->divisi ?? '-' }}
+                                                    </td>
+                                                    <td class="text-center fw-medium">
+                                                        {{ $detail->kode_sumbangan ?? '-' }}</td>
+                                                    <td class="text-center fw-medium">{{ $detail->kode_ph ?? '-' }}
+                                                    </td>
+                                                    <td class="text-center fw-medium">
+                                                        @if ($detail->debit_kredit === 'debit')
+                                                            {{ $detail->akun ?? 'Akun Tidak Ditemukan' }}
+                                                            (Rp {{ number_format($detail->nominal) }})
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center fw-medium">
+                                                        @if ($detail->debit_kredit === 'kredit')
+                                                            {{ $detail->akun ?? 'Akun Tidak Ditemukan' }}
+                                                            (Rp {{ number_format($detail->nominal) }})
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                             @endforeach
 
@@ -225,6 +201,9 @@
         <script src="../assets/js/app.min.js"></script>
         <script src="../assets/js/dashboard.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+        {{-- sidebar --}}
+        <script src="../js/sidebar.js"></script>
 </body>
 
 </html>
