@@ -22,7 +22,7 @@ class Detail_Jurnal_Umum extends Model
         return $this->belongsTo(Jurnal_Umum::class, 'id_jurnal_umum', 'id_jurnal_umum');
     }
 
-    
+
     public function akun(): BelongsTo
     {
         return $this->belongsTo(Akun::class, 'id_akun', 'id_akun');

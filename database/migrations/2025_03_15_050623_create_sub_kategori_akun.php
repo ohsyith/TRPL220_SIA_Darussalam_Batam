@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sub_kategori_akun', function (Blueprint $table) {
             $table->bigIncrements('id_sub_kategori_akun');
-            $table->string('kode_sub_kategori_akun');
+            $table->string('kode_sub_kategori_akun')->unique();;
             $table->string('sub_kategori_akun');
 
             $table->unsignedBigInteger('id_kategori_akun');

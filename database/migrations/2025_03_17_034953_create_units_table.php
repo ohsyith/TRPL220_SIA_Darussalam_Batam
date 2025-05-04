@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('unit', function (Blueprint $table) {
             $table->bigIncrements('id_unit');
-            $table->string('kode_unit');
+            $table->string('kode_unit')->unique();;
             $table->string('unit');
             $table->timestamps();
         });

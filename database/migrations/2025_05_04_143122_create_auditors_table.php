@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kategori_akun', function (Blueprint $table) {
-            $table->bigIncrements('id_kategori_akun');
-            $table->string('kode_kategori_akun')->unique();;
-            $table->string('kategori_akun');
+        Schema::create('auditor', function (Blueprint $table) {
+            $table->unsignedBigInteger('id_auditor')->primary(); // <-- Jadi primary key tapi bukan auto increment
+
+            $table->string('email')->unique();;
+            $table->string('telp')->unique();;
+
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kategori_akuns');
+        Schema::dropIfExists('auditors');
     }
 };

@@ -41,7 +41,7 @@ Route::get('/akun', [AkunController::class, 'index'])->name('akun.index');
 
 // Transaksi
 Route::get('/input-transaksi', [JurnalUmumController::class, 'create']); // Hlaman Input Transaksi
-Route::post('/store-jurnal_umum', [JurnalUmumController::class, 'store']);;
+Route::post('/jurnal-umum', [JurnalUmumController::class, 'store']);;
 
 
 //Pencatatan

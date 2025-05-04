@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('divisi', function (Blueprint $table) {
             $table->bigIncrements('id_divisi');
-            $table->string('divisi');
+            $table->string('divisi')->unique();;
             $table->timestamps();
         });
     }

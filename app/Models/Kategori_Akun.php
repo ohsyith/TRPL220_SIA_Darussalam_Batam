@@ -15,6 +15,8 @@ class Kategori_Akun extends Model
     protected $table = 'kategori_akun';
 
     protected $primaryKey = 'id_kategori_akun';
+    protected $fillable = ['kode_kategori_akun', 'kategori_akun'];
+
 
     public function sub_kategori_akun(): HasMany
     {

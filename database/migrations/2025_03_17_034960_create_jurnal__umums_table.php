@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('jurnal_umum', function (Blueprint $table) {
             $table->bigIncrements('id_jurnal_umum');
             $table->date('tanggal');
-            $table->string('no_bukti');
+            $table->string('no_bukti')->unique();;
             $table->string('keterangan');
             $table->string('jenis_transaksi');
 

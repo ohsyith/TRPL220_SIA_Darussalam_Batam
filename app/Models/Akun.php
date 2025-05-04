@@ -13,6 +13,8 @@ class Akun extends Model
     protected $table = 'akun';
 
     protected $primaryKey = 'id_akun';
+    protected $fillable = ['id_sub_kategori_akun', 'kode_akun', 'akun', 'saldo_awal_debit', 'saldo_awal_kredit', 'budget_rapbs'];
+
 
     public function sub_kategori_akun(): BelongsTo
     {

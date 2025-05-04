@@ -16,6 +16,9 @@ class Sub_Kategori_Akun extends Model
     protected $table = 'sub_kategori_akun';
 
     protected $primaryKey = 'id_sub_kategori_akun';
+    protected $fillable = ['id_kategori_akun', 'kode_sub_kategori_akun', 'sub_kategori_akun'];
+
+
 
     public function kategori_akun(): BelongsTo
     {

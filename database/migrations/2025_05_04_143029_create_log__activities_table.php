@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jenis_transaksi', function (Blueprint $table) {
-            $table->bigIncrements('id_jenis_transaksi');
-            $table->string('jenis_transaksi');
+        Schema::create('log_activity', function (Blueprint $table) {
+            $table->bigIncrements('id_log_activity');
+
+            $table->unsignedBigInteger('id_user');
+            $table->foreign('id_user')->references('id_user')->on('user');
+
+            $table->string('keterangan');
+
             $table->timestamps();
         });
     }
@@ -23,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jenis_transaksi');
+        Schema::dropIfExists('log__activities');
     }
 };
