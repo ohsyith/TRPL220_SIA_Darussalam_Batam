@@ -151,6 +151,8 @@ class AuditorController extends Controller
      */
     public function destroy($id)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $auditor = Auditor::findOrFail($id);
         $user = $auditor->user;
 
