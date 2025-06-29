@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Calk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -36,6 +37,9 @@ class CalkController extends Controller
      */
     public function store(Request $request)
     {
+
+                DB::statement("SET @current_user_id = " . auth()->id());
+
         // Validasi input
         $validated = $request->validate([
             'keterangan' => 'required|string|max:255',
@@ -59,6 +63,9 @@ class CalkController extends Controller
 
     public function update(Request $request, $id)
     {
+
+                DB::statement("SET @current_user_id = " . auth()->id());
+
         $calk = Calk::findOrFail($id);
         $calk->keterangan = $request->keterangan;
 
@@ -79,6 +86,9 @@ class CalkController extends Controller
 
     public function destroy($id)
     {
+
+                DB::statement("SET @current_user_id = " . auth()->id());
+        
         $calk = Calk::findOrFail($id);
 
         // Hapus file fisik jika ada

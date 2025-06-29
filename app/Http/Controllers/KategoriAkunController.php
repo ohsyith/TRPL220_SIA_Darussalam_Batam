@@ -18,6 +18,8 @@ class KategoriAkunController extends Controller
 
     public function store(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         // Validasi data input
         $request->validate([
             'kode_kategori_akun' => 'required|string|max:255|unique:kategori_akun,kode_kategori_akun',
@@ -48,9 +50,9 @@ class KategoriAkunController extends Controller
 
     public function update(Request $request)
     {
-        // dd($request->all());
 
-        // Validasi data input
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $request->validate([
             'kode_kategori_akun' => 'required|string|max:255|unique:kategori_akun,kode_kategori_akun,' . $request->id_kategori_akun . ',id_kategori_akun',
             'kategori_akun' => 'required|string|max:255|unique:kategori_akun,kategori_akun,' . $request->id_kategori_akun . ',id_kategori_akun',
@@ -76,6 +78,9 @@ class KategoriAkunController extends Controller
 
     public function destroy(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
+        
         DB::beginTransaction();
 
         try {

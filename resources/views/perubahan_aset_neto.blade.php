@@ -135,7 +135,16 @@
                                     <tr>
                                         <td>Saldo Awal</td>
                                         <td class="text-end">
-                                            {{ number_format($data['tanpa_pembatasan']['saldo_awal'], 0) }}</td>
+                                            @if ($data['tanpa_pembatasan']['saldo_awal'] == 0)
+                                                -
+                                            @elseif ($data['tanpa_pembatasan']['saldo_awal'] > 0)
+                                                Rp
+                                                {{ number_format($data['tanpa_pembatasan']['saldo_awal'], 0, ',', '.') }}
+                                            @else
+                                                (Rp
+                                                {{ number_format(abs($data['tanpa_pembatasan']['saldo_awal']), 0, ',', '.') }})
+                                            @endif
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>Kenaikan (Penurunan) Aset Neto Periode Lalu</td>
@@ -145,18 +154,43 @@
                                     <tr>
                                         <td>Kenaikan (Penurunan) Aset Neto Periode Berjalan</td>
                                         <td class="text-end">
-                                            {{ number_format($data['tanpa_pembatasan']['kenaikan_periode_berjalan'], 0) }}
+                                            @if ($data['tanpa_pembatasan']['kenaikan_periode_berjalan'] == 0)
+                                                -
+                                            @elseif ($data['tanpa_pembatasan']['kenaikan_periode_berjalan'] > 0)
+                                                Rp
+                                                {{ number_format($data['tanpa_pembatasan']['kenaikan_periode_berjalan'], 0, ',', '.') }}
+                                            @else
+                                                (Rp
+                                                {{ number_format(abs($data['tanpa_pembatasan']['kenaikan_periode_berjalan']), 0, ',', '.') }})
+                                            @endif
                                         </td>
                                     </tr>
                                     <tr class="fw-bold">
                                         <td>Saldo Akhir Aset Neto Tanpa Pembatasan</td>
                                         <td class="text-end">
-                                            {{ number_format($data['tanpa_pembatasan']['saldo_akhir'], 0) }}</td>
+                                            @if ($data['tanpa_pembatasan']['saldo_akhir'] == 0)
+                                                -
+                                            @elseif ($data['tanpa_pembatasan']['saldo_akhir'] > 0)
+                                                Rp
+                                                {{ number_format($data['tanpa_pembatasan']['saldo_akhir'], 0, ',', '.') }}
+                                            @else
+                                                (Rp
+                                                {{ number_format(abs($data['tanpa_pembatasan']['saldo_akhir']), 0, ',', '.') }})
+                                            @endif
+                                        </td>
                                     </tr>
 
                                     <tr class="fw-bold table-success">
                                         <td>Total Saldo Akhir Aset Neto</td>
-                                        <td class="text-end">{{ number_format($total_saldo_akhir, 0) }}</td>
+                                        <td class="text-end">
+                                            @if ($total_saldo_akhir == 0)
+                                                -
+                                            @elseif ($total_saldo_akhir > 0)
+                                                Rp {{ number_format($total_saldo_akhir, 0, ',', '.') }}
+                                            @else
+                                                (Rp {{ number_format(abs($total_saldo_akhir), 0, ',', '.') }})
+                                            @endif
+                                        </td>
                                     </tr>
                                 </table>
                             </div>

@@ -220,150 +220,159 @@
                             <input type="hidden" name="search" value="{{ request('search') }}">
                         </form>
 
-                        <table class="table text-nowrap align-middle mb-0">
-                            <thead>
-                                <tr class="border-2 border-bottom border-primary border-0">
-                                    <th scope="col" class="ps-0">Tgl</th>
-                                    <th scope="col">No Bukti</th>
-                                    <th scope="col" class="text-center">Keterangan</th>
-                                    <th scope="col" class="text-center">Jenis</th>
-                                    <th scope="col" class="text-center">Unit</th>
-                                    <th scope="col" class="text-center">Divisi</th>
-                                    <th scope="col" class="text-center">Kegiatan</th>
-                                    <th scope="col" class="text-center">Sumber Anggaran</th>
-                                    <th scope="col" class="text-center">Kd Sumbangan</th>
-                                    <th scope="col" class="text-center">Kd P&H</th>
-                                    <th scope="col" class="text-center">Akun Debit (Rp)</th>
-                                    <th scope="col" class="text-center">Akun Kredit (Rp)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="table-group-divider">
-                                @php
-                                    $groupedData = $detailjurnalumum->groupBy('jurnal_umum.no_bukti');
-                                    $totalDebit = 0;
-                                    $totalKredit = 0;
-                                    $totalKeseluruhan = 0;
-                                @endphp
 
-                                @foreach ($groupedData as $no_bukti => $group)
-                                    @php $rowspan = $group->count(); @endphp
-                                    @foreach ($group as $index => $data)
-                                        <tr>
-                                            @if ($index === 0)
-                                                <th scope="row" class="ps-0 fw-medium th-with-dot"
-                                                    rowspan="{{ $rowspan }}">
+                        <div id="print-area">
 
-                                                    <div
-                                                        class="d-flex justify-content-between align-items-start position-relative">
-                                                        @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
-                                                            <span class="dot-red"
-                                                                data-id="{{ $data->jurnal_umum->id_jurnal_umum }}"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#postingModal"></span>
+                            <table class="table text-nowrap align-middle mb-0">
+                                <thead>
+                                    <tr class="border-2 border-bottom border-primary border-0">
+                                        <th scope="col" class="ps-0">Tgl</th>
+                                        <th scope="col">No Bukti</th>
+                                        <th scope="col" class="text-center">Keterangan</th>
+                                        <th scope="col" class="text-center">Jenis</th>
+                                        <th scope="col" class="text-center">Unit</th>
+                                        <th scope="col" class="text-center">Divisi</th>
+                                        <th scope="col" class="text-center">Kegiatan</th>
+                                        <th scope="col" class="text-center">Sumber Anggaran</th>
+                                        <th scope="col" class="text-center">Kd Sumbangan</th>
+                                        <th scope="col" class="text-center">Kd P&H</th>
+                                        <th scope="col" class="text-center">Akun Debit (Rp)</th>
+                                        <th scope="col" class="text-center">Akun Kredit (Rp)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-group-divider">
+                                    @php
+                                        $groupedData = $detailjurnalumum->groupBy('jurnal_umum.no_bukti');
+                                        $totalDebit = 0;
+                                        $totalKredit = 0;
+                                        $totalKeseluruhan = 0;
+                                    @endphp
+
+                                    @foreach ($groupedData as $no_bukti => $group)
+                                        @php $rowspan = $group->count(); @endphp
+                                        @foreach ($group as $index => $data)
+                                            <tr>
+                                                @if ($index === 0)
+                                                    <th scope="row" class="ps-0 fw-medium th-with-dot"
+                                                        rowspan="{{ $rowspan }}">
+
+                                                        @if (in_array($user->role, ['admin', 'akuntan_unit']))
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-start position-relative">
+                                                                @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
+                                                                    <span class="dot-red"
+                                                                        data-id="{{ $data->jurnal_umum->id_jurnal_umum }}"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#postingModal"></span>
+                                                                @endif
+
+                                                                <div class="dropdown ellipsis-dropdown ms-auto">
+                                                                    <button class="btn btn-sm p-0 border-0 bg-transparent"
+                                                                        type="button"
+                                                                        id="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}"
+                                                                        data-bs-toggle="dropdown" aria-expanded="false"
+                                                                        style="font-size: 20px; line-height: 1;">
+                                                                        &#8942;
+                                                                    </button>
+                                                                    <ul class="dropdown-menu"
+                                                                        aria-labelledby="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}">
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="{{ url('/jurnal-umum/' . $data->jurnal_umum->id_jurnal_umum) }}">Edit</a>
+                                                                        </li>
+
+                                                                        <button type="button"
+                                                                            class="dropdown-item text-danger"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#deleteModal"
+                                                                            data-id="{{ $data->jurnal_umum->id_jurnal_umum }}">
+                                                                            Hapus
+                                                                        </button>
+
+
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
                                                         @endif
 
-                                                        <div class="dropdown ellipsis-dropdown ms-auto">
-                                                            <button class="btn btn-sm p-0 border-0 bg-transparent"
-                                                                type="button"
-                                                                id="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}"
-                                                                data-bs-toggle="dropdown" aria-expanded="false"
-                                                                style="font-size: 20px; line-height: 1;">
-                                                                &#8942;
-                                                            </button>
-                                                            <ul class="dropdown-menu"
-                                                                aria-labelledby="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}">
-                                                                <li>
-                                                                    <a class="dropdown-item"
-                                                                        href="{{ url('/jurnal-umum/' . $data->jurnal_umum->id_jurnal_umum) }}">Edit</a>
-                                                                </li>
-
-                                                                <button type="button" class="dropdown-item text-danger"
-                                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                                                    data-id="{{ $data->jurnal_umum->id_jurnal_umum }}">
-                                                                    Hapus
-                                                                </button>
 
 
-
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-
-                                                    {{-- {{ $data->jurnal_umum->tanggal }} --}}
-                                                    {{ \Carbon\Carbon::parse($data->jurnal_umum->tanggal)->format('d-m-Y') }}
-                                                </th>
+                                                        {{-- {{ $data->jurnal_umum->tanggal }} --}}
+                                                        {{ \Carbon\Carbon::parse($data->jurnal_umum->tanggal)->format('d-m-Y') }}
+                                                    </th>
 
 
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->no_bukti }}
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->no_bukti }}
+                                                    </td>
+                                                    <td class="text-start fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->keterangan }}
+                                                    </td>
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->jenis_transaksi }}
+                                                    </td>
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->unit->unit }}
+                                                    </td>
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->divisi->divisi }}
+                                                    </td>
+                                                    <td class="text-start fw-medium" rowspan="{{ $rowspan }}">
+                                                        @if ($data->jurnal_umum->kegiatan)
+                                                            {{ $data->jurnal_umum->kegiatan->kode_kegiatan }} -
+                                                            {{ $data->jurnal_umum->kegiatan->kegiatan }}
+                                                        @else
+                                                            <em>-</em>
+                                                        @endif
+                                                    </td>
+
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        @if ($data->jurnal_umum->sumber_anggaran)
+                                                            {{ $data->jurnal_umum->sumber_anggaran->kode_akun }} -
+                                                            {{ $data->jurnal_umum->sumber_anggaran->akun }}
+                                                        @else
+                                                            <em>-</em>
+                                                        @endif
+                                                    </td>
+
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->kode_sumbangan }}
+                                                    </td>
+                                                    <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
+                                                        {{ $data->jurnal_umum->kode_ph }}
+                                                    </td>
+                                                @endif
+                                                <td class="text-center fw-medium border-2">
+                                                    @if ($data->debit_kredit === 'debit')
+                                                        {{ $data->akun->akun ?? 'Akun Tidak Ditemukan' }}
+                                                        (Rp {{ number_format($data->nominal) }})
+                                                        @php $totalDebit += $data->nominal; @endphp
+                                                    @endif
                                                 </td>
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->keterangan }}
-                                                </td>
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->jenis_transaksi }}
-                                                </td>
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->unit->unit }}
-                                                </td>
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->divisi->divisi }}
-                                                </td>
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    @if ($data->jurnal_umum->kegiatan)
-                                                        {{ $data->jurnal_umum->kegiatan->kode_kegiatan }} -
-                                                        {{ $data->jurnal_umum->kegiatan->kegiatan }}
-                                                    @else
-                                                        <em>-</em>
+                                                <td class="text-center fw-medium border-2">
+                                                    @if ($data->debit_kredit === 'kredit')
+                                                        {{ $data->akun->akun ?? 'Akun Tidak Ditemukan' }}
+                                                        (Rp {{ number_format($data->nominal) }})
+                                                        @php $totalKredit += $data->nominal; @endphp
                                                     @endif
                                                 </td>
 
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    @if ($data->jurnal_umum->sumber_anggaran)
-                                                        {{ $data->jurnal_umum->sumber_anggaran->kode_akun }} -
-                                                        {{ $data->jurnal_umum->sumber_anggaran->akun }}
-                                                    @else
-                                                        <em>-</em>
-                                                    @endif
-                                                </td>
-
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->kode_sumbangan }}
-                                                </td>
-                                                <td class="text-center fw-medium" rowspan="{{ $rowspan }}">
-                                                    {{ $data->jurnal_umum->kode_ph }}
-                                                </td>
-                                            @endif
-                                            <td class="text-center fw-medium border-2">
-                                                @if ($data->debit_kredit === 'debit')
-                                                    {{ $data->akun->akun ?? 'Akun Tidak Ditemukan' }}
-                                                    (Rp {{ number_format($data->nominal) }})
-                                                    @php $totalDebit += $data->nominal; @endphp
-                                                @endif
-                                            </td>
-                                            <td class="text-center fw-medium border-2">
-                                                @if ($data->debit_kredit === 'kredit')
-                                                    {{ $data->akun->akun ?? 'Akun Tidak Ditemukan' }}
-                                                    (Rp {{ number_format($data->nominal) }})
-                                                    @php $totalKredit += $data->nominal; @endphp
-                                                @endif
-                                            </td>
-
-                                        </tr>
+                                            </tr>
+                                        @endforeach
                                     @endforeach
-                                @endforeach
 
-                                <!-- Row Total -->
-                                <tr class="fw-bold bg-light">
-                                    <td colspan="10" class="text-end">Total</td>
-                                    <td class="text-center">Rp {{ number_format($totalDebit) }}</td>
-                                    <td class="text-center">Rp {{ number_format($totalKredit) }}</td>
-                                </tr>
+                                    <!-- Row Total -->
+                                    <tr class="fw-bold bg-light">
+                                        <td colspan="10" class="text-end">Total</td>
+                                        <td class="text-center">Rp {{ number_format($totalDebit) }}</td>
+                                        <td class="text-center">Rp {{ number_format($totalKredit) }}</td>
+                                    </tr>
 
-                            </tbody>
+                                </tbody>
 
-                        </table>
+                            </table>
+                        </div>
                         <div class="mt-4">
                             {{ $jurnalPaginated->links('pagination::bootstrap-5') }}
                         </div>
@@ -433,6 +442,7 @@
 
 
                     </div>
+
                 </div>
             </div>
         </div>
@@ -471,7 +481,13 @@
 
     <script>
         function printLaporan() {
+            const printContents = document.getElementById("print-area").innerHTML;
+            const originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = printContents;
             window.print();
+            document.body.innerHTML = originalContents;
+            location.reload(); // reload ulang biar interaksi kembali normal
         }
     </script>
 @endpush

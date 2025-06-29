@@ -24,7 +24,30 @@
             <div class="card">
 
                 <div id="form-unit" class="card-body">
-                    {{-- <form method="post" action="/register-akuntan-unit"> --}}
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Gagal!</strong> {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Terjadi kesalahan:</strong>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
                     <form method="post" action="{{ route('register.akuntan.unit') }}">
                         @csrf
                         <div class="mb-3">
@@ -115,8 +138,8 @@
                                                 <td class="text-start">Jurnal Umum</td>
                                                 <td>
                                                     <input type="hidden" name="view_jurnal_umum" value="0">
-                                                    <input class="form-check-input" type="checkbox" name="view_jurnal_umum"
-                                                        value="1">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="view_jurnal_umum" value="1">
                                                 </td>
                                                 <td>
                                                     <input type="hidden" name="create_jurnal_umum" value="0">
@@ -244,34 +267,35 @@
                     </form>
                 </div>
 
+                <div id="form-auditor" class="card-body">
 
-                <div id="form-divisi" class="card-body">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Gagal!</strong> {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
                     @if ($errors->any())
-                        <div class="alert alert-danger">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Terjadi kesalahan:</strong>
                             <ul class="mb-0">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
                         </div>
                     @endif
 
-                    @if (session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    @if (session('error'))
-                        <div class="alert alert-danger">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
-                </div>
 
 
-                <div id="form-auditor" class="card-body">
+                    
                     <form method="post" action="{{ route('register.auditor') }}">
                         @csrf
                         <div class="mb-3">
@@ -332,6 +356,20 @@
 @endsection
 
 @push('scripts')
+    <script>
+        setTimeout(function() {
+            let alerts = ['success-alert', 'error-alert', 'validation-alert'];
+            alerts.forEach(function(id) {
+                let alertEl = document.getElementById(id);
+                if (alertEl) {
+                    let alert = bootstrap.Alert.getOrCreateInstance(alertEl);
+                    alert.close();
+                }
+            });
+        }, 4000); // 4000 milidetik = 4 detik
+    </script>
+
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const tipeAkunSelect = document.getElementById("tipe_akun");

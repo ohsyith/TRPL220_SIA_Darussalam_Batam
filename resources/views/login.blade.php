@@ -24,15 +24,24 @@
                                     <img src="../assets/images/logos/SIAD.png" alt="" width="300" />
                                 </a>
                                 <p class="text-center">Sistem Informasi Akuntansi Yayasan Darussalam</p>
+
+                                @if (session('error'))
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        {{ session('error') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Tutup"></button>
+                                    </div>
+                                @endif
+
                                 <form method="POST" action="{{ route('login') }}">
                                     @csrf
                                     <div class="mb-3">
-                                        <input type="username" class="form-control" id="username" name="username" required 
-                                            aria-describedby="username" placeholder="Username">
+                                        <input type="username" class="form-control" id="username" name="username"
+                                            required aria-describedby="username" placeholder="Username">
                                     </div>
                                     <div class="mb-4">
-                                        <input type="password" class="form-control" id="password" name="password" required 
-                                            placeholder="Password">
+                                        <input type="password" class="form-control" id="password" name="password"
+                                            required placeholder="Password">
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-4">
                                         <div class="form-check">
@@ -47,7 +56,7 @@
                                     <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-4">Masuk</button>
                                     <div class="d-flex align-items-center justify-content-center">
                                         {{-- <p class="fs-4 mb-0 fw-bold">New to SeoDash?</p>
-                    <a class="text-primary fw-bold ms-2" href="./authentication-register.html">Create an account</a> --}}
+                                        <a class="text-primary fw-bold ms-2" href="./authentication-register.html">Create an account</a> --}}
                                     </div>
                                 </form>
                             </div>

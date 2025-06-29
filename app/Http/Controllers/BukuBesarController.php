@@ -27,19 +27,18 @@ class BukuBesarController extends Controller
     
 
 
+
     // public function index(Request $request)
     // {
     //     $akun_id = $request->filled('akun') ? $request->akun : 1;
-    //     $start_date = $request->filled('start_date') ? $request->start_date : null;
-    //     $end_date = $request->filled('end_date') ? $request->end_date : null;
+    //     $start_date = $request->filled('start_date') ? $request->start_date : date('Y-01-01');
+    //     $end_date = $request->filled('end_date') ? $request->end_date : date('Y-m-d');
 
     //     $user = Auth::user();
 
-    //     // Gunakan inputan jika tersedia
     //     $id_unit = $request->filled('id_unit') ? $request->id_unit : null;
     //     $id_divisi = $request->filled('id_divisi') ? $request->id_divisi : null;
 
-    //     // Jika input tidak diberikan, fallback ke role user
     //     if (!$id_unit && !$id_divisi) {
     //         if ($user->role === 'akuntan_unit') {
     //             $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
@@ -48,14 +47,11 @@ class BukuBesarController extends Controller
     //         }
     //     }
 
-    //     // Ambil data dari stored procedure
-    //     $detail_jurnal = DB::select(
+    //     // Panggil prosedur dan jadikan koleksi
+    //     $detail_jurnal = collect(DB::select(
     //         'CALL laporan_buku_besar(?, ?, ?, ?, ?)', 
     //         [$akun_id, $start_date, $end_date, $id_unit, $id_divisi]
-    //     );
-
-    //     // Ubah ke collection agar bisa pakai filter
-    //     $detail_jurnal = collect($detail_jurnal);
+    //     ));
 
     //     // Filter pencarian
     //     if ($request->filled('search')) {
@@ -71,36 +67,60 @@ class BukuBesarController extends Controller
     //         });
     //     }
 
-    //     // Hitung total
+    //     // Hitung total debit dan kredit sebelum paginasi
     //     $total_debit = $detail_jurnal->where('debit_kredit', 'debit')->sum('nominal');
     //     $total_kredit = $detail_jurnal->where('debit_kredit', 'kredit')->sum('nominal');
 
+    //     // ✅ Manual paginasi
+    //     $perPage = $request->input('per_page', 20);
+    //     $currentPage = LengthAwarePaginator::resolveCurrentPage();
+    //     $pagedData = $detail_jurnal->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+    //     $paginatedData = new LengthAwarePaginator(
+    //         $pagedData,
+    //         $detail_jurnal->count(),
+    //         $perPage,   
+    //         $currentPage,
+    //         ['path' => $request->url(), 'query' => $request->query()]
+    //     );
+
     //     $akunList = Akun::all();
-
-    //     if ($request->has('export_excel')) {
-    //         return $this->exportExcel($detail_jurnal, $akun_id, $start_date, $end_date);
-    //     }
-
-    //     // Ambil akun yang dipilih
     //     $akun = Akun::find($akun_id);
 
-    //     // Hitung saldo awal
     //     $saldo_awal = 0;
+    //     $saldo_akhir = 0;
+    //     $kategori = null;
+
     //     if ($akun) {
-    //         $saldo_awal = ($akun->saldo_awal_debit ?? 0) - ($akun->saldo_awal_kredit ?? 0);
+    //         $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun ?? null;
+
+    //         if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO', 'PENERIMAAN DAN SUMBANGAN'])) {
+    //             // Saldo normal kredit
+    //             $saldo_awal = ($akun->saldo_awal_kredit ?? 0) - ($akun->saldo_awal_debit ?? 0);
+    //             $saldo_akhir = $saldo_awal - $total_debit + $total_kredit;
+    //         } else {
+    //             // Saldo normal debit
+    //             $saldo_awal = ($akun->saldo_awal_debit ?? 0) - ($akun->saldo_awal_kredit ?? 0);
+    //             $saldo_akhir = $saldo_awal + $total_debit - $total_kredit;
+    //         }
     //     }
 
+    //     if ($request->has('export_excel')) {
+    //         return $this->exportExcelBukuBesar($akun, $detail_jurnal, $saldo_awal, $saldo_akhir, $start_date, $end_date);
+    //     }
+
+
     //     return view('buku-besar', compact(
-    //         'detail_jurnal', 
-    //         'akunList', 
-    //         'total_debit', 
-    //         'total_kredit', 
+    //         'paginatedData',
+    //         'akunList',
+    //         'total_debit',
+    //         'total_kredit',
     //         'saldo_awal',
+    //         'saldo_akhir',
     //         'id_unit',
     //         'id_divisi'
     //     ));
     // }
-
 
     public function index(Request $request)
     {
@@ -167,22 +187,108 @@ class BukuBesarController extends Controller
 
         if ($akun) {
             $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun ?? null;
+            $sub_kategori = $akun->sub_kategori_akun->sub_kategori_akun ?? null;
 
-            if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO', 'PENERIMAAN DAN SUMBANGAN'])) {
-                // Saldo normal kredit
+            // ========== LOGIKA KHUSUS UNTUK ASET NETO ==========
+            if ($kategori === 'ASET NETO' && in_array($sub_kategori, ['Dengan Pembatasan', 'Tanpa Pembatasan'])) {
+                
+                // Function untuk menghitung kenaikan periode
+                $getKenaikan = function ($id_akun, $start, $end) use ($id_unit, $id_divisi) {
+                    $query = DB::table('detail_jurnal_umum')
+                        ->join('jurnal_umum', 'detail_jurnal_umum.id_jurnal_umum', '=', 'jurnal_umum.id_jurnal_umum')
+                        ->whereIn('jurnal_umum.id_jurnal_umum', DB::table('buku_besar')->pluck('id_jurnal_umum')->toArray()) // Hanya jurnal yang sudah diposting
+                        ->where('detail_jurnal_umum.id_akun', $id_akun)
+                        ->whereBetween('jurnal_umum.tanggal', [$start, $end]);
+
+                    if ($id_unit) $query->where('jurnal_umum.id_unit', $id_unit);
+                    if ($id_divisi) $query->where('jurnal_umum.id_divisi', $id_divisi);
+
+                    return $query->select(
+                        DB::raw("SUM(CASE WHEN debit_kredit = 'debit' THEN nominal ELSE 0 END) as total_debit"),
+                        DB::raw("SUM(CASE WHEN debit_kredit = 'kredit' THEN nominal ELSE 0 END) as total_kredit")
+                    )->first();
+                };
+
+                // Function untuk menghitung total manual berdasarkan jenis transaksi
+                $getTotalManual = function ($isPendapatan, $jenis_transaksi, $start, $end) use ($id_unit, $id_divisi) {
+                    $kategori_target = $isPendapatan ? 'PENERIMAAN DAN SUMBANGAN' : 'BEBAN';
+                    $debit_kredit = $isPendapatan ? 'kredit' : 'debit';
+
+                    return DB::table('detail_jurnal_umum as dju')
+                        ->join('jurnal_umum as ju', 'dju.id_jurnal_umum', '=', 'ju.id_jurnal_umum')
+                        ->join('akun as a', 'dju.id_akun', '=', 'a.id_akun')
+                        ->join('sub_kategori_akun as ska', 'a.id_sub_kategori_akun', '=', 'ska.id_sub_kategori_akun')
+                        ->join('kategori_akun as ka', 'ska.id_kategori_akun', '=', 'ka.id_kategori_akun')
+                        ->whereIn('ju.id_jurnal_umum', DB::table('buku_besar')->pluck('id_jurnal_umum')->toArray()) // Hanya jurnal yang sudah diposting
+                        ->where('ka.kategori_akun', $kategori_target)
+                        ->where('ju.jenis_transaksi', $jenis_transaksi)
+                        ->whereBetween('ju.tanggal', [$start, $end])
+                        ->where('dju.debit_kredit', $debit_kredit)
+                        ->when($id_unit, fn($q) => $q->where('ju.id_unit', $id_unit))
+                        ->when($id_divisi, fn($q) => $q->where('ju.id_divisi', $id_divisi))
+                        ->sum('dju.nominal');
+                };
+
+                // Saldo awal dari akun
                 $saldo_awal = ($akun->saldo_awal_kredit ?? 0) - ($akun->saldo_awal_debit ?? 0);
-                $saldo_akhir = $saldo_awal - $total_debit + $total_kredit;
+
+                // Hitung kenaikan periode lalu (sebelum start_date)
+                $kenaikan_periode_lalu = 0;
+                $periode_lalu = $getKenaikan($akun->id_akun, '1900-01-01', date('Y-m-d', strtotime($start_date . ' -1 day')));
+                $kenaikan_periode_lalu = ($periode_lalu->total_kredit ?? 0) - ($periode_lalu->total_debit ?? 0);
+
+                // Hitung kenaikan periode berjalan berdasarkan jenis transaksi
+                $jenis_transaksi = ($sub_kategori === 'Dengan Pembatasan') ? 'Terikat' : 'Tidak Terikat';
+                
+                $pendapatan_periode = $getTotalManual(true, $jenis_transaksi, $start_date, $end_date);
+                $beban_periode = $getTotalManual(false, $jenis_transaksi, $start_date, $end_date);
+
+                // Ambil saldo awal untuk proporsi
+                $saldoAwalPendapatan = DB::table('akun')
+                    ->join('sub_kategori_akun', 'akun.id_sub_kategori_akun', '=', 'sub_kategori_akun.id_sub_kategori_akun')
+                    ->join('kategori_akun', 'sub_kategori_akun.id_kategori_akun', '=', 'kategori_akun.id_kategori_akun')
+                    ->where('kategori_akun.kategori_akun', 'PENERIMAAN DAN SUMBANGAN')
+                    ->sum('akun.saldo_awal_kredit');
+
+                $saldoAwalBeban = DB::table('akun')
+                    ->join('sub_kategori_akun', 'akun.id_sub_kategori_akun', '=', 'sub_kategori_akun.id_sub_kategori_akun')
+                    ->join('kategori_akun', 'sub_kategori_akun.id_kategori_akun', '=', 'kategori_akun.id_kategori_akun')
+                    ->where('kategori_akun.kategori_akun', 'BEBAN')
+                    ->sum('akun.saldo_awal_debit');
+
+                // Hitung total pendapatan untuk proporsi
+                $pendapatan_terikat_total = $getTotalManual(true, 'Terikat', $start_date, $end_date);
+                $pendapatan_tidak_terikat_total = $getTotalManual(true, 'Tidak Terikat', $start_date, $end_date);
+                $total_raw = $pendapatan_terikat_total + $pendapatan_tidak_terikat_total;
+
+                $kenaikan_periode_berjalan = $pendapatan_periode - $beban_periode;
+
+                // Tambahkan proporsi saldo awal jika ada total pendapatan
+                if ($total_raw > 0) {
+                    $proporsi = $pendapatan_periode / $total_raw;
+                    $kenaikan_periode_berjalan += $saldoAwalPendapatan * $proporsi - $saldoAwalBeban * $proporsi;
+                }
+
+                // Hitung saldo akhir
+                $saldo_akhir = $saldo_awal + $kenaikan_periode_lalu + $kenaikan_periode_berjalan;
+
             } else {
-                // Saldo normal debit
-                $saldo_awal = ($akun->saldo_awal_debit ?? 0) - ($akun->saldo_awal_kredit ?? 0);
-                $saldo_akhir = $saldo_awal + $total_debit - $total_kredit;
+                // ========== LOGIKA NORMAL UNTUK AKUN LAINNYA ==========
+                if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO', 'PENERIMAAN DAN SUMBANGAN'])) {
+                    // Saldo normal kredit
+                    $saldo_awal = ($akun->saldo_awal_kredit ?? 0) - ($akun->saldo_awal_debit ?? 0);
+                    $saldo_akhir = $saldo_awal - $total_debit + $total_kredit;
+                } else {
+                    // Saldo normal debit
+                    $saldo_awal = ($akun->saldo_awal_debit ?? 0) - ($akun->saldo_awal_kredit ?? 0);
+                    $saldo_akhir = $saldo_awal + $total_debit - $total_kredit;
+                }
             }
         }
 
         if ($request->has('export_excel')) {
             return $this->exportExcelBukuBesar($akun, $detail_jurnal, $saldo_awal, $saldo_akhir, $start_date, $end_date);
         }
-
 
         return view('buku-besar', compact(
             'paginatedData',
@@ -195,108 +301,6 @@ class BukuBesarController extends Controller
             'id_divisi'
         ));
     }
-
-
-    // private function exportExcel($detail_jurnal, $akun_id, $start_date, $end_date)
-    // {
-    //     $spreadsheet = new Spreadsheet();
-    //     $sheet = $spreadsheet->getActiveSheet();
-
-    //     // Header utama
-    //     $sheet->setCellValue('A1', 'BUKU BESAR YAYASAN DARUSSALAM BATAM');
-    //     $sheet->mergeCells('A1:G1');
-    //     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-    //     $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-    //     // Periode
-    //     $periodeText = 'Periode: ';
-    //     if ($start_date && $end_date) {
-    //         $periodeText .= date('d/m/Y', strtotime($start_date)) . ' - ' . date('d/m/Y', strtotime($end_date));
-    //     } else {
-    //         $periodeText .= 'Semua Periode';
-    //     }
-    //     $sheet->setCellValue('A2', $periodeText);
-    //     $sheet->mergeCells('A2:G2');
-    //     $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-    //     // Header tabel
-    //     $sheet->setCellValue('A4', 'Tanggal');
-    //     $sheet->setCellValue('B4', 'No Bukti');
-    //     $sheet->setCellValue('C4', 'Keterangan');
-    //     $sheet->setCellValue('D4', 'Unit');
-    //     $sheet->setCellValue('E4', 'Divisi');
-    //     $sheet->setCellValue('F4', 'Debit (Rp)');
-    //     $sheet->setCellValue('G4', 'Kredit (Rp)');
-
-    //     $sheet->getStyle('A4:G4')->applyFromArray([
-    //         'font' => ['bold' => true],
-    //         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '000000']],
-    //         'font' => ['color' => ['rgb' => 'FFFFFF']],
-    //         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-    //     ]);
-    //     $sheet->getStyle('A4:G4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-    //     $row = 5;
-    //     $running_saldo = 0;
-
-    //     foreach ($detail_jurnal as $item) {
-    //         $debit = ($item->debit_kredit === 'debit') ? $item->nominal : 0;
-    //         $kredit = ($item->debit_kredit === 'kredit') ? $item->nominal : 0;
-    //         $running_saldo += $debit - $kredit;
-
-    //         $sheet->setCellValue('A' . $row, date('d/m/Y', strtotime($item->tanggal)));
-    //         $sheet->setCellValue('B' . $row, $item->no_bukti);
-    //         $sheet->setCellValue('C' . $row, $item->keterangan);
-    //         $sheet->setCellValue('D' . $row, $item->unit ?? '-');
-    //         $sheet->setCellValue('E' . $row, $item->divisi ?? '-');
-    //         $sheet->setCellValue('F' . $row, $debit);
-    //         $sheet->setCellValue('G' . $row, $kredit);
-
-    //         // Format angka dan alignment
-    //         $sheet->getStyle("F{$row}:G{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-    //         $sheet->getStyle("F{$row}:G{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-
-    //         $row++;
-    //     }
-
-    //     // Total debit dan kredit
-    //     $total_debit = $detail_jurnal->where('debit_kredit', 'debit')->sum('nominal');
-    //     $total_kredit = $detail_jurnal->where('debit_kredit', 'kredit')->sum('nominal');
-
-    //     $sheet->setCellValue('A' . $row, 'Total');
-    //     $sheet->mergeCells("A{$row}:E{$row}");
-    //     $sheet->setCellValue('F' . $row, $total_debit);
-    //     $sheet->setCellValue('G' . $row, $total_kredit);
-
-    //     $sheet->getStyle("A{$row}:G{$row}")->getFont()->setBold(true);
-    //     $sheet->getStyle("F{$row}:G{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-    //     $sheet->getStyle("F{$row}:G{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-
-    //     // Border seluruh tabel
-    //     $sheet->getStyle("A4:G{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-    //     // Auto size kolom
-    //     foreach (range('A', 'G') as $col) {
-    //         $sheet->getColumnDimension($col)->setAutoSize(true);
-    //     }
-
-    //     // Footer
-    //     $row += 2;
-    //     $sheet->setCellValue('A' . $row, 'Sistem Informasi Akuntansi Yayasan Darussalam Batam | ' . date('Y'));
-    //     $sheet->mergeCells("A{$row}:G{$row}");
-    //     $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-    //     // Output file
-    //     $fileName = 'Buku_Besar_Akun_' . $akun_id . '_' . ($start_date ? date('d-m-Y', strtotime($start_date)) : 'awal') . '_' . ($end_date ? date('d-m-Y', strtotime($end_date)) : 'akhir') . '.xlsx';
-    //     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    //     header("Content-Disposition: attachment;filename=\"{$fileName}\"");
-    //     header('Cache-Control: max-age=0');
-
-    //     $writer = new Xlsx($spreadsheet);
-    //     $writer->save('php://output');
-    //     exit;
-    // }
-
 
     private function exportExcelBukuBesar($akun, $data, $saldo_awal, $saldo_akhir, $start_date, $end_date)
     {

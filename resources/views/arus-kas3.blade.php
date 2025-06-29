@@ -158,7 +158,7 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Komponen Laporan Arus Kas</th>
-                                    <th class="text-end">Total {{ $tahun }}</th>
+                                    <th class="text-end">Total</th>
                                     <th class="text-end">Tahun {{ $tahun - 1 }}</th>
                                     <th class="text-end">Tahun {{ $tahun }}</th>
                                 </tr>

@@ -16,7 +16,45 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
+
+
                 <div class="card-body">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error-alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="validation-alert">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if (session('import_errors'))
+                        <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                            <strong>Beberapa baris gagal diimpor:</strong>
+                            <ul class="mb-0">
+                                @foreach (session('import_errors') as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
                     <h5 class="card-title">Akun</h5><br>
 
 
@@ -105,18 +143,26 @@
                                             </div>
 
                                             <div class="mb-3">
-                                                <label for="saldo_awal_debit" class="form-label">Saldo
-                                                    Awal Debit</label>
-                                                <input type="number" name="saldo_awal_debit" id="saldo_awal_debit"
-                                                    class="form-control" required>
+                                                <label for="saldo_awal_debit" class="form-label">Saldo Awal Debit</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Rp</span>
+                                                    <input type="text" name="saldo_awal_debit" id="saldo_awal_debit"
+                                                        class="form-control format-rupiah" oninput="formatRupiah(this)"
+                                                        required>
+                                                </div>
                                             </div>
 
                                             <div class="mb-3">
-                                                <label for="saldo_awal_kredit" class="form-label">Saldo
-                                                    Awal Kredit</label>
-                                                <input type="number" name="saldo_awal_kredit" id="saldo_awal_kredit"
-                                                    class="form-control" required>
+                                                <label for="saldo_awal_kredit" class="form-label">Saldo Awal
+                                                    Kredit</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Rp</span>
+                                                    <input type="text" name="saldo_awal_kredit" id="saldo_awal_kredit"
+                                                        class="form-control format-rupiah" oninput="formatRupiah(this)"
+                                                        required>
+                                                </div>
                                             </div>
+
 
                                         </div>
                                         <div class="modal-footer">
@@ -240,16 +286,25 @@
                                             <div class="mb-3">
                                                 <label for="edit_saldo_awal_debit" class="form-label">Saldo Awal
                                                     Debit</label>
-                                                <input type="number" name="saldo_awal_debit" id="edit_saldo_awal_debit"
-                                                    class="form-control" required>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Rp</span>
+                                                    <input type="text" name="saldo_awal_debit"
+                                                        id="edit_saldo_awal_debit" class="form-control format-rupiah"
+                                                        oninput="formatRupiah(this)" required>
+                                                </div>
                                             </div>
 
                                             <div class="mb-3">
                                                 <label for="edit_saldo_awal_kredit" class="form-label">Saldo Awal
                                                     Kredit</label>
-                                                <input type="number" name="saldo_awal_kredit"
-                                                    id="edit_saldo_awal_kredit" class="form-control" required>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Rp</span>
+                                                    <input type="text" name="saldo_awal_kredit"
+                                                        id="edit_saldo_awal_kredit" class="form-control format-rupiah"
+                                                        oninput="formatRupiah(this)" required>
+                                                </div>
                                             </div>
+
 
 
                                         </div>
@@ -302,6 +357,47 @@
 
 @push('scripts')
     <script>
+        function formatRupiah(input) {
+            let value = input.value.replace(/[^,\d]/g, '');
+            let parts = value.split(',');
+            let number = parts[0];
+            let formatted = '';
+            let sisa = number.length % 3;
+            let ribuan = number.substr(sisa).match(/\d{3}/g);
+
+            if (sisa) {
+                formatted = number.substr(0, sisa);
+            }
+
+            if (ribuan) {
+                formatted += (sisa ? '.' : '') + ribuan.join('.');
+            }
+
+            if (parts[1]) {
+                formatted += ',' + parts[1];
+            }
+
+            input.value = formatted;
+        }
+    </script>
+
+
+
+    <script>
+        setTimeout(function() {
+            let alertIds = ['success-alert', 'error-alert', 'validation-alert'];
+            alertIds.forEach(function(id) {
+                let el = document.getElementById(id);
+                if (el) {
+                    let alert = bootstrap.Alert.getOrCreateInstance(el);
+                    alert.close();
+                }
+            });
+        }, 4000); // 4 detik
+    </script>
+
+
+    <script>
         function setEditAkun(button) {
             const btn = button.dataset;
             console.log("DATA BUTTON:", btn); // debug
@@ -309,8 +405,8 @@
             document.getElementById('edit_id_akun').value = btn.id_akun;
             document.getElementById('edit_kode_akun').value = btn.kode_akun;
             document.getElementById('edit_akun').value = btn.akun;
-            document.getElementById('edit_saldo_awal_debit').value = btn.saldo_awal_debit;
-            document.getElementById('edit_saldo_awal_kredit').value = btn.saldo_awal_kredit;
+            document.getElementById('edit_saldo_awal_debit').value = numberToRupiah(btn.saldo_awal_debit);
+            document.getElementById('edit_saldo_awal_kredit').value = numberToRupiah(btn.saldo_awal_kredit);
 
             const select = document.getElementById('edit_id_sub_kategori_akun');
             for (let i = 0; i < select.options.length; i++) {
@@ -326,6 +422,11 @@
 
         function setHapusAkun(id) {
             document.getElementById('hapus_id_akun').value = id;
+        }
+
+
+        function numberToRupiah(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
     </script>
 @endpush

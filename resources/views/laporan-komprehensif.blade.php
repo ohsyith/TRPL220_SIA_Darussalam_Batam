@@ -270,8 +270,14 @@
                                         <td>KENAIKAN (PENURUNAN) PENGHASILAN KOMPREHENSIF</td>
                                         <td></td>
                                         <td></td>
-                                        <td class="text-end">Rp
-                                            {{ number_format($kenaikan_penghasilan_komprehensif, 0, ',', '.') }}
+                                        <td class="text-end">
+                                            @if ($kenaikan_penghasilan_komprehensif == 0)
+                                                -
+                                            @elseif ($kenaikan_penghasilan_komprehensif > 0)
+                                                Rp {{ number_format($kenaikan_penghasilan_komprehensif, 0, ',', '.') }}
+                                            @else
+                                                (Rp {{ number_format(abs($kenaikan_penghasilan_komprehensif), 0, ',', '.') }})
+                                            @endif
                                         </td>
                                     </tr>
                                 </tbody>

@@ -43,10 +43,8 @@ class DatabaseSeeder extends Seeder
         $this->call(SubKategoriAkunSeeder::class);
         $this->call(AkunSeeder::class);
         $this->call(KegiatanSeeder::class);
-        $this->call(BudgetRapbsAkunSeeder::class);
+        // $this->call(BudgetRapbsAkunSeeder::class);
         $this->call(SaldoAkhirTahunSeeder::class);
         $this->call(KomprehensifAkhirTahunSeeder::class);
-
-
     }
 }

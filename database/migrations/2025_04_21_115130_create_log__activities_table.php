@@ -15,7 +15,7 @@ return new class extends Migration
             $table->bigIncrements('id_log_activity');
 
             $table->unsignedBigInteger('id_user');
-            $table->foreign('id_user')->references('id_user')->on('user');
+            $table->foreign('id_user')->references('id_user')->on('user')->onDelete('cascade');
 
             $table->string('keterangan');
 

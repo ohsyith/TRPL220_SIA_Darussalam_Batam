@@ -27,7 +27,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class JurnalUmumController extends Controller
 {
-    
+
+
 
     public function index(Request $request)
     {
@@ -122,10 +123,6 @@ class JurnalUmumController extends Controller
         ]);
     }
 
-
-
-
-    
 
 
     private function exportExcel($detailjurnalumum)
@@ -239,125 +236,6 @@ class JurnalUmumController extends Controller
     }
 
 
-
-    // public function create()
-    // {
-    //     $user = Auth::user();
-    //     $id_unit = null;
-    //     $id_divisi = null;
-
-    //     if ($user->role === 'akuntan_unit') {
-    //         $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
-    //         $id_unit = $akuntanUnit?->id_unit;
-    //     }
-
-    //     if ($user->role === 'akuntan_divisi') {
-    //         $akuntanDivisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->first();
-    //         $id_divisi = $akuntanDivisi?->id_divisi;
-    //     }
-
-    //     $sumber_anggaran_all = Akun::whereHas('sub_kategori_akun', function ($query) {
-    //         $query->where('sub_kategori_akun', 'Penerimaan dan Sumbangan Pendidikan');
-    //     })
-    //     ->orderBy('kode_akun')
-    //     ->get();
-
-    //     $sumber_anggaran_grouped = $sumber_anggaran_all->groupBy('id_unit');
-
-    //     $unit = Unit::all();
-    //     $divisi = Divisi::all();
-    //     $akun = []; // akan di-load via JS
-    //     $kegiatan = Kegiatan::orderBy('kode_kegiatan')->get()->groupBy('id_unit');
-
-    //     return view('input-transaksi', compact('unit', 'divisi', 'akun', 'kegiatan', 'sumber_anggaran_all', 'sumber_anggaran_grouped', 'id_unit', 'id_divisi'));
-    // }
-
-
-
-    // public function store(Request $request)
-    // {   
-    //     $id_user_login = Auth::user()->id_user;
-    //     DB::statement("SET @current_user_id = $id_user_login");
-
-    //     $request->validate([
-    //         'tanggal' => 'required|date',
-    //         'keterangan' => 'required|string',
-    //         'jenis_transaksi' => 'required|string',
-    //         'id_unit' => 'required|exists:unit,id_unit',
-    //         'id_divisi' => 'required|exists:divisi,id_divisi',
-    //         'id_akun' => 'required|array',
-    //         'id_akun.*' => 'exists:akun,id_akun',
-    //         'debit' => 'required|array',
-    //         'kredit' => 'required|array',
-    //         'id_kegiatan' => 'required|exists:kegiatan,id_kegiatan',
-    //         'id_sumber_anggaran' => 'required|exists:akun,id_akun',
-
-    //     ]);
-
-    //     return DB::transaction(function () use ($request) {
-    //         // Format tanggal menjadi YYYYMMDD
-    //         $tanggalFormatted = date('Ymd', strtotime($request->tanggal));
-
-    //         // Hitung jumlah entri dengan tanggal yang sama
-    //         $count = Jurnal_Umum::whereDate('tanggal', $request->tanggal)->count() + 1;
-
-    //         // Format urutan menjadi 3 digit, misalnya 003, 012, dll.
-    //         $urutan = str_pad($count, 3, '0', STR_PAD_LEFT);
-
-    //         // Buat no_bukti
-    //         $no_bukti = "INV-$tanggalFormatted-$urutan";
-
-    //         // Simpan ke tabel jurnal_umum
-    //         $jurnal = Jurnal_Umum::create([
-    //             'tanggal' => $request->tanggal,
-    //             'no_bukti' => $no_bukti,
-    //             'keterangan' => $request->keterangan,
-    //             'jenis_transaksi' => $request->jenis_transaksi,
-    //             'id_unit' => $request->id_unit,
-    //             'id_divisi' => $request->id_divisi,
-    //             'id_kegiatan' => $request->id_kegiatan,
-    //             'id_sumber_anggaran' => $request->id_sumber_anggaran,
-    //             'kode_sumbangan' => $request->kode_sumbangan ?? '',
-    //             'kode_ph' => $request->kode_ph ?? ''
-    //         ]);
-
-    //         // Simpan ke tabel detail_jurnal_umum
-    //         foreach ($request->id_akun as $key => $id_akun) {
-    //             $debit = (int) preg_replace('/\D/', '', $request->debit[$key]) ?: 0;
-    //             $kredit = (int) preg_replace('/\D/', '', $request->kredit[$key]) ?: 0;
-
-    //             if ($debit > 0) {
-    //                 Detail_Jurnal_Umum::create([
-    //                     'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //                     'id_akun' => $id_akun,
-    //                     'nominal' => $debit,
-    //                     'debit_kredit' => 'debit'
-    //                 ]);
-    //             }
-
-    //             if ($kredit > 0) {
-    //                 Detail_Jurnal_Umum::create([
-    //                     'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //                     'id_akun' => $id_akun,
-    //                     'nominal' => $kredit,
-    //                     'debit_kredit' => 'kredit'
-    //                 ]);
-    //             }
-    //         }
-
-    //         // **Jika checkbox "Posting ke Buku Besar" dicentang, insert ke buku_besar**
-    //         if ($request->has('postingBukuBesar')) {
-    //             Buku_Besar::create([
-    //                 'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //             ]);
-    //         }
-
-    //         // Redirect dengan pesan sukses dan no_bukti
-    //         return redirect()->route('jurnal-umum.index')->with('success', 'Data berhasil disimpan. No Bukti: ' . $no_bukti);
-    //     });
-    // }
-
-
     public function create()
     {
         $user = Auth::user();
@@ -385,6 +263,7 @@ class JurnalUmumController extends Controller
 
         return view('input-transaksi', compact('unit', 'divisi', 'akun', 'kegiatan', 'sumber_anggaran', 'id_unit', 'id_divisi'));
     }
+
 
 
     public function store(Request $request)
@@ -415,12 +294,9 @@ class JurnalUmumController extends Controller
             // Format tanggal menjadi YYYYMMDD
             $tanggalFormatted = date('Ymd', strtotime($request->tanggal));
 
-            // Hitung total entri yang sudah ada
-            $count = Jurnal_Umum::count() + 1;
-
-            // Format menjadi 7 digit angka, misalnya 0000001
-            $no_bukti = str_pad($count, 7, '0', STR_PAD_LEFT);
-
+            $last = Jurnal_Umum::orderBy('no_bukti', 'desc')->first();
+            $lastNumber = $last ? intval($last->no_bukti) : 0;
+            $no_bukti = str_pad($lastNumber + 1, 7, '0', STR_PAD_LEFT);
 
             // Simpan ke tabel jurnal_umum
             $jurnal = Jurnal_Umum::create([
@@ -471,150 +347,14 @@ class JurnalUmumController extends Controller
             return redirect()->route('jurnal-umum.index')->with('success', 'Data berhasil disimpan. No Bukti: ' . $no_bukti);
         });
     }
-    
-    // public function import(Request $request)
-    // {
-    //     $request->validate([
-    //         'file_excel' => 'required|mimes:xlsx,xls',
-    //     ]);
-
-    //     if (!$request->hasFile('file_excel')) {
-    //         return back()->with('error', '❌ Tidak ada file yang dikirim!');
-    //     }
-
-    //     $file = $request->file('file_excel');
-
-    //     try {
-    //         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
-    //         $sheet = $spreadsheet->getActiveSheet();
-    //         $rows = $sheet->toArray();
-
-    //         DB::beginTransaction();
-
-    //         foreach ($rows as $index => $row) {
-    //             if ($index === 0) continue; // skip header
-
-    //             // 1. Tanggal
-    //             $tanggal = is_numeric($row[0])
-    //                 ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[0])->format('Y-m-d')
-    //                 : date('Y-m-d', strtotime($row[0]));
-
-    //             $keterangan = $row[1] ?? '-';
-    //             $jenis_transaksi = $row[2] ?? '-';
-
-    //             // 2. Unit
-    //             $id_unit = \App\Models\Unit::where('kode_unit', $row[3])->value('id_unit');
-    //             if (!$id_unit) throw new \Exception("❌ Unit tidak ditemukan: {$row[3]} (baris ke-" . ($index + 1) . ")");
-
-    //             // 3. Divisi
-    //             $id_divisi = \App\Models\Divisi::where('divisi', $row[4])->value('id_divisi');
-    //             if (!$id_divisi) throw new \Exception("❌ Divisi tidak ditemukan: {$row[4]} (baris ke-" . ($index + 1) . ")");
-
-                
-    //             // 4. Kegiatan
-    //             $id_kegiatan = null;
-    //             if (!empty($row[5])) {
-    //                 $potongan = explode('|', $row[5]);
-    //                 $kode_kegiatan = trim($potongan[0]);
-
-    //                 $id_kegiatan = \App\Models\Kegiatan::where('kode_kegiatan', $kode_kegiatan)->value('id_kegiatan');
-    //                 if (!$id_kegiatan) throw new \Exception("❌ Kegiatan tidak ditemukan: {$row[5]} (baris ke-" . ($index + 1) . ")");
-    //             }
 
 
-    //             // 5. Sumber Anggaran
-    //             $id_sumber_anggaran = null;
-    //             if (!empty($row[6])) {
-    //                 $potongan = explode('|', $row[6]);
-    //                 $kode_akun = trim($potongan[0]);
-
-    //                 $id_sumber_anggaran = \App\Models\Akun::where('kode_akun', $kode_akun)
-    //                     ->whereHas('sub_kategori_akun', function ($q) {
-    //                         $q->where('sub_kategori_akun', 'Penerimaan dan Sumbangan Pendidikan');
-    //                     })
-    //                     ->value('id_akun');
-
-    //                 if (!$id_sumber_anggaran) throw new \Exception("❌ Sumber Anggaran tidak cocok: {$row[6]} (baris ke-" . ($index + 1) . ")");
-    //             }
-
-
-    //             // 6. Kode Opsional
-    //             $kode_sumbangan = $row[7] ?? null;
-    //             $kode_ph = $row[8] ?? null;
-
-    //             // 7. Akun Debit
-    //             $id_akun_debit = null;
-    //             if (!empty($row[9])) {
-    //                 $potongan = explode('|', $row[9]);
-    //                 $kode_akun_debit = trim($potongan[0]);
-
-    //                 $id_akun_debit = \App\Models\Akun::where('kode_akun', $kode_akun_debit)->value('id_akun');
-    //                 if (!$id_akun_debit) throw new \Exception("❌ Akun Debit tidak ditemukan: {$row[9]} (baris ke-" . ($index + 1) . ")");
-    //             }
-
-
-    //             // 8. Akun Kredit
-    //             $id_akun_kredit = null;
-    //             if (!empty($row[10])) {
-    //                 $potongan = explode('|', $row[10]);
-    //                 $kode_akun_kredit = trim($potongan[0]);
-
-    //                 $id_akun_kredit = \App\Models\Akun::where('kode_akun', $kode_akun_kredit)->value('id_akun');
-    //                 if (!$id_akun_kredit) throw new \Exception("❌ Akun Kredit tidak ditemukan: {$row[10]} (baris ke-" . ($index + 1) . ")");
-    //             }
-
-    //             //nominal
-    //             $nominal = (int) preg_replace('/\D/', '', $row[11] ?? 0);
-    //             if ($nominal <= 0) throw new \Exception("❌ Nominal tidak valid di baris ke-" . ($index + 1));
-
-    //             // 9. Nomor Bukti
-    //             $tanggalFormatted = date('Ymd', strtotime($tanggal));
-    //             $count = \App\Models\Jurnal_Umum::whereDate('tanggal', $tanggal)->count() + 1;
-    //             $urutan = str_pad($count, 3, '0', STR_PAD_LEFT);
-    //             $no_bukti = "INV-{$tanggalFormatted}-{$urutan}";
-
-    //             // 10. Simpan Jurnal Umum
-    //             $jurnal = \App\Models\Jurnal_Umum::create([
-    //                 'tanggal' => $tanggal,
-    //                 'no_bukti' => $no_bukti,
-    //                 'keterangan' => $keterangan,
-    //                 'jenis_transaksi' => $jenis_transaksi,
-    //                 'id_unit' => $id_unit,
-    //                 'id_divisi' => $id_divisi,
-    //                 'id_kegiatan' => $id_kegiatan,
-    //                 'id_sumber_anggaran' => $id_sumber_anggaran,
-    //                 'kode_sumbangan' => $kode_sumbangan,
-    //                 'kode_ph' => $kode_ph,
-    //             ]);
-
-    //             // 11. Simpan Detail Debit
-    //             \App\Models\Detail_Jurnal_Umum::create([
-    //                 'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //                 'id_akun' => $id_akun_debit,
-    //                 'nominal' => $nominal_debit,
-    //                 'debit_kredit' => 'debit'
-    //             ]);
-
-    //             // 12. Simpan Detail Kredit
-    //             \App\Models\Detail_Jurnal_Umum::create([
-    //                 'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //                 'id_akun' => $id_akun_kredit,
-    //                 'nominal' => $nominal_kredit,
-    //                 'debit_kredit' => 'kredit'
-    //             ]);
-    //         }
-
-    //         DB::commit();
-    //         return back()->with('success', '✅ Import berhasil.');
-
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         return back()->with('error', '❌ Error: ' . $e->getMessage() . ' in file ' . $e->getFile() . ' at line ' . $e->getLine());
-    //     }
-    // }
 
     public function import(Request $request)
     {
+        $id_user_login = Auth::user()->id_user;
+        DB::statement("SET @current_user_id = $id_user_login");
+
         $request->validate([
             'file_excel' => 'required|mimes:xlsx,xls',
         ]);
@@ -626,7 +366,7 @@ class JurnalUmumController extends Controller
         $file = $request->file('file_excel');
 
         try {
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+            $spreadsheet = IOFactory::load($file);
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
 
@@ -636,25 +376,25 @@ class JurnalUmumController extends Controller
                 if ($index === 0) continue; // Skip header
 
                 $tanggal = is_numeric($row[0])
-                    ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[0])->format('Y-m-d')
+                    ? Date::excelToDateTimeObject($row[0])->format('Y-m-d')
                     : date('Y-m-d', strtotime($row[0]));
 
                 $keterangan = $row[1] ?? '-';
                 $jenis_transaksi = $row[2] ?? '-';
 
                 // Unit
-                $id_unit = \App\Models\Unit::where('unit', $row[3])->value('id_unit');
+                $id_unit = Unit::where('unit', $row[3])->value('id_unit');
                 if (!$id_unit) throw new \Exception("❌ Unit tidak ditemukan: {$row[3]} (baris ke-" . ($index + 1) . ")");
 
                 // Divisi
-                $id_divisi = \App\Models\Divisi::where('divisi', $row[4])->value('id_divisi');
+                $id_divisi = Divisi::where('divisi', $row[4])->value('id_divisi');
                 if (!$id_divisi) throw new \Exception("❌ Divisi tidak ditemukan: {$row[4]} (baris ke-" . ($index + 1) . ")");
 
                 // Kegiatan
                 $id_kegiatan = null;
                 if (!empty($row[5])) {
                     $kode_kegiatan = trim(explode('|', $row[5])[0]);
-                    $id_kegiatan = \App\Models\Kegiatan::where('kode_kegiatan', $kode_kegiatan)->value('id_kegiatan');
+                    $id_kegiatan = Kegiatan::where('kode_kegiatan', $kode_kegiatan)->value('id_kegiatan');
                     if (!$id_kegiatan) throw new \Exception("❌ Kegiatan tidak ditemukan: {$row[5]} (baris ke-" . ($index + 1) . ")");
                 }
 
@@ -662,7 +402,7 @@ class JurnalUmumController extends Controller
                 $id_sumber_anggaran = null;
                 if (!empty($row[6])) {
                     $kode_sumber = trim(explode('|', $row[6])[0]);
-                    $id_sumber_anggaran = \App\Models\Akun::where('kode_akun', $kode_sumber)
+                    $id_sumber_anggaran = Akun::where('kode_akun', $kode_sumber)
                         ->whereHas('sub_kategori_akun', function ($q) {
                             $q->where('sub_kategori_akun', 'Penerimaan dan Sumbangan Pendidikan');
                         })
@@ -677,7 +417,7 @@ class JurnalUmumController extends Controller
                 $id_akun_debit = null;
                 if (!empty($row[9])) {
                     $kode_debit = trim(explode('|', $row[9])[0]);
-                    $id_akun_debit = \App\Models\Akun::where('kode_akun', $kode_debit)->value('id_akun');
+                    $id_akun_debit = Akun::where('kode_akun', $kode_debit)->value('id_akun');
                     if (!$id_akun_debit) throw new \Exception("❌ Akun Debit tidak ditemukan: {$row[9]} (baris ke-" . ($index + 1) . ")");
                 }
 
@@ -685,7 +425,7 @@ class JurnalUmumController extends Controller
                 $id_akun_kredit = null;
                 if (!empty($row[10])) {
                     $kode_kredit = trim(explode('|', $row[10])[0]);
-                    $id_akun_kredit = \App\Models\Akun::where('kode_akun', $kode_kredit)->value('id_akun');
+                    $id_akun_kredit = Akun::where('kode_akun', $kode_kredit)->value('id_akun');
                     if (!$id_akun_kredit) throw new \Exception("❌ Akun Kredit tidak ditemukan: {$row[10]} (baris ke-" . ($index + 1) . ")");
                 }
 
@@ -702,12 +442,12 @@ class JurnalUmumController extends Controller
 
 
                 // Nomor Bukti
-                $count = \App\Models\Jurnal_Umum::count() + 1;
-                $no_bukti = str_pad($count, 7, '0', STR_PAD_LEFT);
-
+                $last = Jurnal_Umum::orderBy('no_bukti', 'desc')->first();
+                $lastNumber = $last ? intval($last->no_bukti) : 0;
+                $no_bukti = str_pad($lastNumber + 1, 7, '0', STR_PAD_LEFT);
 
                 // Simpan Jurnal Umum
-                $jurnal = \App\Models\Jurnal_Umum::create([
+                $jurnal = Jurnal_Umum::create([
                     'tanggal' => $tanggal,
                     'no_bukti' => $no_bukti,
                     'keterangan' => $keterangan,
@@ -721,7 +461,7 @@ class JurnalUmumController extends Controller
                 ]);
 
                 // Simpan Detail Debit
-                \App\Models\Detail_Jurnal_Umum::create([
+                Detail_Jurnal_Umum::create([
                     'id_jurnal_umum' => $jurnal->id_jurnal_umum,
                     'id_akun' => $id_akun_debit,
                     'nominal' => $nominal,
@@ -729,7 +469,7 @@ class JurnalUmumController extends Controller
                 ]);
 
                 // Simpan Detail Kredit
-                \App\Models\Detail_Jurnal_Umum::create([
+                Detail_Jurnal_Umum::create([
                     'id_jurnal_umum' => $jurnal->id_jurnal_umum,
                     'id_akun' => $id_akun_kredit,
                     'nominal' => $nominal,
@@ -738,136 +478,15 @@ class JurnalUmumController extends Controller
             }
 
             DB::commit();
-            return back()->with('success', '✅ Import berhasil.');
+            return back()->with('success', 'Berhasil Import.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->with('error', '❌ Error: ' . $e->getMessage() . ' in file ' . $e->getFile() . ' at line ' . $e->getLine());
+            return back()->with('error', 'Error: ' . $e->getMessage() . ' in file ' . $e->getFile() . ' at line ' . $e->getLine());
         }
     }
 
 
 
-
-
-
-
-    // public function edit($id)
-    // {
-    //     $jurnalUmum = Jurnal_Umum::with(['detail_jurnal_umum', 'kegiatan', 'sumber_anggaran'])->findOrFail($id);
-
-    //     $user = Auth::user();
-    //     $id_unit = null;
-    //     $id_divisi = null;
-
-    //     if ($user->role === 'akuntan_unit') {
-    //         $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
-    //         $id_unit = $akuntanUnit?->id_unit;
-    //     }
-
-    //     if ($user->role === 'akuntan_divisi') {
-    //         $akuntanDivisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->first();
-    //         $id_divisi = $akuntanDivisi?->id_divisi;
-    //     }
-
-    //     $unit = Unit::all();
-    //     $divisi = Divisi::all();
-
-    //     $akun = Akun::orderBy('kode_akun')->get()->groupBy('id_unit');
-
-    //     $kegiatan = Kegiatan::orderBy('kode_kegiatan')->get()->groupBy('id_unit');
-
-    //     $sumber_anggaran_all = Akun::whereHas('sub_kategori_akun', function ($query) {
-    //         $query->where('sub_kategori_akun', 'Penerimaan dan Sumbangan Pendidikan');
-    //     })
-    //     ->orderBy('kode_akun')
-    //     ->get()
-    //     ->groupBy('id_unit');
-
-    //     return view('jurnal-umum-edit', compact(
-    //         'jurnalUmum', 'unit', 'divisi', 'akun',
-    //         'kegiatan', 'sumber_anggaran_all', 'id_unit', 'id_divisi'
-    //     ));
-    // }
-
-
-
-    // public function update(Request $request, $id)
-    // {
-    //     $id_user_login = Auth::user()->id_user;
-    //     DB::statement("SET @current_user_id = $id_user_login");
-    
-    //     $request->validate([
-    //         'tanggal' => 'required|date',
-    //         'keterangan' => 'required|string',
-    //         'jenis_transaksi' => 'required|string',
-    //         'id_unit' => 'required|exists:unit,id_unit',
-    //         'id_divisi' => 'required|exists:divisi,id_divisi',
-    //         'id_akun' => 'required|array',
-    //         'id_akun.*' => 'exists:akun,id_akun',
-    //         'debit' => 'required|array',
-    //         'kredit' => 'required|array',
-    //         'id_kegiatan' => 'required|exists:kegiatan,id_kegiatan',
-    //         'id_sumber_anggaran' => 'required|exists:akun,id_akun',
-
-    //     ]);
-
-    //     return DB::transaction(function () use ($request, $id) {
-    //         $jurnal = Jurnal_Umum::findOrFail($id);
-
-    //         $jurnal->update([
-    //             'tanggal' => $request->tanggal,
-    //             'keterangan' => $request->keterangan,
-    //             'jenis_transaksi' => $request->jenis_transaksi,
-    //             'id_unit' => $request->id_unit,
-    //             'id_divisi' => $request->id_divisi,
-    //             'id_kegiatan' => $request->id_kegiatan,
-    //             'id_sumber_anggaran' => $request->id_sumber_anggaran,
-    //             'kode_sumbangan' => $request->kode_sumbangan ?? '',
-    //             'kode_ph' => $request->kode_ph ?? ''
-
-    //         ]);
-
-    //         // Hapus detail lama
-    //         Detail_Jurnal_Umum::where('id_jurnal_umum', $jurnal->id_jurnal_umum)->delete();
-
-    //         // Tambah ulang detail baru
-    //         foreach ($request->id_akun as $key => $id_akun) {
-    //             $debit = (int) preg_replace('/\D/', '', $request->debit[$key]) ?: 0;
-    //             $kredit = (int) preg_replace('/\D/', '', $request->kredit[$key]) ?: 0;
-
-    //             if ($debit > 0) {
-    //                 Detail_Jurnal_Umum::create([
-    //                     'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //                     'id_akun' => $id_akun,
-    //                     'nominal' => $debit,
-    //                     'debit_kredit' => 'debit'
-    //                 ]);
-    //             }
-
-    //             if ($kredit > 0) {
-    //                 Detail_Jurnal_Umum::create([
-    //                     'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //                     'id_akun' => $id_akun,
-    //                     'nominal' => $kredit,
-    //                     'debit_kredit' => 'kredit'
-    //                 ]);
-    //             }
-    //         }
-
-    //         // Optional: atur ulang buku besar kalau ada
-    //         Buku_Besar::where('id_jurnal_umum', $jurnal->id_jurnal_umum)->delete();
-
-    //         if ($request->has('postingBukuBesar')) {
-    //             Buku_Besar::create([
-    //                 'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-    //             ]);
-    //         }
-
-    //         return redirect()->route('jurnal-umum.index')->with('success', 'Data berhasil diperbarui');
-    //     });
-    // }
-
-    
     public function edit($id)
     {
         $jurnalUmum = Jurnal_Umum::with('detail_jurnal_umum')->findOrFail($id);
@@ -896,6 +515,7 @@ class JurnalUmumController extends Controller
 
         return view('jurnal-umum-edit', compact('jurnalUmum', 'akun', 'unit', 'divisi', 'id_unit', 'id_divisi', 'kegiatan', 'sumber_anggaran'));
     }
+
 
 
     public function update(Request $request, $id)
@@ -973,6 +593,8 @@ class JurnalUmumController extends Controller
             return redirect()->route('jurnal-umum.index')->with('success', 'Data berhasil diperbarui');
         });
     }
+
+
 
     public function destroy($id)
     {

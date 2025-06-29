@@ -19,6 +19,22 @@
                 <div class="card-body">
                     <h5 class="card-title">Budget RAPBS Kegiatan</h5><br>
 
+                    {{-- Alert Sukses --}}
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    {{-- Alert Gagal --}}
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
 
                     <div class="mb-3">
                         <a href="{{ asset('assets/templates/Template_Rapbs_Kegiatan.xlsx') }}"

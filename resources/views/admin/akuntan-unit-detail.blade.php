@@ -185,7 +185,7 @@
                                                 </td>
                                             </tr>
 
-                                            
+
 
 
 
@@ -280,16 +280,58 @@
                             </div>
                         </div>
 
-                        <span onclick="document.getElementById('form-delete-akuntan').submit();"
-                            style="color:red; cursor:pointer; text-decoration:underline;">
+                        <span data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            data-action="{{ route('akuntan-unit.destroy', $akuntan_unit->user->id_user) }}"
+                            class="text-danger" style="cursor:pointer; text-decoration:underline;">
                             Hapus Pengguna
                         </span>
+
                         <br>
                         <br>
 
 
                         <button type="submit" class="btn btn-primary col-12">Update</button>
                     </form>
+
+                    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-sm modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Konfirmasi</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Tutup"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    Hapus akun {{ $akuntan_unit->user->nama }} ?
+                                </div>
+                                <div class="modal-footer">
+                                    <form id="deleteForm" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="btn btn-light btn-sm"
+                                            data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <script>
+                        const deleteModal = document.getElementById('deleteModal');
+                        deleteModal.addEventListener('show.bs.modal', function(event) {
+                            const trigger = event.relatedTarget;
+                            const action = trigger.getAttribute('data-action');
+
+                            const form = deleteModal.querySelector('#deleteForm');
+                            form.setAttribute('action', action);
+                        });
+                    </script>
+
+
+
 
 
                     <form id="form-delete-akuntan"

@@ -13,10 +13,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class BudgetRapbsKegiatanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    // Controller method index (penyesuaian bagian query dan view)
+    
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -67,6 +64,9 @@ class BudgetRapbsKegiatanController extends Controller
 
     public function storeOrUpdate(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
+
         $validated = $request->validate([
             'id_kegiatan' => 'required|integer',
             'id_unit' => 'required|integer',
@@ -94,6 +94,8 @@ class BudgetRapbsKegiatanController extends Controller
 
     public function importExcel(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $request->validate([
             'file' => 'required|mimes:xlsx,xls'
         ]);
@@ -140,51 +142,4 @@ class BudgetRapbsKegiatanController extends Controller
 
 
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Budget_Rapbs_Kegiatan $budget_Rapbs_Kegiatan)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Budget_Rapbs_Kegiatan $budget_Rapbs_Kegiatan)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Budget_Rapbs_Kegiatan $budget_Rapbs_Kegiatan)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Budget_Rapbs_Kegiatan $budget_Rapbs_Kegiatan)
-    {
-        //
-    }
 }

@@ -7,6 +7,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Models\Sub_Kategori_Akun;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class AkunController extends Controller
@@ -47,6 +48,8 @@ class AkunController extends Controller
     
     public function import(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         try {
             $request->validate([
                 'file' => 'required|mimes:xlsx,xls'
@@ -58,7 +61,13 @@ class AkunController extends Controller
 
             unset($rows[0]); // Hapus header
 
+            $sukses = 0;
+            $gagal = 0;
+            $gagalDetail = [];
+
             foreach ($rows as $index => $row) {
+                $baris = $index + 2; // Karena header dihapus, data mulai baris ke-2 di Excel
+
                 if (empty(array_filter($row))) {
                     continue; // Lewati baris kosong
                 }
@@ -69,15 +78,22 @@ class AkunController extends Controller
                 $saldoDebit = floatval($row[3]);  // D
                 $saldoKredit = floatval($row[4]); // E
 
-                // Cari sub kategori
+                // Validasi sub kategori
                 $subKategori = Sub_Kategori_Akun::where('sub_kategori_akun', $namaSubKategori)->first();
-
                 if (!$subKategori) {
-                    Log::warning("Sub kategori tidak ditemukan pada baris ke-" . ($index + 2) . ": {$namaSubKategori}");
+                    $gagal++;
+                    $gagalDetail[] = "Baris $baris: Sub kategori \"$namaSubKategori\" tidak ditemukan.";
                     continue;
                 }
 
-                // Insert or update akun
+                // Validasi minimal data akun
+                if (empty($kodeAkun) || empty($namaAkun)) {
+                    $gagal++;
+                    $gagalDetail[] = "Baris $baris: Kode akun atau nama akun kosong.";
+                    continue;
+                }
+
+                // Simpan atau update akun
                 Akun::updateOrCreate(
                     ['kode_akun' => $kodeAkun],
                     [
@@ -87,9 +103,16 @@ class AkunController extends Controller
                         'saldo_awal_kredit' => $saldoKredit,
                     ]
                 );
+
+                $sukses++;
             }
 
-            return redirect()->back()->with('success', '✅ Import data berhasil!');
+            // Kirim data ke tampilan
+            return redirect()->back()->with([
+                'success' => "✅ Berhasil import $sukses data. Gagal: $gagal baris.",
+                'import_errors' => $gagalDetail
+            ]);
+
         } catch (\Throwable $e) {
             return back()->with('error', '❌ Terjadi error: ' . $e->getMessage());
         }
@@ -98,24 +121,16 @@ class AkunController extends Controller
 
 
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    
     public function store(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
 
-        // dd($request->all());
+        $request->merge([
+            'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit),
+            'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit),
+        ]);
 
-        // Validasi data input
         $request->validate([
             'id_sub_kategori_akun' => 'required|integer|exists:sub_kategori_akun,id_sub_kategori_akun',
             'kode_akun' => 'required|string|max:255|unique:akun,kode_akun',
@@ -144,28 +159,16 @@ class AkunController extends Controller
     }
 
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Akun $akun)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Akun $akun)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
+    
     public function update(Request $request)
     {
-        
+        DB::statement("SET @current_user_id = " . auth()->id());
+
+        $request->merge([
+            'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit),
+            'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit),
+        ]);
+
         $request->validate([
             'id_akun' => 'required|exists:akun,id_akun',
             'id_sub_kategori_akun' => 'required|exists:sub_kategori_akun,id_sub_kategori_akun',
@@ -198,11 +201,11 @@ class AkunController extends Controller
 
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    
     public function destroy(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         DB::beginTransaction();
 
         try {
@@ -218,23 +221,23 @@ class AkunController extends Controller
     }
 
 
-    public function resetByUnit(Request $request)
-    {
-        $id_unit = $request->input('id_unit');
+    // public function resetByUnit(Request $request)
+    // {
+    //     $id_unit = $request->input('id_unit');
 
-        if ($id_unit && $id_unit !== 'all') {
-            // Hapus semua akun milik unit tertentu
-            Akun::where('id_unit', $id_unit)->delete();
+    //     if ($id_unit && $id_unit !== 'all') {
+    //         // Hapus semua akun milik unit tertentu
+    //         Akun::where('id_unit', $id_unit)->delete();
 
-            return redirect()->route('akun.index', ['unit' => $id_unit])
-                ->with('success', 'Semua akun dari unit tersebut berhasil dihapus.');
-        } else {
-            // Jika 'all' maka hapus semua
-            Akun::truncate();
+    //         return redirect()->route('akun.index', ['unit' => $id_unit])
+    //             ->with('success', 'Semua akun dari unit tersebut berhasil dihapus.');
+    //     } else {
+    //         // Jika 'all' maka hapus semua
+    //         Akun::truncate();
 
-            return redirect()->route('akun.index')
-                ->with('success', 'Semua akun berhasil dihapus.');
-        }
-    }
+    //         return redirect()->route('akun.index')
+    //             ->with('success', 'Semua akun berhasil dihapus.');
+    //     }
+    // }
 
 }

@@ -590,9 +590,7 @@
                             </tbody>
                         </table>
 
-                        Kas Tunai : Rp {{ number_format($saldoKasTunai, 0, ',', '.') }}
-                        <br>
-                        Kas Bank : Rp {{ number_format($saldoKasBank, 0, ',', '.') }}
+
                     </div>
 
                     <!-- CSS Print -->

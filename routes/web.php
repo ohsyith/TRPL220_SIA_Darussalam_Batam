@@ -66,6 +66,9 @@ Route::get('/admin', [DashboardAdminController::class, 'index'])
     ->middleware('role:admin')
     ->name('admin-dashboard.index');
 
+Route::get('/dashboard-auditor', [DashboardAdminController::class, 'index2'])
+    ->name('admin-dashboard.index');
+
     
 Route::get('/analisis-keuangan', [AnalisisKeuanganController::class, 'index'])
     ->middleware('role:admin')

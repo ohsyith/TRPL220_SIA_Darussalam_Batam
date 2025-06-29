@@ -18,6 +18,33 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error-alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="validation-alert">
+                            <strong>Terjadi kesalahan:</strong>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+
                     <h5 class="card-title">Sub Kategori Akun</h5><br>
                     <div class="table-responsive">
 
@@ -145,7 +172,8 @@
                                         </div>
                                         <div class="modal-body">
                                             <div class="mb-3">
-                                                <label for="edit_id_kategori_akun" class="form-label">Kategori Akun</label>
+                                                <label for="edit_id_kategori_akun" class="form-label">Kategori
+                                                    Akun</label>
                                                 <select name="id_kategori_akun" id="edit_id_kategori_akun"
                                                     class="form-select" required>
                                                     @foreach ($kategoriakun as $kategori)
@@ -238,9 +266,16 @@
             document.getElementById('hapus_id_sub_kategori').value = id;
         }
     </script>
+    <script>
+        setTimeout(function() {
+            let alertIds = ['success-alert', 'error-alert', 'validation-alert'];
+            alertIds.forEach(function(id) {
+                let el = document.getElementById(id);
+                if (el) {
+                    let alert = bootstrap.Alert.getOrCreateInstance(el);
+                    alert.close();
+                }
+            });
+        }, 4000); // 4 detik
+    </script>
 @endpush
-
-
-
-
-

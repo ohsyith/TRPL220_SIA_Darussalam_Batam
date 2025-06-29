@@ -50,11 +50,28 @@
         <div class="col-lg-12">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
+
+                    {{-- Alert Sukses --}}
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    {{-- Alert Gagal --}}
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+
                     <h5 class="card-title mb-4">SOP</h5>
                     {{-- Tombol Tambah SOP hanya untuk admin --}}
                     @if ($role == 'admin')
-                        <button class="btn btn-primary mb-3" data-bs-toggle="modal"
-                            data-bs-target="#modalTambahKategori">
+                        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalTambahKategori">
                             Tambah SOP
                         </button>
                     @endif
@@ -172,7 +189,8 @@
                                                     </div>
 
                                                     <div class="mb-3">
-                                                        <label for="file" class="form-label">Ganti File (Opsional)</label>
+                                                        <label for="file" class="form-label">Ganti File
+                                                            (Opsional)</label>
                                                         <input type="file" name="file" class="form-control">
                                                         <small class="text-muted">Biarkan kosong jika tidak ingin mengganti
                                                             file.</small>

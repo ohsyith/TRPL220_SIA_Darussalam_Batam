@@ -47,7 +47,8 @@ class AuditorController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi data input
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:user,username',
@@ -59,35 +60,33 @@ class AuditorController extends Controller
         DB::beginTransaction();
 
         try {
-            // Simpan ke tabel user
-            // Simpan ke tabel user
-    $user = User::create([
-        'nama' => $request->nama,
-        'username' => $request->username,
-        'password' => Hash::make($request->password),
-        'role' => 'auditor', // Set role sebagai "divisi"
-    ]);
+            // Set user login ID ke session MySQL untuk digunakan oleh trigger
+            DB::statement('SET @current_user_id = ' . auth()->id());
 
-    // Debugging untuk memastikan id_user sudah ada
-    // dd($user->id_user);
+            $user = User::create([
+                'nama' => $request->nama,
+                'username' => $request->username,
+                'password' => Hash::make($request->password),
+                'role' => 'auditor',
+            ]);
 
-    // Simpan ke tabel auditor
-    Auditor::create([
-        'id_auditor' => $user->id_user, // id_user dari user
-        'email' => $request->email,
-        'telp' => $request->telp,
-    ]);
+            Auditor::create([
+                'id_auditor' => $user->id_user,
+                'email' => $request->email,
+                'telp' => $request->telp,
+            ]);
 
-
-        DB::commit();
-
-        return redirect()->back()->with('success', 'Auditor berhasil didaftarkan.');
-        } catch (Exception $e) {
+            DB::commit();
+            return redirect()->back()->with('success', 'Auditor berhasil didaftarkan.');
+        } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal mendaftarkan Auditor: ' . $e->getMessage());
         }
     }
 
+
+
+    
     /**
      * Display the specified resource.
      */
@@ -110,6 +109,8 @@ class AuditorController extends Controller
      */
     public function update(Request $request, $id)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'email' => 'required|email',

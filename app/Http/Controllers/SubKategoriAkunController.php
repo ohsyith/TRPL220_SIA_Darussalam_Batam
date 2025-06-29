@@ -11,20 +11,20 @@ class SubKategoriAkunController extends Controller
 {
     public function index()
     {
-
         $kategoriakun = Kategori_Akun::all();
-        $subkategoriakun = Sub_Kategori_Akun::all();
+        $subkategoriakun = Sub_Kategori_Akun::orderBy('kode_sub_kategori_akun', 'asc')->get();
 
         return view('sub-kategori-akun', compact('kategoriakun', 'subkategoriakun'));
     }
 
 
+    
+
     public function store(Request $request)
     {
 
-        // dd($request->all());
+        DB::statement("SET @current_user_id = " . auth()->id());
 
-        // Validasi data input
         $request->validate([
             'id_kategori_akun' => 'required|integer|exists:kategori_akun,id_kategori_akun',
             'kode_sub_kategori_akun' => 'required|string|max:255|unique:sub_kategori_akun,kode_sub_kategori_akun',
@@ -52,9 +52,7 @@ class SubKategoriAkunController extends Controller
 
     public function update(Request $request)
     {
-        // dd($request->all());
-
-        // Validasi data input
+        DB::statement("SET @current_user_id = " . auth()->id());
         $request->validate([
             'kode_sub_kategori_akun' => 'required|string|max:255|unique:sub_kategori_akun,kode_sub_kategori_akun,' . $request->id_sub_kategori_akun . ',id_sub_kategori_akun',
             'sub_kategori_akun' => 'required|string|max:255|unique:sub_kategori_akun,sub_kategori_akun,' . $request->id_sub_kategori_akun . ',id_sub_kategori_akun',
@@ -86,6 +84,9 @@ class SubKategoriAkunController extends Controller
     
     public function destroy(Request $request)
     {
+
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         DB::beginTransaction();
 
         try {

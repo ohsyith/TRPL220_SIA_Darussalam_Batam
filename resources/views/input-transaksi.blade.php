@@ -22,6 +22,22 @@
                             <i class="fas fa-download me-1"></i> Download Template Input Transaski
                         </a>
                     </div>
+
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error-alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    
                     <form action="{{ route('jurnal-umum.import') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="input-group">
@@ -32,18 +48,7 @@
                         </div>
                     </form>
 
-                    {{-- <form action="{{ route('jurnal-umum.import') }}" method="POST" enctype="multipart/form-data"
-                        class="mb-4">
-                        @csrf
-                        <div class="row g-2">
-                            <div class="col-md-9">
-                                <input type="file" name="file_excel" class="form-control" accept=".xlsx, .xls" required>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-warning w-100">Import dari Excel</button>
-                            </div>
-                        </div>
-                    </form> --}}
+                    
 
 
                     <form id="form-jurnal" class="mt-5" method="post" action="/jurnal-umum">

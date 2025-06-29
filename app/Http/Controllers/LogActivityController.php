@@ -25,25 +25,24 @@ class LogActivityController extends Controller
         }
         
         // Filter berdasarkan tanggal jika ada
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [
-                $request->start_date . ' 00:00:00', // Mulai dari awal hari
-                $request->end_date . ' 23:59:59',   // Hingga akhir hari
-            ]);
+        if ($request->filled('start_date') || $request->filled('end_date') || $request->filled('start_time') || $request->filled('end_time')) {
+            $startDate = $request->start_date ?? '2000-01-01';
+            $endDate = $request->end_date ?? date('Y-m-d');
+
+            $startTime = $request->start_time ? $request->start_time . ':00' : '00:00:00';
+            $endTime = $request->end_time ? $request->end_time . ':00' : '23:59:59';
+
+            $startDateTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $startDate . ' ' . $startTime);
+            $endDateTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $endDate . ' ' . $endTime);
+
+            if ($startDateTime > $endDateTime) {
+                [$startDateTime, $endDateTime] = [$endDateTime, $startDateTime];
+            }
+
+            $query->whereBetween('created_at', [$startDateTime, $endDateTime]);
         }
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $startTime = $request->start_time ?? '00:00:00';
-            $endTime = $request->end_time ?? '23:59:59';
-        
-            $query->whereBetween('created_at', [
-                $request->start_date . ' ' . $startTime,
-                $request->end_date . ' ' . $endTime,
-            ]);
-        }
-        
-        
-        
+
 
         // Ambil log aktivitas yang sudah difilter
         $log_aktivitas = $query->get();

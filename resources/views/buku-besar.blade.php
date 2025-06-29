@@ -202,7 +202,7 @@
                             </div>
                         @endif
 
-                        <div class="">
+                        <div class="mb-3">
                             <strong>Saldo Akhir :</strong> Rp {{ number_format($saldo_akhir) }}
                         </div>
 

@@ -14,29 +14,28 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class BudgetRapbsAkunController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        // Jika admin/auditor → bisa pilih unit
         if (in_array($user->role, ['admin', 'auditor'])) {
             $id_unit = $request->get('unit', 'all');
             $units = Unit::all();
-        } 
-        // Jika akuntan_unit → pakai unit dari tabel akuntan_unit
-        elseif ($user->role === 'akuntan_unit') {
+            $nama_unit = null;
+
+            if ($id_unit !== 'all') {
+                $nama_unit = Unit::where('id_unit', $id_unit)->value('unit');
+            }
+        } elseif ($user->role === 'akuntan_unit') {
             $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->firstOrFail();
             $id_unit = $akuntanUnit->id_unit;
-            $units = collect(); // kosongkan list unit, agar di blade tidak muncul select
-        } 
-        else {
+            $units = collect(); // kosongkan select
+            $nama_unit = Unit::where('id_unit', $id_unit)->value('unit');
+        } else {
             abort(403, 'Role tidak dikenal');
         }
 
-        // Ambil data akun
         if ($id_unit === 'all') {
             $akun = Akun::select(
                 'akun.id_akun',
@@ -67,9 +66,8 @@ class BudgetRapbsAkunController extends Controller
             ->get();
         }
 
-        return view('budget-rapbs-akun', compact('akun', 'units', 'id_unit', 'user'));
+        return view('budget-rapbs-akun', compact('akun', 'units', 'id_unit', 'user', 'nama_unit'));
     }
-
 
 
 
@@ -77,6 +75,8 @@ class BudgetRapbsAkunController extends Controller
 
     public function storeOrUpdate(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $validated = $request->validate([
             'id_akun' => 'required|integer',
             'id_unit' => 'required|integer',
@@ -101,8 +101,12 @@ class BudgetRapbsAkunController extends Controller
         return back()->with('success', 'Data berhasil disimpan.');
     }
 
+
+
     public function importExcel(Request $request)
     {
+        DB::statement("SET @current_user_id = " . auth()->id());
+
         $request->validate([
             'file' => 'required|mimes:xlsx,xls'
         ]);
@@ -147,54 +151,4 @@ class BudgetRapbsAkunController extends Controller
     }
 
 
-
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Budget_Rapbs_Akun $budget_Rapbs_Akun)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Budget_Rapbs_Akun $budget_Rapbs_Akun)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Budget_Rapbs_Akun $budget_Rapbs_Akun)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Budget_Rapbs_Akun $budget_Rapbs_Akun)
-    {
-        //
-    }
 }

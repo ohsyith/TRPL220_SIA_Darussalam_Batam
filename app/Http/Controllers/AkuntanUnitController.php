@@ -43,76 +43,68 @@ class AkuntanUnitController extends Controller
     }
 
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        public function store(Request $request)
+        {
+            DB::beginTransaction();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        DB::beginTransaction();
+            try {
 
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'nama' => 'required|string|max:255',
-                'username' => 'required|string|unique:user,username|max:255',
-                'password' => 'required|string|min:8|confirmed',
-                'id_unit' => 'required|exists:unit,id_unit',
-                'email' => 'required|email',
-                'telp' => 'required|string',
-            ]);
+                            DB::statement('SET @current_user_id = ' . auth()->id());
 
-            // Buat user baru
-            $user = User::create([
-                'nama' => $request->nama,
-                'username' => $request->username,
-                'password' => bcrypt($request->password),
-                'role' => 'akuntan_unit',
-            ]);
+                // Validasi input
+                $validated = $request->validate([
+                    'nama' => 'required|string|max:255',
+                    'username' => 'required|string|unique:user,username|max:255',
+                    'password' => 'required|string|min:8|confirmed',
+                    'id_unit' => 'required|exists:unit,id_unit',
+                    'email' => 'required|email',
+                    'telp' => 'required|string',
+                ]);
 
-            // Simpan akuntan_unit
-            $akuntanUnit = Akuntan_Unit::create([
-                'id_akuntan_unit' => $user->id_user,
-                'id_unit' => $request->id_unit,
-                'email' => $request->email,
-                'telp' => $request->telp,
-            ]);
+                // Buat user baru
+                $user = User::create([
+                    'nama' => $request->nama,
+                    'username' => $request->username,
+                    'password' => bcrypt($request->password),
+                    'role' => 'akuntan_unit',
+                ]);
 
-            // Buat hak akses
-            Hak_Akses::create([
-                'id_akuntan_unit' => $user->id_user,
-                'view_jurnal_umum' => $request->input('view_jurnal_umum', 0),
-                'create_jurnal_umum' => $request->input('create_jurnal_umum', 0),
-                'update_jurnal_umum' => $request->input('update_jurnal_umum', 0),
-                'delete_jurnal_umum' => $request->input('delete_jurnal_umum', 0),
-                'view_buku_besar' => $request->input('view_buku_besar', 0),
-                'create_buku_besar' => $request->input('create_buku_besar', 0),
-                'delete_buku_besar' => $request->input('delete_buku_besar', 0),
-                'view_laporan_komprehensif' => $request->input('view_laporan_komprehensif', 0),
-                'view_laporan_posisi_keuangan' => $request->input('view_laporan_posisi_keuangan', 0),
-                'view_laporan_arus_kas' => $request->input('view_laporan_arus_kas', 0),
-                'view_laporan_perubahan_aset_neto' => $request->input('view_laporan_perubahan_aset_neto', 0),
-                'view_laporan_catatan_atas_laporan_keuangan' => $request->input('view_laporan_catatan_atas_laporan_keuangan', 0),
-                'view_laporan_proyeksi_rencana_dan_realisasi_anggaran' => $request->input('view_laporan_proyeksi_rencana_dan_realisasi_anggaran', 0),
-            ]);
+                // Simpan akuntan_unit
+                $akuntanUnit = Akuntan_Unit::create([
+                    'id_akuntan_unit' => $user->id_user,
+                    'id_unit' => $request->id_unit,
+                    'email' => $request->email,
+                    'telp' => $request->telp,
+                ]);
 
-            DB::commit();
+                // Buat hak akses
+                Hak_Akses::create([
+                    'id_akuntan_unit' => $user->id_user,
+                    'view_jurnal_umum' => $request->input('view_jurnal_umum', 0),
+                    'create_jurnal_umum' => $request->input('create_jurnal_umum', 0),
+                    'update_jurnal_umum' => $request->input('update_jurnal_umum', 0),
+                    'delete_jurnal_umum' => $request->input('delete_jurnal_umum', 0),
+                    'view_buku_besar' => $request->input('view_buku_besar', 0),
+                    'create_buku_besar' => $request->input('create_buku_besar', 0),
+                    'delete_buku_besar' => $request->input('delete_buku_besar', 0),
+                    'view_laporan_komprehensif' => $request->input('view_laporan_komprehensif', 0),
+                    'view_laporan_posisi_keuangan' => $request->input('view_laporan_posisi_keuangan', 0),
+                    'view_laporan_arus_kas' => $request->input('view_laporan_arus_kas', 0),
+                    'view_laporan_perubahan_aset_neto' => $request->input('view_laporan_perubahan_aset_neto', 0),
+                    'view_laporan_catatan_atas_laporan_keuangan' => $request->input('view_laporan_catatan_atas_laporan_keuangan', 0),
+                    'view_laporan_proyeksi_rencana_dan_realisasi_anggaran' => $request->input('view_laporan_proyeksi_rencana_dan_realisasi_anggaran', 0),
+                ]);
 
-            return redirect()->back()->with('success', 'Akuntan Unit berhasil didaftarkan.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Error: ' . $e->getMessage())
-                ->withInput();
+                DB::commit();
+
+                return redirect()->back()->with('success', 'Akuntan Unit berhasil didaftarkan.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return redirect()->back()
+                    ->with('error', 'Error: ' . $e->getMessage())
+                    ->withInput();
+            }
         }
-    }
 
 
 
@@ -148,6 +140,9 @@ class AkuntanUnitController extends Controller
         DB::beginTransaction();
 
         try {
+            DB::statement("SET @current_user_id = " . auth()->id());
+
+            
             // Validasi input
             $validated = $request->validate([
                 'nama' => 'required|string|max:255',
@@ -215,6 +210,9 @@ class AkuntanUnitController extends Controller
         DB::beginTransaction();
 
         try {
+            DB::statement("SET @current_user_id = " . auth()->id());
+
+
             // Hapus hak akses terlebih dahulu (foreign key constraint)
             Hak_Akses::where('id_akuntan_unit', $id)->delete();
 

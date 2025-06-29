@@ -33,16 +33,14 @@ class AuthController extends Controller
             } elseif ($role == 'akuntan_unit') {
                 return redirect()->intended('/');
             } elseif ($role == 'auditor') {
-                return redirect()->intended('/');
+                return redirect()->intended('/dashboard-auditor');
             } else {
                 Auth::logout();
                 return redirect()->route('login')->withErrors('Role tidak dikenali.');
             }
         }
 
-        return back()->withErrors([
-            'username' => 'Username atau password salah.',
-        ])->onlyInput('username');
+        return back()->with('error', 'Username atau password salah.');
     }
 
     // Proses logout

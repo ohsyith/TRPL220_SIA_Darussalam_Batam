@@ -19,6 +19,21 @@
                 <div class="card-body">
                     <h5 class="card-title">Budget RAPBS Akun</h5><br>
 
+                    {{-- Alert Sukses --}}
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    {{-- Alert Gagal --}}
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
 
                     <div class="mb-3">
                         <a href="{{ asset('assets/templates/Template_Rapbs_Akun.xlsx') }}"
@@ -120,10 +135,12 @@
                                                     data-id_sub="{{ $data->id_sub_kategori_akun }}"
                                                     data-kode="{{ $data->kode_akun }}" data-akun="{{ $data->akun }}"
                                                     data-budget="{{ floatval($data->budget_rapbs ?? 0) }}"
-                                                    data-id_unit="{{ $id_unit }}" onclick="openModalEdit(this)">
+                                                    data-id_unit="{{ $id_unit }}" data-unit="{{ $nama_unit }}"
+                                                    onclick="openModalEdit(this)">
                                                     Edit
                                                 </button>
                                             @endif
+
                                         </td>
 
                                     </tr>

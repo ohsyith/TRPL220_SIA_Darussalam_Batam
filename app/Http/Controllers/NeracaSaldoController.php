@@ -24,120 +24,6 @@ class NeracaSaldoController extends Controller
 {
 
 
-    // public function index(Request $request)
-    // {
-    //     $user = Auth::user();
-
-    //     $id_unit = $request->unit;
-    //     $id_divisi = $request->divisi;
-
-    //     // Otomatis set unit/divisi dari role jika tidak dipilih
-    //     if (!$id_unit && $user->role === 'akuntan_unit') {
-    //         $id_unit = \App\Models\Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
-    //     }
-    //     if (!$id_divisi && $user->role === 'akuntan_divisi') {
-    //         $id_divisi = \App\Models\Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
-    //     }
-
-    //     $start = $request->start_date ?? now()->startOfYear()->toDateString();
-    //     $end = $request->end_date ?? now()->toDateString();
-    //     $tahun_lalu = Carbon::parse($end)->year - 1;
-
-    //     // Hanya ambil akun kategori 1, 2, 3
-    //     $semua_akun = Akun::with(['sub_kategori_akun.kategori_akun', 'detail_jurnal_umum.jurnal_umum'])
-    //         ->whereHas('sub_kategori_akun.kategori_akun', function ($query) {
-    //             $query->whereIn('kategori_akun', ['AKTIVA', 'KEWAJIBAN', 'ASET NETO']);
-    //         })
-    //         ->get();
-
-    //     $saldo_akun = collect();
-    //     $totalKewajibanAsetNeto = 0;
-    //     $totalPeriodeLaluKewajibanAsetNeto = 0;
-
-    //     $postedJurnalIds = DB::table('buku_besar')->pluck('id_jurnal_umum')->toArray();
-
-    //     foreach ($semua_akun as $akun) {
-    //         $saldo_awal_debit = $akun->saldo_awal_debit ?? 0;
-    //         $saldo_awal_kredit = $akun->saldo_awal_kredit ?? 0;
-
-    //         $mutasi_debit = 0;
-    //         $mutasi_kredit = 0;
-    //         $debit_lalu = 0;
-    //         $kredit_lalu = 0;
-
-
-    //         foreach ($akun->detail_jurnal_umum as $detail) {
-    //             $jurnal = $detail->jurnal_umum;
-    //             if (!$jurnal) continue;
-
-    //             // ✅ Hanya proses jurnal yang sudah diposting ke buku besar
-    //             if (!in_array($jurnal->id_jurnal_umum, $postedJurnalIds)) continue;
-
-    //             if ($id_unit && $jurnal->id_unit != $id_unit) continue;
-    //             if ($id_divisi && $jurnal->id_divisi != $id_divisi) continue;
-
-    //             $tanggal = $jurnal->tanggal ?? null;
-    //             if (!$tanggal) continue;
-
-    //             $tahun_transaksi = Carbon::parse($tanggal)->year;
-
-    //             if ($tanggal >= $start && $tanggal <= $end) {
-    //                 if ($detail->debit_kredit === 'debit') {
-    //                     $mutasi_debit += $detail->nominal;
-    //                 } elseif ($detail->debit_kredit === 'kredit') {
-    //                     $mutasi_kredit += $detail->nominal;
-    //                 }
-    //             }
-
-    //             if ($tahun_transaksi == $tahun_lalu) {
-    //                 if ($detail->debit_kredit === 'debit') {
-    //                     $debit_lalu += $detail->nominal;
-    //                 } elseif ($detail->debit_kredit === 'kredit') {
-    //                     $kredit_lalu += $detail->nominal;
-    //                 }
-    //             }
-    //         }
-
-
-    //         $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun;
-
-    //         if (in_array($kategori, ['AKTIVA'])) {
-    //             $saldo = ($saldo_awal_debit + $mutasi_debit) - ($saldo_awal_kredit + $mutasi_kredit);
-    //         } else {
-    //             // KEWAJIBAN dan ASET NETO
-    //             $saldo = ($saldo_awal_kredit + $mutasi_kredit) - ($saldo_awal_debit + $mutasi_debit);
-    //         }
-
-    //         $periode_lalu = DB::table('saldo_akhir_tahun')
-    //             ->where('id_akun', $akun->id_akun)
-    //             ->where('tahun', $tahun_lalu)
-    //             ->value('saldo_akhir') ?? 0;
-
-    //         $saldo_akun[$akun->id_akun] = (object)[
-    //             'saldo' => $saldo,
-    //             'periode_lalu' => $periode_lalu,
-    //         ];
-
-    //         // Hitung total hanya jika KEWAJIBAN dan ASET NETO
-    //         if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO'])) {
-    //             $totalKewajibanAsetNeto += $saldo;
-    //             $totalPeriodeLaluKewajibanAsetNeto += $periode_lalu;
-    //         }
-    //     }
-
-    //     if ($request->has('export_excel')) {
-    //         return $this->exportExcel($semua_akun, $saldo_akun, $start, $end);
-    //     }
-
-    //     $units = Unit::all();
-    //     $divisis = Divisi::all();
-
-    //     return view('neraca-saldo', compact(
-    //         'semua_akun', 'saldo_akun', 'units', 'divisis',
-    //         'id_unit', 'id_divisi',
-    //         'totalKewajibanAsetNeto', 'totalPeriodeLaluKewajibanAsetNeto'
-    //     ));
-    // }
 
     public function index(Request $request)
     {
@@ -409,7 +295,7 @@ class NeracaSaldoController extends Controller
         $drawing->setWorksheet($sheet);
 
         // 📝 Judul dan periode
-        $judul = "NERACA SALDO YAYASAN DARUSSALAM BATAM\nPeriode: " .
+        $judul = "POSISI KEUANGAN YAYASAN DARUSSALAM BATAM\nPeriode: " .
                 date('d/m/Y', strtotime($tanggal_mulai)) . " - " . date('d/m/Y', strtotime($tanggal_selesai));
         $sheet->setCellValue('A1', $judul);
 

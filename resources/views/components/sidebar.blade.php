@@ -127,22 +127,19 @@
 
                 @if (in_array($role, ['akuntan_unit']))
                     <li class="sidebar-item">
-                        <a class="sidebar-link has-arrow d-flex align-items-center fw-semibold "
+                        <a class="sidebar-link has-arrow d-flex align-items-center fw-semibold"
                             href="javascript:void(0)" aria-expanded="false"
                             style="padding: 10px 16px; background-color: #cacaca49; color: #333; border-radius: 6px;">
                             <span class="hide-menu fs-3">RAPBS</span>
                             <iconify-icon icon="mdi:chevron-down" class="ms-auto toggle-icon"
                                 data-icon-down="mdi:chevron-down" data-icon-up="mdi:chevron-up"></iconify-icon>
                         </a>
-
                         <ul class="collapse first-level">
                             <li class="sidebar-item">
                                 <a href="/budget-rapbs-akun" class="sidebar-link">
                                     <span class="hide-menu">RAPBS Akun</span>
                                 </a>
                             </li>
-                        </ul>
-                        <ul class="collapse first-level">
                             <li class="sidebar-item">
                                 <a href="/budget-rapbs-kegiatan" class="sidebar-link">
                                     <span class="hide-menu">RAPBS Kegiatan</span>
@@ -151,6 +148,7 @@
                         </ul>
                     </li>
                 @endif
+
 
 
 
@@ -215,7 +213,7 @@
                                 'label' => 'Komprehensif',
                             ],
                             'view_laporan_posisi_keuangan' => ['url' => '/neraca-saldo', 'label' => 'Posisi Keuangan'],
-                            'view_laporan_arus_kas' => ['url' => '/arus-kas', 'label' => 'Arus Kas'],
+                            'view_laporan_arus_kas' => ['url' => '/arus-kas2', 'label' => 'Arus Kas'],
                             'view_laporan_perubahan_aset_neto' => [
                                 'url' => '/perubahan-aset-neto',
                                 'label' => 'Perubahan Aset Neto',
@@ -300,7 +298,7 @@
 
 <script>
     document.querySelectorAll('.sidebar-link.has-arrow').forEach(function(link) {
-        link.addEventListener('click', function () {
+        link.addEventListener('click', function() {
             const icon = link.querySelector('.toggle-icon');
             const submenu = link.nextElementSibling; // ul.collapse
             const isOpen = submenu.classList.contains('show');
@@ -329,4 +327,3 @@
         });
     });
 </script>
-

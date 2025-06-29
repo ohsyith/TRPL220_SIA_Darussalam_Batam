@@ -2,7 +2,6 @@
 @push('styles')
     <title>SIA Yayasan Darussalam | Log Aktivitas</title>
 
-
     <style>
         html,
         body {
@@ -40,6 +39,7 @@
         }
     </style>
 @endpush
+
 @section('content')
     <div class="row">
         <div class="col-lg-12">
@@ -47,34 +47,32 @@
                 <div class="card-body">
                     <h5 class="card-title mb-4">Log Aktivitas</h5>
 
-                    <form action="" method="GET" class="mb-4">
+                    <form action="" method="GET" class="mb-4" id="filter-form">
                         <div class="row mb-3">
                             <div class="col-md-3">
                                 <label>Dari Tanggal </label>
                                 <input type="date" name="start_date" class="form-control"
-                                    value="{{ request('start_date') }}">
+                                    value="{{ request('start_date') }}" onchange="submitFilter()">
                             </div>
 
                             <div class="col-md-3">
                                 <label>Sampai Tanggal </label>
-                                <input type="date" name="end_date" class="form-control"
-                                    value="{{ request('end_date') }}">
+                                <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}"
+                                    onchange="submitFilter()">
                             </div>
                         </div>
-
 
                         <div class="row mb-3">
                             <div class="col-md-3">
                                 <label>Dari Jam </label>
                                 <input type="time" name="start_time" class="form-control"
-                                    value="{{ request('start_time') }}">
+                                    value="{{ request('start_time') }}" onchange="submitFilter()">
                             </div>
                             <div class="col-md-3">
                                 <label>Sampai Jam </label>
-                                <input type="time" name="end_time" class="form-control"
-                                    value="{{ request('end_time') }}">
+                                <input type="time" name="end_time" class="form-control" value="{{ request('end_time') }}"
+                                    onchange="submitFilter()">
                             </div>
-
 
                             <div class="col-md-6">
                                 <label>Cari </label>
@@ -85,10 +83,9 @@
                                         <i class="ti ti-search"></i>
                                     </button>
                                 </div>
-
                             </div>
-
                         </div>
+
                         <div class="row">
                             <div class="col-12 text-end">
                                 <a href="{{ route('log-aktivitas.index') }}" class="btn btn-secondary">
@@ -96,13 +93,14 @@
                                 </a>
                             </div>
                         </div>
-
-                        <div class="row mb-3">
-
-                        </div>
-
-
                     </form>
+
+                    <script>
+                        function submitFilter() {
+                            document.getElementById('filter-form').submit();
+                        }
+                    </script>
+
 
 
 

@@ -27,7 +27,6 @@
             margin-right: auto;
             margin-left: auto;
         }
-
     </style>
 @endpush
 
@@ -37,6 +36,33 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error-alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="validation-alert">
+                            <strong>Terjadi kesalahan:</strong>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        </div>
+                    @endif
+
+
                     <h5 class="card-title">Kategori Akun</h5><br>
                     <div class="table-responsive">
 
@@ -142,8 +168,8 @@
                                             <div class="mb-3">
                                                 <label for="edit_kode_kategori_akun" class="form-label">Kode Kategori
                                                     Akun</label>
-                                                <input type="text" name="kode_kategori_akun" id="edit_kode_kategori_akun"
-                                                    class="form-control" required>
+                                                <input type="text" name="kode_kategori_akun"
+                                                    id="edit_kode_kategori_akun" class="form-control" required>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="edit_kategori_akun" class="form-label">Kategori Akun
@@ -200,7 +226,6 @@
 
         <div class="py-6 px-6 text-center">
             <p class="mb-0 fs-4">Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025</p>
-
         </div>
     </div>
 @endsection
@@ -216,5 +241,17 @@
         function setHapusKategori(id) {
             document.getElementById('hapus_id_kategori').value = id;
         }
+    </script>
+    <script>
+        setTimeout(function() {
+            let alertIds = ['success-alert', 'error-alert', 'validation-alert'];
+            alertIds.forEach(function(id) {
+                let el = document.getElementById(id);
+                if (el) {
+                    let alert = bootstrap.Alert.getOrCreateInstance(el);
+                    alert.close();
+                }
+            });
+        }, 4000); // 4 detik
     </script>
 @endpush

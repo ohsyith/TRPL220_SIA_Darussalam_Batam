@@ -28,7 +28,7 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Selamat datang di Dashboard Admin, {{ $user->nama }}</h5>
+                    <h5 class="card-title">Selamat datang, {{ $user->nama }}</h5>
                     <p class="card-text">Ini adalah halaman dashboard utama Anda.</p>
                 </div>
 
