@@ -158,6 +158,8 @@ class AuditorController extends Controller
 
         // Hapus data akuntan divisi
         $auditor->delete();
+        User::where('id_user', $id)->delete();
+
 
         // Hapus user terkait jika memang hanya digunakan oleh akuntan divisi
         if ($user) {
