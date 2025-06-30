@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Akun;
 use App\Models\Unit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,4 +19,10 @@ class Budget_Rapbs_Akun extends Model
     {
         return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
     }
+
+    public function akun()
+    {
+        return $this->belongsTo(Akun::class, 'id_akun');
+    }
+
 }

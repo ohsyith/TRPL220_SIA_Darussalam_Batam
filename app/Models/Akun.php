@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Akun;
 use App\Models\Sub_Kategori_Akun;
 use App\Models\Detail_Jurnal_Umum;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,11 @@ class Akun extends Model
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
+    }
+
+    public function budget_akun()
+    {
+        return $this->hasMany(Budget_Rapbs_Akun::class, 'id_akun');
     }
 
 }

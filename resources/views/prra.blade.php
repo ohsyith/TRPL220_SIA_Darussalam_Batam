@@ -222,7 +222,7 @@
                                                     $totalRealisasi += $item->realisasi;
                                                 @endphp
                                                 <tr>
-                                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;{{ $item->nama_akun ?? $item->nama_kegiatan }}
+                                                    <td class="text-start">{{ $item->nama_akun ?? $item->nama_kegiatan }}
                                                     </td>
                                                     <td class="text-end text-narrow">
                                                         Rp

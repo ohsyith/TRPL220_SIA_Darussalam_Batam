@@ -28,28 +28,33 @@ class AppServiceProvider extends ServiceProvider
             if (Auth::check()) {
                 $user = Auth::user();
                 $hak_akses = null;
+                $sidebarSop = collect(); // inisialisasi kosong biar aman
 
-                // Hanya cek hak akses untuk akuntan_unit, karena akuntan_divisi bisa semua
-                if ($user->role === 'akuntan_unit') {
-                    $hak_akses = Hak_Akses::where('id_akuntan_unit', $user->id_user)->first();
+                try {
+                    if ($user->role === 'akuntan_unit') {
+                        $hak_akses = Hak_Akses::where('id_akuntan_unit', $user->id_user)->first();
+                    }
+
+                    $sidebarSop = Sop::orderBy('urutan')->get();
+
+                } catch (\Throwable $e) {
+                    // Jika terjadi error, jangan lakukan apa-apa di sini
+                    // Biarkan Laravel menanganinya dan masuk ke Handler
+                    // Kamu bisa log kalau mau:
+                    // \Log::error('Gagal memuat data sidebar: ' . $e->getMessage());
                 }
 
-            $sidebarSop = Sop::orderBy('urutan')->get();
-
-            $view->with('user', $user)
-                    ->with('sidebarRole', $user->role)
-                    ->with('sidebarHakAkses', $hak_akses)
-                    ->with('sidebarSop', $sidebarSop); 
-
+                // Tetap kirim data ke view (meski mungkin nilainya null/kosong)
+                $view->with('user', $user)
+                     ->with('sidebarRole', $user->role)
+                     ->with('sidebarHakAkses', $hak_akses)
+                     ->with('sidebarSop', $sidebarSop);
             }
         });
 
-
-
-
         Carbon::setLocale('id');
-
     }
+
 
 
 

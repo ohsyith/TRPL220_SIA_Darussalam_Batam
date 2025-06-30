@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Kegiatan;
 use App\Models\Jurnal_Umum;
 use App\Models\Detail_Jurnal_Umum;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Kegiatan extends Model
 {
@@ -18,5 +19,11 @@ class Kegiatan extends Model
     {
         return $this->hasMany(Jurnal_Umum::class, 'id_kegiatan', 'id_kegiatan');
     }
+
+    public function budget_kegiatan()
+    {
+        return $this->hasMany(Budget_Rapbs_Kegiatan::class, 'id_kegiatan');
+    }
+
 
 }

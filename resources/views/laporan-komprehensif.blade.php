@@ -268,8 +268,24 @@
                                     <!-- Kenaikan (Penurunan) -->
                                     <tr class="table-success fw-bold">
                                         <td>KENAIKAN (PENURUNAN) PENGHASILAN KOMPREHENSIF</td>
-                                        <td></td>
-                                        <td></td>
+                                        <td class="text-end">
+                                            @if ($total_pendapatan_terikat - $total_beban_terikat  == 0)
+                                                -
+                                            @elseif ($total_pendapatan_terikat - $total_beban_terikat > 0)
+                                                Rp {{ number_format($total_pendapatan_terikat - $total_beban_terikat, 0, ',', '.') }}
+                                            @else
+                                                (Rp {{ number_format(abs($total_pendapatan_terikat - $total_beban_terikat), 0, ',', '.') }})
+                                            @endif
+                                        </td>
+                                        <td class="text-end">
+                                            @if ($total_pendapatan - $total_beban == 0)
+                                                -
+                                            @elseif ($total_pendapatan - $total_beban > 0)
+                                                Rp {{ number_format($total_pendapatan - $total_beban, 0, ',', '.') }}
+                                            @else
+                                                (Rp {{ number_format(abs($total_pendapatan - $total_beban), 0, ',', '.') }})
+                                            @endif
+                                        </td>
                                         <td class="text-end">
                                             @if ($kenaikan_penghasilan_komprehensif == 0)
                                                 -

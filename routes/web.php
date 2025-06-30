@@ -221,6 +221,8 @@ Route::middleware('hak_akses:view_laporan_proyeksi_rencana_dan_realisasi_anggara
 
 
 
-
-
+// routes/web.php
+Route::get('/test-db-error', function () {
+    \Illuminate\Support\Facades\DB::select('SELECT * FROM table_tidak_ada');
+});
 
