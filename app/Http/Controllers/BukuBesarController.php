@@ -165,7 +165,7 @@ class BukuBesarController extends Controller
         $total_debit = $detail_jurnal->where('debit_kredit', 'debit')->sum('nominal');
         $total_kredit = $detail_jurnal->where('debit_kredit', 'kredit')->sum('nominal');
 
-        // ✅ Manual paginasi
+        // Manual paginasi
         $perPage = $request->input('per_page', 20);
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $pagedData = $detail_jurnal->slice(($currentPage - 1) * $perPage, $perPage)->values();
@@ -234,9 +234,18 @@ class BukuBesarController extends Controller
 
                 // Hitung kenaikan periode lalu (sebelum start_date)
                 $kenaikan_periode_lalu = 0;
-                $periode_lalu = $getKenaikan($akun->id_akun, '1900-01-01', date('Y-m-d', strtotime($start_date . ' -1 day')));
-                $kenaikan_periode_lalu = ($periode_lalu->total_kredit ?? 0) - ($periode_lalu->total_debit ?? 0);
+                $json = DB::selectOne("SELECT get_kenaikan_aset_neto(?, ?, ?, ?, ?) AS hasil", [
+                    $akun->id_akun,
+                    '1900-01-01',
+                    date('Y-m-d', strtotime($start_date . ' -1 day')),
+                    $id_unit,
+                    $id_divisi
+                ]);
 
+                $data = json_decode($json->hasil, true);
+                $kenaikan_periode_lalu = ($data['total_kredit'] ?? 0) - ($data['total_debit'] ?? 0);
+
+                
                 // Hitung kenaikan periode berjalan berdasarkan jenis transaksi
                 $jenis_transaksi = ($sub_kategori === 'Dengan Pembatasan') ? 'Terikat' : 'Tidak Terikat';
                 
@@ -402,88 +411,56 @@ class BukuBesarController extends Controller
 
 
 
-
-
-    public function create()
-    {
-        //
-    }
-
-
     public function store(Request $request)
     {
+        DB::statement("SET @current_user_id = " . Auth::id());
 
-        $id_user_login = Auth::user()->id_user;
-        DB::statement("SET @current_user_id = $id_user_login");
-    
-        $request->validate([
+        $validated = $request->validate([
             'id_jurnal_umum' => 'required|exists:jurnal_umum,id_jurnal_umum',
         ]);
-    
-        if (Buku_Besar::where('id_jurnal_umum', $request->id_jurnal_umum)->exists()) {
-            return redirect()->back()->with('error', 'Jurnal sudah diposting.');
+
+        $id = $validated['id_jurnal_umum'];
+
+        $posted = Buku_Besar::firstOrCreate(['id_jurnal_umum' => $id]);
+
+        if (!$posted->wasRecentlyCreated) {
+            return back()->with('error', 'Jurnal sudah diposting.');
         }
-    
-        Buku_Besar::create([
-            'id_jurnal_umum' => $request->id_jurnal_umum,
-        ]);
-    
-        return redirect()->back()->with('success', 'Berhasil diposting ke Buku Besar.');
+
+        return back()->with('success', 'Berhasil diposting ke Buku Besar.');
     }
-    
+
+
+
 
     public function postingSemua(Request $request)
     {
-        $id_user_login = Auth::user()->id_user;
-        DB::statement("SET @current_user_id = $id_user_login");
+        DB::statement("SET @current_user_id = " . Auth::id());
 
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
         $query = Jurnal_Umum::query();
 
-        // Jika ada filter tanggal, tambahkan kondisi whereBetween
         if ($start_date && $end_date) {
             $query->whereBetween('tanggal', [$start_date, $end_date]);
         }
 
-        // Ambil ID jurnal yang belum diposting dan sesuai rentang tanggal
-        $jurnalBelumDiposting = $query->whereNotIn('id_jurnal_umum', function ($query) {
-            $query->select('id_jurnal_umum')->from('buku_besar')->whereNotNull('id_jurnal_umum');
-        })->pluck('id_jurnal_umum');
+        // Ambil ID jurnal yang belum diposting
+        $jurnalBelumDiposting = $query->whereDoesntHave('buku_besar')->pluck('id_jurnal_umum');
 
-        foreach ($jurnalBelumDiposting as $id_jurnal) {
-            Buku_Besar::create([
-                'id_jurnal_umum' => $id_jurnal,
-            ]);
+        try {
+            DB::transaction(function () use ($jurnalBelumDiposting) {
+                foreach ($jurnalBelumDiposting as $id_jurnal) {
+                    Buku_Besar::firstOrCreate(['id_jurnal_umum' => $id_jurnal]);
+                }
+            });
+
+            return back()->with('success', '✅ Semua jurnal berhasil diposting ke Buku Besar.');
+        } catch (\Throwable $e) {
+            return back()->with('error', '❌ Gagal posting: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('success', 'Semua jurnal dalam rentang tanggal berhasil diposting ke Buku Besar.');
     }
 
-
-
-    public function show(Buku_Besar $buku_Besar)
-    {
-        //
-    }
-
-    
-    public function edit(Buku_Besar $buku_Besar)
-    {
-        //
-    }
-
-    
-    public function update(Request $request, Buku_Besar $buku_Besar)
-    {
-        //
-    }
-
-    
-    public function destroy(Buku_Besar $buku_Besar)
-    {
-        //
-    }
 
 }

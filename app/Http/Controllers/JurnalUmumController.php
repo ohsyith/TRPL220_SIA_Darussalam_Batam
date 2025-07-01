@@ -267,8 +267,9 @@ class JurnalUmumController extends Controller
 
 
     public function store(Request $request)
-    {   
-        $id_user_login = Auth::user()->id_user;
+    {
+        $id_user_login = Auth::id();
+        // Jika pakai trigger yang butuh user ID
         DB::statement("SET @current_user_id = $id_user_login");
 
         $request->validate([
@@ -281,24 +282,16 @@ class JurnalUmumController extends Controller
             'id_akun.*' => 'exists:akun,id_akun',
             'debit' => 'required|array',
             'kredit' => 'required|array',
-            // 'id_kegiatan' => 'required|exists:kegiatan,id_kegiatan',
-            // 'id_sumber_anggaran' => 'required|exists:akun,id_akun',
             'id_kegiatan' => 'nullable|exists:kegiatan,id_kegiatan',
             'id_sumber_anggaran' => 'nullable|exists:akun,id_akun',
-
-
-
         ]);
 
         return DB::transaction(function () use ($request) {
-            // Format tanggal menjadi YYYYMMDD
-            $tanggalFormatted = date('Ymd', strtotime($request->tanggal));
-
-            $last = Jurnal_Umum::orderBy('no_bukti', 'desc')->first();
-            $lastNumber = $last ? intval($last->no_bukti) : 0;
+            // Ambil no_bukti terakhir
+            $lastNumber = (int) Jurnal_Umum::max(DB::raw('CAST(no_bukti AS UNSIGNED)'));
             $no_bukti = str_pad($lastNumber + 1, 7, '0', STR_PAD_LEFT);
 
-            // Simpan ke tabel jurnal_umum
+            // Simpan jurnal umum
             $jurnal = Jurnal_Umum::create([
                 'tanggal' => $request->tanggal,
                 'no_bukti' => $no_bukti,
@@ -306,53 +299,46 @@ class JurnalUmumController extends Controller
                 'jenis_transaksi' => $request->jenis_transaksi,
                 'id_unit' => $request->id_unit,
                 'id_divisi' => $request->id_divisi,
-                'id_kegiatan' => $request->filled('id_kegiatan') ? $request->id_kegiatan : null,
-                'id_sumber_anggaran' => $request->filled('id_sumber_anggaran') ? $request->id_sumber_anggaran : null,
+                'id_kegiatan' => $request->id_kegiatan,
+                'id_sumber_anggaran' => $request->id_sumber_anggaran,
                 'kode_sumbangan' => $request->kode_sumbangan ?? '',
-                'kode_ph' => $request->kode_ph ?? ''
+                'kode_ph' => $request->kode_ph ?? '',
             ]);
 
-            // Simpan ke tabel detail_jurnal_umum
-            foreach ($request->id_akun as $key => $id_akun) {
-                $debit = (int) preg_replace('/\D/', '', $request->debit[$key]) ?: 0;
-                $kredit = (int) preg_replace('/\D/', '', $request->kredit[$key]) ?: 0;
+            // Simpan detail jurnal
+            collect($request->id_akun)->each(function ($id_akun, $i) use ($request, $jurnal) {
+                $debit = (int) preg_replace('/\D/', '', $request->debit[$i]) ?: 0;
+                $kredit = (int) preg_replace('/\D/', '', $request->kredit[$i]) ?: 0;
 
-                if ($debit > 0) {
-                    Detail_Jurnal_Umum::create([
-                        'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-                        'id_akun' => $id_akun,
-                        'nominal' => $debit,
-                        'debit_kredit' => 'debit'
-                    ]);
+                foreach (['debit' => $debit, 'kredit' => $kredit] as $type => $amount) {
+                    if ($amount > 0) {
+                        Detail_Jurnal_Umum::create([
+                            'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                            'id_akun' => $id_akun,
+                            'nominal' => $amount,
+                            'debit_kredit' => $type
+                        ]);
+                    }
                 }
+            });
 
-                if ($kredit > 0) {
-                    Detail_Jurnal_Umum::create([
-                        'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-                        'id_akun' => $id_akun,
-                        'nominal' => $kredit,
-                        'debit_kredit' => 'kredit'
-                    ]);
-                }
-            }
-
-            // **Jika checkbox "Posting ke Buku Besar" dicentang, insert ke buku_besar**
+            // Posting ke buku besar jika dicentang
             if ($request->has('postingBukuBesar')) {
                 Buku_Besar::create([
-                    'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                    'id_jurnal_umum' => $jurnal->id_jurnal_umum
                 ]);
             }
 
-            // Redirect dengan pesan sukses dan no_bukti
-            return redirect()->route('jurnal-umum.index')->with('success', 'Data berhasil disimpan. No Bukti: ' . $no_bukti);
+            return redirect()->route('jurnal-umum.index')->with('success', "Data berhasil disimpan. No Bukti: $no_bukti");
         });
     }
 
 
 
+
     public function import(Request $request)
     {
-        $id_user_login = Auth::user()->id_user;
+        $id_user_login = Auth::id();
         DB::statement("SET @current_user_id = $id_user_login");
 
         $request->validate([
@@ -367,121 +353,98 @@ class JurnalUmumController extends Controller
 
         try {
             $spreadsheet = IOFactory::load($file);
-            $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray();
+            $rows = $spreadsheet->getActiveSheet()->toArray();
 
-            DB::beginTransaction();
+            DB::transaction(function () use ($rows) {
+                foreach ($rows as $index => $row) {
+                    if ($index === 0) continue; // Skip header
 
-            foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // Skip header
+                    $tanggal = is_numeric($row[0])
+                        ? Date::excelToDateTimeObject($row[0])->format('Y-m-d')
+                        : date('Y-m-d', strtotime($row[0]));
 
-                $tanggal = is_numeric($row[0])
-                    ? Date::excelToDateTimeObject($row[0])->format('Y-m-d')
-                    : date('Y-m-d', strtotime($row[0]));
+                    $keterangan = $row[1] ?? '-';
+                    $jenis_transaksi = $row[2] ?? '-';
 
-                $keterangan = $row[1] ?? '-';
-                $jenis_transaksi = $row[2] ?? '-';
+                    $id_unit = Unit::where('unit', $row[3])->value('id_unit');
+                    if (!$id_unit) throw new \Exception("❌ Unit tidak ditemukan: {$row[3]} (baris ke-" . ($index + 1) . ")");
 
-                // Unit
-                $id_unit = Unit::where('unit', $row[3])->value('id_unit');
-                if (!$id_unit) throw new \Exception("❌ Unit tidak ditemukan: {$row[3]} (baris ke-" . ($index + 1) . ")");
+                    $id_divisi = Divisi::where('divisi', $row[4])->value('id_divisi');
+                    if (!$id_divisi) throw new \Exception("❌ Divisi tidak ditemukan: {$row[4]} (baris ke-" . ($index + 1) . ")");
 
-                // Divisi
-                $id_divisi = Divisi::where('divisi', $row[4])->value('id_divisi');
-                if (!$id_divisi) throw new \Exception("❌ Divisi tidak ditemukan: {$row[4]} (baris ke-" . ($index + 1) . ")");
+                    $id_kegiatan = null;
+                    if (!empty($row[5])) {
+                        $kode_kegiatan = trim(explode('|', $row[5])[0]);
+                        $id_kegiatan = Kegiatan::where('kode_kegiatan', $kode_kegiatan)->value('id_kegiatan');
+                        if (!$id_kegiatan) throw new \Exception("❌ Kegiatan tidak ditemukan: {$row[5]} (baris ke-" . ($index + 1) . ")");
+                    }
 
-                // Kegiatan
-                $id_kegiatan = null;
-                if (!empty($row[5])) {
-                    $kode_kegiatan = trim(explode('|', $row[5])[0]);
-                    $id_kegiatan = Kegiatan::where('kode_kegiatan', $kode_kegiatan)->value('id_kegiatan');
-                    if (!$id_kegiatan) throw new \Exception("❌ Kegiatan tidak ditemukan: {$row[5]} (baris ke-" . ($index + 1) . ")");
+                    $id_sumber_anggaran = null;
+                    if (!empty($row[6])) {
+                        $kode_sumber = trim(explode('|', $row[6])[0]);
+                        $id_sumber_anggaran = Akun::where('kode_akun', $kode_sumber)
+                            ->whereHas('sub_kategori_akun', fn($q) =>
+                                $q->where('sub_kategori_akun', 'Penerimaan dan Sumbangan Pendidikan')
+                            )
+                            ->value('id_akun');
+                        if (!$id_sumber_anggaran) throw new \Exception("❌ Sumber Anggaran tidak cocok: {$row[6]} (baris ke-" . ($index + 1) . ")");
+                    }
+
+                    $kode_sumbangan = $row[7] ?? null;
+                    $kode_ph = $row[8] ?? null;
+
+                    $id_akun_debit = null;
+                    if (!empty($row[9])) {
+                        $kode_debit = trim(explode('|', $row[9])[0]);
+                        $id_akun_debit = Akun::where('kode_akun', $kode_debit)->value('id_akun');
+                        if (!$id_akun_debit) throw new \Exception("❌ Akun Debit tidak ditemukan: {$row[9]} (baris ke-" . ($index + 1) . ")");
+                    }
+
+                    $id_akun_kredit = null;
+                    if (!empty($row[10])) {
+                        $kode_kredit = trim(explode('|', $row[10])[0]);
+                        $id_akun_kredit = Akun::where('kode_akun', $kode_kredit)->value('id_akun');
+                        if (!$id_akun_kredit) throw new \Exception("❌ Akun Kredit tidak ditemukan: {$row[10]} (baris ke-" . ($index + 1) . ")");
+                    }
+
+                    $rawNominal = trim($row[11] ?? '');
+                    $nominal = ($rawNominal === '' || $rawNominal === '-') ? 0 : (int) preg_replace('/\D/', '', $rawNominal);
+
+                    $lastNumber = (int) Jurnal_Umum::max(DB::raw('CAST(no_bukti AS UNSIGNED)'));
+                    $no_bukti = str_pad($lastNumber + 1, 7, '0', STR_PAD_LEFT);
+
+                    $jurnal = Jurnal_Umum::create([
+                        'tanggal' => $tanggal,
+                        'no_bukti' => $no_bukti,
+                        'keterangan' => $keterangan,
+                        'jenis_transaksi' => $jenis_transaksi,
+                        'id_unit' => $id_unit,
+                        'id_divisi' => $id_divisi,
+                        'id_kegiatan' => $id_kegiatan,
+                        'id_sumber_anggaran' => $id_sumber_anggaran,
+                        'kode_sumbangan' => $kode_sumbangan,
+                        'kode_ph' => $kode_ph,
+                    ]);
+
+                    foreach ([
+                        ['id_akun' => $id_akun_debit, 'type' => 'debit'],
+                        ['id_akun' => $id_akun_kredit, 'type' => 'kredit']
+                    ] as $item) {
+                        if ($item['id_akun']) {
+                            Detail_Jurnal_Umum::create([
+                                'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                                'id_akun' => $item['id_akun'],
+                                'nominal' => $nominal,
+                                'debit_kredit' => $item['type'],
+                            ]);
+                        }
+                    }
                 }
+            });
 
-                // Sumber Anggaran
-                $id_sumber_anggaran = null;
-                if (!empty($row[6])) {
-                    $kode_sumber = trim(explode('|', $row[6])[0]);
-                    $id_sumber_anggaran = Akun::where('kode_akun', $kode_sumber)
-                        ->whereHas('sub_kategori_akun', function ($q) {
-                            $q->where('sub_kategori_akun', 'Penerimaan dan Sumbangan Pendidikan');
-                        })
-                        ->value('id_akun');
-                    if (!$id_sumber_anggaran) throw new \Exception("❌ Sumber Anggaran tidak cocok: {$row[6]} (baris ke-" . ($index + 1) . ")");
-                }
-
-                $kode_sumbangan = $row[7] ?? null;
-                $kode_ph = $row[8] ?? null;
-
-                // Akun Debit
-                $id_akun_debit = null;
-                if (!empty($row[9])) {
-                    $kode_debit = trim(explode('|', $row[9])[0]);
-                    $id_akun_debit = Akun::where('kode_akun', $kode_debit)->value('id_akun');
-                    if (!$id_akun_debit) throw new \Exception("❌ Akun Debit tidak ditemukan: {$row[9]} (baris ke-" . ($index + 1) . ")");
-                }
-
-                // Akun Kredit
-                $id_akun_kredit = null;
-                if (!empty($row[10])) {
-                    $kode_kredit = trim(explode('|', $row[10])[0]);
-                    $id_akun_kredit = Akun::where('kode_akun', $kode_kredit)->value('id_akun');
-                    if (!$id_akun_kredit) throw new \Exception("❌ Akun Kredit tidak ditemukan: {$row[10]} (baris ke-" . ($index + 1) . ")");
-                }
-
-                // Nominal
-                $rawNominal = trim($row[11] ?? '');
-
-                // Jika kosong atau hanya berisi tanda minus, jadikan 0
-                if ($rawNominal === '' || $rawNominal === '-') {
-                    $nominal = 0;
-                } else {
-                    // Bersihkan karakter non-digit dan konversi ke int
-                    $nominal = (int) preg_replace('/\D/', '', $rawNominal);
-                }
-
-
-                // Nomor Bukti
-                $last = Jurnal_Umum::orderBy('no_bukti', 'desc')->first();
-                $lastNumber = $last ? intval($last->no_bukti) : 0;
-                $no_bukti = str_pad($lastNumber + 1, 7, '0', STR_PAD_LEFT);
-
-                // Simpan Jurnal Umum
-                $jurnal = Jurnal_Umum::create([
-                    'tanggal' => $tanggal,
-                    'no_bukti' => $no_bukti,
-                    'keterangan' => $keterangan,
-                    'jenis_transaksi' => $jenis_transaksi,
-                    'id_unit' => $id_unit,
-                    'id_divisi' => $id_divisi,
-                    'id_kegiatan' => $id_kegiatan,
-                    'id_sumber_anggaran' => $id_sumber_anggaran,
-                    'kode_sumbangan' => $kode_sumbangan,
-                    'kode_ph' => $kode_ph,
-                ]);
-
-                // Simpan Detail Debit
-                Detail_Jurnal_Umum::create([
-                    'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-                    'id_akun' => $id_akun_debit,
-                    'nominal' => $nominal,
-                    'debit_kredit' => 'debit'
-                ]);
-
-                // Simpan Detail Kredit
-                Detail_Jurnal_Umum::create([
-                    'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-                    'id_akun' => $id_akun_kredit,
-                    'nominal' => $nominal,
-                    'debit_kredit' => 'kredit'
-                ]);
-            }
-
-            DB::commit();
-            return back()->with('success', 'Berhasil Import.');
+            return back()->with('success', '✅ Berhasil Import.');
         } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error: ' . $e->getMessage() . ' in file ' . $e->getFile() . ' at line ' . $e->getLine());
+            return back()->with('error', '❌ Error: ' . $e->getMessage());
         }
     }
 
@@ -520,10 +483,9 @@ class JurnalUmumController extends Controller
 
     public function update(Request $request, $id)
     {
-        $id_user_login = Auth::user()->id_user;
-        DB::statement("SET @current_user_id = $id_user_login");
-    
-        $request->validate([
+        DB::statement("SET @current_user_id = " . Auth::id());
+
+        $validated = $request->validate([
             'tanggal' => 'required|date',
             'keterangan' => 'required|string',
             'jenis_transaksi' => 'required|string',
@@ -535,53 +497,43 @@ class JurnalUmumController extends Controller
             'kredit' => 'required|array',
             'id_kegiatan' => 'nullable|exists:kegiatan,id_kegiatan',
             'id_sumber_anggaran' => 'nullable|exists:akun,id_akun',
-
         ]);
 
-        return DB::transaction(function () use ($request, $id) {
+        return DB::transaction(function () use ($validated, $request, $id) {
             $jurnal = Jurnal_Umum::findOrFail($id);
 
             $jurnal->update([
-                'tanggal' => $request->tanggal,
-                'keterangan' => $request->keterangan,
-                'jenis_transaksi' => $request->jenis_transaksi,
-                'id_unit' => $request->id_unit,
-                'id_divisi' => $request->id_divisi,
-                'id_kegiatan' => $request->id_kegiatan ?: null,
-                'id_sumber_anggaran' => $request->id_sumber_anggaran ?: null,
+                'tanggal' => $validated['tanggal'],
+                'keterangan' => $validated['keterangan'],
+                'jenis_transaksi' => $validated['jenis_transaksi'],
+                'id_unit' => $validated['id_unit'],
+                'id_divisi' => $validated['id_divisi'],
+                'id_kegiatan' => $validated['id_kegiatan'] ?? null,
+                'id_sumber_anggaran' => $validated['id_sumber_anggaran'] ?? null,
                 'kode_sumbangan' => $request->kode_sumbangan ?? '',
                 'kode_ph' => $request->kode_ph ?? ''
-
             ]);
 
-            // Hapus detail lama
+            // Hapus dan masukkan ulang detail
             Detail_Jurnal_Umum::where('id_jurnal_umum', $jurnal->id_jurnal_umum)->delete();
 
-            // Tambah ulang detail baru
-            foreach ($request->id_akun as $key => $id_akun) {
-                $debit = (int) preg_replace('/\D/', '', $request->debit[$key]) ?: 0;
-                $kredit = (int) preg_replace('/\D/', '', $request->kredit[$key]) ?: 0;
+            foreach ($validated['id_akun'] as $i => $id_akun) {
+                $debit = (int) preg_replace('/\D/', '', $validated['debit'][$i]) ?: 0;
+                $kredit = (int) preg_replace('/\D/', '', $validated['kredit'][$i]) ?: 0;
 
-                if ($debit > 0) {
-                    Detail_Jurnal_Umum::create([
-                        'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-                        'id_akun' => $id_akun,
-                        'nominal' => $debit,
-                        'debit_kredit' => 'debit'
-                    ]);
-                }
-
-                if ($kredit > 0) {
-                    Detail_Jurnal_Umum::create([
-                        'id_jurnal_umum' => $jurnal->id_jurnal_umum,
-                        'id_akun' => $id_akun,
-                        'nominal' => $kredit,
-                        'debit_kredit' => 'kredit'
-                    ]);
+                foreach (['debit' => $debit, 'kredit' => $kredit] as $tipe => $nominal) {
+                    if ($nominal > 0) {
+                        Detail_Jurnal_Umum::create([
+                            'id_jurnal_umum' => $jurnal->id_jurnal_umum,
+                            'id_akun' => $id_akun,
+                            'nominal' => $nominal,
+                            'debit_kredit' => $tipe,
+                        ]);
+                    }
                 }
             }
 
-            // Optional: atur ulang buku besar kalau ada
+            // Reset buku besar jika perlu
             Buku_Besar::where('id_jurnal_umum', $jurnal->id_jurnal_umum)->delete();
 
             if ($request->has('postingBukuBesar')) {
@@ -593,6 +545,7 @@ class JurnalUmumController extends Controller
             return redirect()->route('jurnal-umum.index')->with('success', 'Data berhasil diperbarui');
         });
     }
+
 
 
 

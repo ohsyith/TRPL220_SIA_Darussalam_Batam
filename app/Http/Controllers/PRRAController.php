@@ -32,7 +32,6 @@ class PRRAController extends Controller
         $unitId = $request->unit;
         $divisiId = $request->divisi;
 
-         // 🔐 Paksa unit jika role akuntan_unit
         if (!$unitId && $user->role === 'akuntan_unit') {
             $unitId = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
         }
@@ -40,97 +39,66 @@ class PRRAController extends Controller
         $groupedData = [];
 
         if ($berdasarkan === 'kegiatan') {
-            $kegiatanList = Kegiatan::with([
-                'jurnal_umum' => function ($query) use ($startDate, $endDate, $unitId, $divisiId) {
-                    $query->whereHas('buku_besar');
-                    if ($startDate && $endDate) {
-                        $query->whereBetween('tanggal', [$startDate, $endDate]);
-                    }
-                    if ($unitId) {
-                        $query->where('id_unit', $unitId);
-                    }
-                    if ($divisiId) {
-                        $query->where('id_divisi', $divisiId);
-                    }
-                },
-                'jurnal_umum.detail_jurnal_umum'
-            ])->get();
+            try {
+                $results = DB::select('CALL hitung_prra_kegiatan(?, ?, ?, ?)', [
+                    $startDate,
+                    $endDate,
+                    $unitId,
+                    $divisiId
+                ]);
 
-            $groupedData['KEGIATAN']['Semua Kegiatan'] = [];
+                $groupedData['KEGIATAN']['Semua Kegiatan'] = [];
 
-            foreach ($kegiatanList as $kegiatan) {
-                $totalRealisasi = 0;
-
-                foreach ($kegiatan->jurnal_umum as $jurnal) {
-                    foreach ($jurnal->detail_jurnal_umum as $detail) {
-                        if ($detail->debit_kredit === 'debit') {
-                            $totalRealisasi += $detail->nominal;
-                        }
-                    }
+                foreach ($results as $row) {
+                    $groupedData['KEGIATAN']['Semua Kegiatan'][] = (object)[
+                        'nama_kegiatan' => $row->nama_kegiatan,
+                        'budget_rapbs' => $row->budget,
+                        'realisasi' => $row->realisasi,
+                        'selisih' => $row->budget - $row->realisasi,
+                    ];
                 }
-
-                $budget = DB::table('budget_rapbs_kegiatan')
-                    ->where('id_kegiatan', $kegiatan->id_kegiatan)
-                    ->when($unitId, fn($q) => $q->where('id_unit', $unitId))
-                    ->sum('budget_rapbs_kegiatan');
-
-                $groupedData['KEGIATAN']['Semua Kegiatan'][] = (object)[
-                    'nama_kegiatan' => $kegiatan->kegiatan,
-                    'budget_rapbs' => $budget,
-                    'realisasi' => $totalRealisasi,
-                    'selisih' => $budget - $totalRealisasi,
-                ];
-            }
-
-        } else {
-            $akunList = Akun::with([
-                'sub_kategori_akun.kategori_akun',
-                'detail_jurnal_umum.jurnal_umum' => function ($query) use ($unitId, $divisiId) {
-                    if ($unitId) {
-                        $query->where('id_unit', $unitId);
-                    }
-                    if ($divisiId) {
-                        $query->where('id_divisi', $divisiId);
-                    }
-                    $query->whereHas('buku_besar');
-                }
-            ])
-            ->whereHas('sub_kategori_akun.kategori_akun', function ($query) {
-                $query->whereIn('kategori_akun', ['PENERIMAAN DAN SUMBANGAN', 'BEBAN']);
-            })
-            ->get();
-
-            foreach ($akunList as $akun) {
-                $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun ?? 'Lainnya';
-                $subKategori = $akun->sub_kategori_akun->sub_kategori_akun ?? 'Lainnya';
-
-                $filteredDetails = $akun->detail_jurnal_umum->filter(fn($d) => $d->jurnal_umum && $d->jurnal_umum->buku_besar);
-                $debit = $filteredDetails->where('debit_kredit', 'debit')->sum('nominal');
-                $kredit = $filteredDetails->where('debit_kredit', 'kredit')->sum('nominal');
-                $kategoriAkun = $akun->sub_kategori_akun->kategori_akun->kategori_akun ?? 'Lainnya';
-
-                if ($kategoriAkun === 'PENERIMAAN DAN SUMBANGAN') {
-                    $saldo = $kredit; // pendapatan diambil dari sisi kredit
-                } elseif ($kategoriAkun === 'BEBAN') {
-                    $saldo = $debit; // beban diambil dari sisi debit
-                } else {
-                    $saldo = 0; // atau dibiarkan kosong
-                }
-
-
-                $budget = DB::table('budget_rapbs_akun')
-                    ->where('id_akun', $akun->id_akun)
-                    ->when($unitId, fn($q) => $q->where('id_unit', $unitId))
-                    ->sum('budget_rapbs_akun');
-
-                $groupedData[$kategori][$subKategori][] = (object)[
-                    'nama_akun' => $akun->akun,
-                    'budget_rapbs' => $budget,
-                    'realisasi' => $saldo,
-                    'selisih' => $budget - $saldo,
-                ];
+            } catch (\Exception $e) {
+                \Log::error('Error hitung_prra_kegiatan: ' . $e->getMessage());
+                $groupedData['ERROR'] = ['Gagal memuat data kegiatan dari prosedur.'];
             }
         }
+        else {
+            try {
+                $results = DB::select('CALL hitung_komprehensif(?, ?, ?, ?)', [
+                    $startDate,
+                    $endDate,
+                    $unitId,
+                    $divisiId
+                ]);
+
+                foreach ($results as $row) {
+                    $kategori = $row->kategori_akun;
+                    $subKategori = 'Lainnya'; // Jika ingin diganti dari relasi bisa, tapi prosedur belum sediakan
+
+                    $totalRealisasi = (float)$row->total_tanpa + (float)$row->total_dengan;
+
+                    // Ambil budget dari tabel RAPBS
+                    $budget = DB::table('budget_rapbs_akun')
+                        ->join('akun', 'budget_rapbs_akun.id_akun', '=', 'akun.id_akun')
+                        ->where('akun.akun', $row->nama_akun)
+                        ->when($unitId, fn($q) => $q->where('budget_rapbs_akun.id_unit', $unitId))
+                        ->sum('budget_rapbs_akun');
+
+                    $groupedData[$kategori][$subKategori][] = (object)[
+                        'nama_akun' => $row->nama_akun,
+                        'budget_rapbs' => $budget,
+                        'realisasi' => $totalRealisasi,
+                        'selisih' => $budget - $totalRealisasi,
+                    ];
+                }
+
+            } catch (\Exception $e) {
+                \Log::error('Error panggil prosedur hitung_komprehensif: ' . $e->getMessage());
+                // fallback atau error response (opsional)
+                $groupedData['ERROR'] = ['Gagal memuat data akun dari stored procedure.'];
+            }
+        }
+
 
         // Jika ada permintaan export
         if ($request->has('export_excel')) {

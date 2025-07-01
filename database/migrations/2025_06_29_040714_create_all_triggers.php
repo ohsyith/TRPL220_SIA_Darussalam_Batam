@@ -456,7 +456,6 @@ return new class extends Migration
             AFTER INSERT ON user
             FOR EACH ROW
             BEGIN
-
             IF @current_user_id IS NOT NULL THEN
                 INSERT INTO log_activity (id_user, keterangan, created_at, updated_at)
                 VALUES (
@@ -468,7 +467,6 @@ return new class extends Migration
             END IF;
             END
         ");
-
         DB::unprepared("
             CREATE TRIGGER after_update_user
             AFTER UPDATE ON user
@@ -508,13 +506,11 @@ return new class extends Migration
             BEGIN
                 DECLARE v_no_bukti VARCHAR(50);
                 DECLARE v_keterangan TEXT;
-
                 -- Ambil data dari jurnal_umum berdasarkan ID
                 SELECT no_bukti, keterangan
                 INTO v_no_bukti, v_keterangan
                 FROM jurnal_umum
                 WHERE id_jurnal_umum = NEW.id_jurnal_umum;
-
                 -- Masukkan log aktivitas
                 INSERT INTO log_activity (id_user, keterangan, created_at, updated_at)
                 VALUES (
@@ -532,13 +528,11 @@ return new class extends Migration
             BEGIN
                 DECLARE v_no_bukti VARCHAR(50);
                 DECLARE v_keterangan TEXT;
-
                 -- Ambil no_bukti dan keterangan dari jurnal_umum berdasarkan id_jurnal_umum yang dihapus
                 SELECT no_bukti, keterangan
                 INTO v_no_bukti, v_keterangan
                 FROM jurnal_umum
                 WHERE id_jurnal_umum = OLD.id_jurnal_umum;
-
                 -- Simpan ke log_activity
                 INSERT INTO log_activity (id_user, keterangan, created_at, updated_at)
                 VALUES (

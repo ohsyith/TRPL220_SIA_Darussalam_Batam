@@ -27,13 +27,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
         $this->call(UnitSeeder::class);
         $this->call(DivisiSeeder::class);
         $this->call(UserSeeder::class);
@@ -43,8 +36,5 @@ class DatabaseSeeder extends Seeder
         $this->call(SubKategoriAkunSeeder::class);
         $this->call(AkunSeeder::class);
         $this->call(KegiatanSeeder::class);
-        // $this->call(BudgetRapbsAkunSeeder::class);
-        // $this->call(SaldoAkhirTahunSeeder::class);
-        // $this->call(KomprehensifAkhirTahunSeeder::class);
     }
 }

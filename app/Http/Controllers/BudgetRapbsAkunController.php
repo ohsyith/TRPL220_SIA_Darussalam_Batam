@@ -83,22 +83,18 @@ class BudgetRapbsAkunController extends Controller
             'budget_rapbs_akun' => 'required|numeric',
         ]);
 
-        $existing = Budget_Rapbs_Akun::where('id_akun', $validated['id_akun'])
-                                    ->where('id_unit', $validated['id_unit'])
-                                    ->first();
-
-        if ($existing) {
-            $existing->budget_rapbs_akun = $validated['budget_rapbs_akun']; // fix di sini
-            $existing->save();
-        } else {
-            Budget_Rapbs_Akun::create([
-                'id_akun' => $validated['id_akun'],
-                'id_unit' => $validated['id_unit'],
-                'budget_rapbs_akun' => $validated['budget_rapbs_akun'], // fix di sini juga
-            ]);
-        }
-
-        return back()->with('success', 'Data berhasil disimpan.');
+        return DB::transaction(function () use ($validated) {
+            Budget_Rapbs_Akun::updateOrCreate(
+                [
+                    'id_akun' => $validated['id_akun'],
+                    'id_unit' => $validated['id_unit']
+                ],
+                [
+                    'budget_rapbs_akun' => $validated['budget_rapbs_akun']
+                ]
+            );
+            return back()->with('success', 'Data berhasil disimpan.');
+        });
     }
 
 
@@ -108,47 +104,49 @@ class BudgetRapbsAkunController extends Controller
         DB::statement("SET @current_user_id = " . auth()->id());
 
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
+            'file' => 'required|mimes:xlsx,xls',
         ]);
 
         $file = $request->file('file');
         $spreadsheet = IOFactory::load($file->getRealPath());
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray(null, true, true, true);
+        $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
-        DB::beginTransaction();
+        // Mapping semua akun dan unit di awal (hindari query berulang dalam loop)
+        $akunMap = Akun::pluck('id_akun', 'kode_akun');
+        $unitMap = Unit::pluck('id_unit', 'kode_unit');
 
         try {
-            foreach ($rows as $index => $row) {
-                if ($index === 1) continue; // header
+            DB::transaction(function () use ($rows, $akunMap, $unitMap) {
+                foreach ($rows as $index => $row) {
+                    if ($index === 1) continue; // Lewati header
 
-                $kode_akun  = trim($row['A']);
-                $akun_nama  = trim($row['B']);
-                $budget     = (int) $row['C'];
-                $kode_unit  = trim($row['D']);
+                    $kode_akun = trim($row['A']);
+                    $budget = (int) $row['C'];
+                    $kode_unit = trim($row['D']);
 
-                $akun = Akun::where('kode_akun', $kode_akun)->first();
-                $unit = Unit::where('kode_unit', $kode_unit)->first();
+                    $id_akun = $akunMap[$kode_akun] ?? null;
+                    $id_unit = $unitMap[$kode_unit] ?? null;
 
-                if (!$akun || !$unit) continue; // skip jika tidak ditemukan
+                    if (!$id_akun || !$id_unit) continue;
 
-                // Update or Insert
-                Budget_Rapbs_Akun::updateOrCreate(
-                    [
-                        'id_akun' => $akun->id_akun,
-                        'id_unit' => $unit->id_unit,
-                    ],
-                    ['budget_rapbs_akun' => $budget]
-                );
-            }
+                    Budget_Rapbs_Akun::updateOrCreate(
+                        [
+                            'id_akun' => $id_akun,
+                            'id_unit' => $id_unit,
+                        ],
+                        [
+                            'budget_rapbs_akun' => $budget
+                        ]
+                    );
+                }
+            });
 
-            DB::commit();
             return back()->with('success', 'Import Excel berhasil!');
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
         }
     }
+
 
 
 }

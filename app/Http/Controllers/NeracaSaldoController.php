@@ -280,241 +280,6 @@ class NeracaSaldoController extends Controller
 
 
 
-    //ORM
-    // public function index(Request $request)
-    // {
-    //     $user = Auth::user();
-
-    //     $id_unit = $request->unit;
-    //     $id_divisi = $request->divisi;
-
-    //     // Otomatis set unit/divisi dari role jika tidak dipilih
-    //     if (!$id_unit && $user->role === 'akuntan_unit') {
-    //         $id_unit = AkuntanUnit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
-    //     }
-    //     if (!$id_divisi && $user->role === 'akuntan_divisi') {
-    //         $id_divisi = AkuntanDivisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
-    //     }
-
-    //     $start = $request->start_date ?? now()->startOfYear()->toDateString();
-    //     $end = $request->end_date ?? now()->toDateString();
-    //     $tahun_lalu = Carbon::parse($end)->year - 1;
-
-    //     // ========== LOGIKA KHUSUS UNTUK ASET NETO DENGAN/TANPA PEMBATASAN ==========
-    //     $akunDengan = Akun::whereHas('sub_kategori_akun', function ($query) {
-    //         $query->where('sub_kategori_akun', 'Dengan Pembatasan')
-    //             ->whereHas('kategori_akun', function ($q) {
-    //                 $q->where('kategori_akun', 'ASET NETO');
-    //             });
-    //     })->first();
-
-    //     $akunTanpa = Akun::whereHas('sub_kategori_akun', function ($query) {
-    //         $query->where('sub_kategori_akun', 'Tanpa Pembatasan')
-    //             ->whereHas('kategori_akun', function ($q) {
-    //                 $q->where('kategori_akun', 'ASET NETO');
-    //             });
-    //     })->first();
-
-    //     $getKenaikan = function ($id_akun, $start, $end) use ($id_unit, $id_divisi) {
-    //         $query = Detail_Jurnal_Umum::whereHas('jurnal_umum', function ($q) use ($start, $end, $id_unit, $id_divisi) {
-    //             $q->whereHas('buku_besar') // Hanya jurnal yang sudah diposting
-    //             ->whereBetween('tanggal', [$start, $end]);
-                
-    //             if ($id_unit) $q->where('id_unit', $id_unit);
-    //             if ($id_divisi) $q->where('id_divisi', $id_divisi);
-    //         })->where('id_akun', $id_akun);
-
-    //         return $query->selectRaw("
-    //             SUM(CASE WHEN debit_kredit = 'debit' THEN nominal ELSE 0 END) as total_debit,
-    //             SUM(CASE WHEN debit_kredit = 'kredit' THEN nominal ELSE 0 END) as total_kredit
-    //         ")->first();
-    //     };
-
-    //     $data_aset_neto = [
-    //         'dengan_pembatasan' => [
-    //             'saldo_awal' => $akunDengan ? $akunDengan->saldo_awal_kredit - $akunDengan->saldo_awal_debit : 0,
-    //             'kenaikan_periode_lalu' => 0,
-    //             'kenaikan_periode_berjalan' => 0,
-    //             'saldo_akhir' => 0,
-    //         ],
-    //         'tanpa_pembatasan' => [
-    //             'saldo_awal' => $akunTanpa ? $akunTanpa->saldo_awal_kredit - $akunTanpa->saldo_awal_debit : 0,
-    //             'kenaikan_periode_lalu' => 0,
-    //             'kenaikan_periode_berjalan' => 0,
-    //             'saldo_akhir' => 0,
-    //         ],
-    //     ];
-
-    //     // Hitung kenaikan periode lalu
-    //     if ($akunDengan) {
-    //         $lalu = $getKenaikan($akunDengan->id_akun, '1900-01-01', date('Y-m-d', strtotime($start . ' -1 day')));
-    //         $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] = ($lalu->total_kredit ?? 0) - ($lalu->total_debit ?? 0);
-    //     }
-
-    //     if ($akunTanpa) {
-    //         $lalu = $getKenaikan($akunTanpa->id_akun, '1900-01-01', date('Y-m-d', strtotime($start . ' -1 day')));
-    //         $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] = ($lalu->total_kredit ?? 0) - ($lalu->total_debit ?? 0);
-    //     }
-
-    //     // Hitung kenaikan periode berjalan
-    //     $getTotalManual = function ($isPendapatan, $jenis_transaksi, $start, $end) use ($id_unit, $id_divisi) {
-    //         $kategori = $isPendapatan ? 'PENERIMAAN DAN SUMBANGAN' : 'BEBAN';
-    //         $debit_kredit = $isPendapatan ? 'kredit' : 'debit';
-
-    //         return Detail_Jurnal_Umum::whereHas('jurnal_umum', function ($q) use ($jenis_transaksi, $start, $end, $id_unit, $id_divisi) {
-    //             $q->whereHas('buku_besar') // Hanya jurnal yang sudah diposting
-    //             ->where('jenis_transaksi', $jenis_transaksi)
-    //             ->whereBetween('tanggal', [$start, $end]);
-                
-    //             if ($id_unit) $q->where('id_unit', $id_unit);
-    //             if ($id_divisi) $q->where('id_divisi', $id_divisi);
-    //         })
-    //         ->whereHas('akun.sub_kategori_akun.kategori_akun', function ($q) use ($kategori) {
-    //             $q->where('kategori_akun', $kategori);
-    //         })
-    //         ->where('debit_kredit', $debit_kredit)
-    //         ->sum('nominal');
-    //     };
-
-    //     $pendapatan_terikat = $getTotalManual(true, 'Terikat', $start, $end);
-    //     $beban_terikat = $getTotalManual(false, 'Terikat', $start, $end);
-    //     $pendapatan_tidak_terikat = $getTotalManual(true, 'Tidak Terikat', $start, $end);
-    //     $beban_tidak_terikat = $getTotalManual(false, 'Tidak Terikat', $start, $end);
-
-    //     // Saldo awal pendapatan dan beban menggunakan relationships
-    //     $saldoAwalPendapatan = Akun::whereHas('sub_kategori_akun.kategori_akun', function ($q) {
-    //         $q->where('kategori_akun', 'PENERIMAAN DAN SUMBANGAN');
-    //     })->sum('saldo_awal_kredit');
-
-    //     $saldoAwalBeban = Akun::whereHas('sub_kategori_akun.kategori_akun', function ($q) {
-    //         $q->where('kategori_akun', 'BEBAN');
-    //     })->sum('saldo_awal_debit');
-
-    //     $total_raw = $pendapatan_terikat + $pendapatan_tidak_terikat;
-    //     $kenaikan_terikat = $pendapatan_terikat - $beban_terikat;
-    //     $kenaikan_tidak_terikat = $pendapatan_tidak_terikat - $beban_tidak_terikat;
-
-    //     if ($total_raw > 0) {
-    //         $proporsi_terikat = $pendapatan_terikat / $total_raw;
-    //         $proporsi_tidak_terikat = $pendapatan_tidak_terikat / $total_raw;
-
-    //         $kenaikan_terikat += $saldoAwalPendapatan * $proporsi_terikat - $saldoAwalBeban * $proporsi_terikat;
-    //         $kenaikan_tidak_terikat += $saldoAwalPendapatan * $proporsi_tidak_terikat - $saldoAwalBeban * $proporsi_tidak_terikat;
-    //     }
-
-    //     $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan_terikat;
-    //     $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan_tidak_terikat;
-
-    //     $data_aset_neto['dengan_pembatasan']['saldo_akhir'] =
-    //         $data_aset_neto['dengan_pembatasan']['saldo_awal'] +
-    //         $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] +
-    //         $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'];
-
-    //     $data_aset_neto['tanpa_pembatasan']['saldo_akhir'] =
-    //         $data_aset_neto['tanpa_pembatasan']['saldo_awal'] +
-    //         $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] +
-    //         $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'];
-
-    //     // ========== LOGIKA UMUM UNTUK AKUN LAINNYA ==========
-    //     // Menggunakan eager loading untuk menghindari N+1 problem
-    //     $semua_akun = Akun::with([
-    //         'sub_kategori_akun.kategori_akun',
-    //         'detail_jurnal_umum' => function ($query) use ($start, $end, $id_unit, $id_divisi) {
-    //             $query->whereHas('jurnal_umum', function ($q) use ($start, $end, $id_unit, $id_divisi) {
-    //                 $q->whereHas('buku_besar'); // Hanya jurnal yang sudah diposting
-                    
-    //                 if ($id_unit) $q->where('id_unit', $id_unit);
-    //                 if ($id_divisi) $q->where('id_divisi', $id_divisi);
-    //             });
-    //         },
-    //         'detail_jurnal_umum.jurnal_umum'
-    //     ])
-    //     ->whereHas('sub_kategori_akun.kategori_akun', function ($query) {
-    //         $query->whereIn('kategori_akun', ['AKTIVA', 'KEWAJIBAN', 'ASET NETO']);
-    //     })
-    //     ->get();
-
-    //     $saldo_akun = collect();
-    //     $totalKewajibanAsetNeto = 0;
-    //     $totalPeriodeLaluKewajibanAsetNeto = 0;
-
-    //     foreach ($semua_akun as $akun) {
-    //         $saldo_awal_debit = $akun->saldo_awal_debit ?? 0;
-    //         $saldo_awal_kredit = $akun->saldo_awal_kredit ?? 0;
-
-    //         $mutasi_debit = 0;
-    //         $mutasi_kredit = 0;
-    //         $debit_lalu = 0;
-    //         $kredit_lalu = 0;
-
-    //         // Gunakan collection methods untuk lebih efisien
-    //         $detail_periode_berjalan = $akun->detail_jurnal_umum->filter(function ($detail) use ($start, $end) {
-    //             $jurnal = $detail->jurnal_umum;
-    //             return $jurnal && $jurnal->tanggal >= $start && $jurnal->tanggal <= $end;
-    //         });
-
-    //         $detail_periode_lalu = $akun->detail_jurnal_umum->filter(function ($detail) use ($tahun_lalu) {
-    //             $jurnal = $detail->jurnal_umum;
-    //             return $jurnal && Carbon::parse($jurnal->tanggal)->year == $tahun_lalu;
-    //         });
-
-    //         // Hitung mutasi periode berjalan
-    //         $mutasi_debit = $detail_periode_berjalan->where('debit_kredit', 'debit')->sum('nominal');
-    //         $mutasi_kredit = $detail_periode_berjalan->where('debit_kredit', 'kredit')->sum('nominal');
-
-    //         // Hitung mutasi periode lalu
-    //         $debit_lalu = $detail_periode_lalu->where('debit_kredit', 'debit')->sum('nominal');
-    //         $kredit_lalu = $detail_periode_lalu->where('debit_kredit', 'kredit')->sum('nominal');
-
-    //         $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun;
-    //         $sub_kategori = $akun->sub_kategori_akun->sub_kategori_akun;
-
-    //         // ✅ KHUSUS: Untuk akun "Dengan Pembatasan" dan "Tanpa Pembatasan", gunakan perhitungan khusus
-    //         if ($kategori === 'ASET NETO' && $sub_kategori === 'Dengan Pembatasan') {
-    //             $saldo = $data_aset_neto['dengan_pembatasan']['saldo_akhir'];
-    //             $periode_lalu = $data_aset_neto['dengan_pembatasan']['saldo_awal'];
-    //         } elseif ($kategori === 'ASET NETO' && $sub_kategori === 'Tanpa Pembatasan') {
-    //             $saldo = $data_aset_neto['tanpa_pembatasan']['saldo_akhir'];
-    //             $periode_lalu = $data_aset_neto['tanpa_pembatasan']['saldo_awal'];
-    //         } else {
-    //             // Perhitungan normal untuk akun lainnya
-    //             if ($kategori === 'AKTIVA') {
-    //                 $saldo = ($saldo_awal_debit + $mutasi_debit) - ($saldo_awal_kredit + $mutasi_kredit);
-    //                 $periode_lalu = $saldo_awal_debit - $saldo_awal_kredit;
-    //             } else {
-    //                 // KEWAJIBAN dan ASET NETO lainnya
-    //                 $saldo = ($saldo_awal_kredit + $mutasi_kredit) - ($saldo_awal_debit + $mutasi_debit);
-    //                 $periode_lalu = $saldo_awal_kredit - $saldo_awal_debit;
-    //             }
-    //         }
-
-    //         $saldo_akun[$akun->id_akun] = (object)[
-    //             'saldo' => $saldo,
-    //             'periode_lalu' => $periode_lalu,
-    //         ];
-
-    //         // Hitung total hanya jika KEWAJIBAN dan ASET NETO
-    //         if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO'])) {
-    //             $totalKewajibanAsetNeto += $saldo;
-    //             $totalPeriodeLaluKewajibanAsetNeto += $periode_lalu;
-    //         }
-    //     }
-
-    //     if ($request->has('export_excel')) {
-    //         return $this->exportExcel($semua_akun, $saldo_akun, $start, $end);
-    //     }
-
-    //     $units = Unit::all();
-    //     $divisis = Divisi::all();
-
-    //     return view('neraca-saldo', compact(
-    //         'semua_akun', 'saldo_akun', 'units', 'divisis',
-    //         'id_unit', 'id_divisi',
-    //         'totalKewajibanAsetNeto', 'totalPeriodeLaluKewajibanAsetNeto'
-    //     ));
-    // }
-
-
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -524,12 +289,9 @@ class NeracaSaldoController extends Controller
 
         // Otomatis set unit/divisi dari role jika tidak dipilih
         if (!$id_unit && $user->role === 'akuntan_unit') {
-            $id_unit = AkuntanUnit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+            $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
         }
-        if (!$id_divisi && $user->role === 'akuntan_divisi') {
-            $id_divisi = AkuntanDivisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
-        }
-
+        
         $start = $request->start_date ?? now()->startOfYear()->toDateString();
         $end = $request->end_date ?? now()->toDateString();
         $tahun_lalu = Carbon::parse($end)->year - 1;
@@ -537,7 +299,7 @@ class NeracaSaldoController extends Controller
         // ========== MENGGUNAKAN STORED PROCEDURE UNTUK NERACA SALDO ==========
         try {
             // Panggil stored procedure utama
-            $neracaResults = DB::select('CALL get_neraca_saldo(?, ?, ?, ?)', [
+            $neracaResults = DB::select('CALL hitung_neraca(?, ?, ?, ?)', [
                 $start, 
                 $end, 
                 $id_unit, 
@@ -568,7 +330,6 @@ class NeracaSaldoController extends Controller
                 });
         })->first();
 
-        // Gunakan stored function untuk perhitungan kenaikan aset neto
         $data_aset_neto = [
             'dengan_pembatasan' => [
                 'saldo_awal' => $akunDengan ? $akunDengan->saldo_awal_kredit - $akunDengan->saldo_awal_debit : 0,
@@ -584,44 +345,20 @@ class NeracaSaldoController extends Controller
             ],
         ];
 
-        // Hitung kenaikan periode lalu menggunakan stored function
-        if ($akunDengan) {
-            $kenaikanDengan = DB::select('SELECT get_kenaikan_aset_neto(?, ?, ?, ?, ?) as result', [
-                $akunDengan->id_akun,
-                '1900-01-01',
-                date('Y-m-d', strtotime($start . ' -1 day')),
-                $id_unit,
-                $id_divisi
-            ]);
-            
-            if (!empty($kenaikanDengan)) {
-                $resultDengan = json_decode($kenaikanDengan[0]->result, true);
-                $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] = 
-                    ($resultDengan['total_kredit'] ?? 0) - ($resultDengan['total_debit'] ?? 0);
-            }
-        }
 
-        if ($akunTanpa) {
-            $kenaikanTanpa = DB::select('SELECT get_kenaikan_aset_neto(?, ?, ?, ?, ?) as result', [
-                $akunTanpa->id_akun,
-                '1900-01-01',
-                date('Y-m-d', strtotime($start . ' -1 day')),
-                $id_unit,
-                $id_divisi
-            ]);
-            
-            if (!empty($kenaikanTanpa)) {
-                $resultTanpa = json_decode($kenaikanTanpa[0]->result, true);
-                $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] = 
-                    ($resultTanpa['total_kredit'] ?? 0) - ($resultTanpa['total_debit'] ?? 0);
-            }
-        }
+        // Tidak perlu menghitung kenaikan periode lalu secara eksplisit karena sudah tercakup dalam saldo_awal
+        $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] = 0;
+        $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] = 0;
+
 
         // Hitung kenaikan periode berjalan untuk aset neto
-        $kenaikanBerjalan = $this->calculateAsetNetoKenaikanBerjalan($start, $end, $id_unit, $id_divisi);
-        
-        $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'] = $kenaikanBerjalan['terikat'];
-        $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $kenaikanBerjalan['tidak_terikat'];
+        $kenaikan = DB::select('CALL hitung_kenaikan_aset_neto(?, ?, ?, ?)', [
+            $start, $end, $id_unit, $id_divisi
+        ])[0];
+
+        $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan->terikat ?? 0;
+        $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan->tidak_terikat ?? 0;
+
 
         // Hitung saldo akhir
         $data_aset_neto['dengan_pembatasan']['saldo_akhir'] =
@@ -697,9 +434,7 @@ class NeracaSaldoController extends Controller
 
 
 
-    /**
-     * Method helper untuk menghitung kenaikan aset neto periode berjalan
-     */
+
     private function calculateAsetNetoKenaikanBerjalan($start, $end, $id_unit, $id_divisi)
     {
         // Bisa dioptimasi lebih lanjut dengan stored procedure jika diperlukan
@@ -759,235 +494,232 @@ class NeracaSaldoController extends Controller
 
     private function indexFallback(Request $request)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
 
-        $id_unit = $request->unit;
-        $id_divisi = $request->divisi;
+        // $id_unit = $request->unit;
+        // $id_divisi = $request->divisi;
 
-        // Otomatis set unit/divisi dari role jika tidak dipilih
-        if (!$id_unit && $user->role === 'akuntan_unit') {
-            $id_unit = AkuntanUnit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
-        }
-        if (!$id_divisi && $user->role === 'akuntan_divisi') {
-            $id_divisi = AkuntanDivisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
-        }
+        // // Otomatis set unit/divisi dari role jika tidak dipilih
+        // if (!$id_unit && $user->role === 'akuntan_unit') {
+        //     $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+        // }
 
-        $start = $request->start_date ?? now()->startOfYear()->toDateString();
-        $end = $request->end_date ?? now()->toDateString();
-        $tahun_lalu = Carbon::parse($end)->year - 1;
+        // $start = $request->start_date ?? now()->startOfYear()->toDateString();
+        // $end = $request->end_date ?? now()->toDateString();
+        // $tahun_lalu = Carbon::parse($end)->year - 1;
 
-        // ========== LOGIKA KHUSUS UNTUK ASET NETO DENGAN/TANPA PEMBATASAN ==========
-        $akunDengan = Akun::whereHas('sub_kategori_akun', function ($query) {
-            $query->where('sub_kategori_akun', 'Dengan Pembatasan')
-                ->whereHas('kategori_akun', function ($q) {
-                    $q->where('kategori_akun', 'ASET NETO');
-                });
-        })->first();
+        // // ========== LOGIKA KHUSUS UNTUK ASET NETO DENGAN/TANPA PEMBATASAN ==========
+        // $akunDengan = Akun::whereHas('sub_kategori_akun', function ($query) {
+        //     $query->where('sub_kategori_akun', 'Dengan Pembatasan')
+        //         ->whereHas('kategori_akun', function ($q) {
+        //             $q->where('kategori_akun', 'ASET NETO');
+        //         });
+        // })->first();
 
-        $akunTanpa = Akun::whereHas('sub_kategori_akun', function ($query) {
-            $query->where('sub_kategori_akun', 'Tanpa Pembatasan')
-                ->whereHas('kategori_akun', function ($q) {
-                    $q->where('kategori_akun', 'ASET NETO');
-                });
-        })->first();
+        // $akunTanpa = Akun::whereHas('sub_kategori_akun', function ($query) {
+        //     $query->where('sub_kategori_akun', 'Tanpa Pembatasan')
+        //         ->whereHas('kategori_akun', function ($q) {
+        //             $q->where('kategori_akun', 'ASET NETO');
+        //         });
+        // })->first();
 
-        $getKenaikan = function ($id_akun, $start, $end) use ($id_unit, $id_divisi) {
-            $query = Detail_Jurnal_Umum::whereHas('jurnal_umum', function ($q) use ($start, $end, $id_unit, $id_divisi) {
-                $q->whereHas('buku_besar') // Hanya jurnal yang sudah diposting
-                ->whereBetween('tanggal', [$start, $end]);
+        // $getKenaikan = function ($id_akun, $start, $end) use ($id_unit, $id_divisi) {
+        //     $query = Detail_Jurnal_Umum::whereHas('jurnal_umum', function ($q) use ($start, $end, $id_unit, $id_divisi) {
+        //         $q->whereHas('buku_besar') // Hanya jurnal yang sudah diposting
+        //         ->whereBetween('tanggal', [$start, $end]);
                 
-                if ($id_unit) $q->where('id_unit', $id_unit);
-                if ($id_divisi) $q->where('id_divisi', $id_divisi);
-            })->where('id_akun', $id_akun);
+        //         if ($id_unit) $q->where('id_unit', $id_unit);
+        //         if ($id_divisi) $q->where('id_divisi', $id_divisi);
+        //     })->where('id_akun', $id_akun);
 
-            return $query->selectRaw("
-                SUM(CASE WHEN debit_kredit = 'debit' THEN nominal ELSE 0 END) as total_debit,
-                SUM(CASE WHEN debit_kredit = 'kredit' THEN nominal ELSE 0 END) as total_kredit
-            ")->first();
-        };
+        //     return $query->selectRaw("
+        //         SUM(CASE WHEN debit_kredit = 'debit' THEN nominal ELSE 0 END) as total_debit,
+        //         SUM(CASE WHEN debit_kredit = 'kredit' THEN nominal ELSE 0 END) as total_kredit
+        //     ")->first();
+        // };
 
-        $data_aset_neto = [
-            'dengan_pembatasan' => [
-                'saldo_awal' => $akunDengan ? $akunDengan->saldo_awal_kredit - $akunDengan->saldo_awal_debit : 0,
-                'kenaikan_periode_lalu' => 0,
-                'kenaikan_periode_berjalan' => 0,
-                'saldo_akhir' => 0,
-            ],
-            'tanpa_pembatasan' => [
-                'saldo_awal' => $akunTanpa ? $akunTanpa->saldo_awal_kredit - $akunTanpa->saldo_awal_debit : 0,
-                'kenaikan_periode_lalu' => 0,
-                'kenaikan_periode_berjalan' => 0,
-                'saldo_akhir' => 0,
-            ],
-        ];
+        // $data_aset_neto = [
+        //     'dengan_pembatasan' => [
+        //         'saldo_awal' => $akunDengan ? $akunDengan->saldo_awal_kredit - $akunDengan->saldo_awal_debit : 0,
+        //         'kenaikan_periode_lalu' => 0,
+        //         'kenaikan_periode_berjalan' => 0,
+        //         'saldo_akhir' => 0,
+        //     ],
+        //     'tanpa_pembatasan' => [
+        //         'saldo_awal' => $akunTanpa ? $akunTanpa->saldo_awal_kredit - $akunTanpa->saldo_awal_debit : 0,
+        //         'kenaikan_periode_lalu' => 0,
+        //         'kenaikan_periode_berjalan' => 0,
+        //         'saldo_akhir' => 0,
+        //     ],
+        // ];
 
-        // Hitung kenaikan periode lalu
-        if ($akunDengan) {
-            $lalu = $getKenaikan($akunDengan->id_akun, '1900-01-01', date('Y-m-d', strtotime($start . ' -1 day')));
-            $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] = ($lalu->total_kredit ?? 0) - ($lalu->total_debit ?? 0);
-        }
+        // // Hitung kenaikan periode lalu
+        // if ($akunDengan) {
+        //     $lalu = $getKenaikan($akunDengan->id_akun, '1900-01-01', date('Y-m-d', strtotime($start . ' -1 day')));
+        //     $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] = ($lalu->total_kredit ?? 0) - ($lalu->total_debit ?? 0);
+        // }
 
-        if ($akunTanpa) {
-            $lalu = $getKenaikan($akunTanpa->id_akun, '1900-01-01', date('Y-m-d', strtotime($start . ' -1 day')));
-            $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] = ($lalu->total_kredit ?? 0) - ($lalu->total_debit ?? 0);
-        }
+        // if ($akunTanpa) {
+        //     $lalu = $getKenaikan($akunTanpa->id_akun, '1900-01-01', date('Y-m-d', strtotime($start . ' -1 day')));
+        //     $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] = ($lalu->total_kredit ?? 0) - ($lalu->total_debit ?? 0);
+        // }
 
-        // Hitung kenaikan periode berjalan
-        $getTotalManual = function ($isPendapatan, $jenis_transaksi, $start, $end) use ($id_unit, $id_divisi) {
-            $kategori = $isPendapatan ? 'PENERIMAAN DAN SUMBANGAN' : 'BEBAN';
-            $debit_kredit = $isPendapatan ? 'kredit' : 'debit';
+        // // Hitung kenaikan periode berjalan
+        // $getTotalManual = function ($isPendapatan, $jenis_transaksi, $start, $end) use ($id_unit, $id_divisi) {
+        //     $kategori = $isPendapatan ? 'PENERIMAAN DAN SUMBANGAN' : 'BEBAN';
+        //     $debit_kredit = $isPendapatan ? 'kredit' : 'debit';
 
-            return Detail_Jurnal_Umum::whereHas('jurnal_umum', function ($q) use ($jenis_transaksi, $start, $end, $id_unit, $id_divisi) {
-                $q->whereHas('buku_besar') // Hanya jurnal yang sudah diposting
-                ->where('jenis_transaksi', $jenis_transaksi)
-                ->whereBetween('tanggal', [$start, $end]);
+        //     return Detail_Jurnal_Umum::whereHas('jurnal_umum', function ($q) use ($jenis_transaksi, $start, $end, $id_unit, $id_divisi) {
+        //         $q->whereHas('buku_besar') // Hanya jurnal yang sudah diposting
+        //         ->where('jenis_transaksi', $jenis_transaksi)
+        //         ->whereBetween('tanggal', [$start, $end]);
                 
-                if ($id_unit) $q->where('id_unit', $id_unit);
-                if ($id_divisi) $q->where('id_divisi', $id_divisi);
-            })
-            ->whereHas('akun.sub_kategori_akun.kategori_akun', function ($q) use ($kategori) {
-                $q->where('kategori_akun', $kategori);
-            })
-            ->where('debit_kredit', $debit_kredit)
-            ->sum('nominal');
-        };
+        //         if ($id_unit) $q->where('id_unit', $id_unit);
+        //         if ($id_divisi) $q->where('id_divisi', $id_divisi);
+        //     })
+        //     ->whereHas('akun.sub_kategori_akun.kategori_akun', function ($q) use ($kategori) {
+        //         $q->where('kategori_akun', $kategori);
+        //     })
+        //     ->where('debit_kredit', $debit_kredit)
+        //     ->sum('nominal');
+        // };
 
-        $pendapatan_terikat = $getTotalManual(true, 'Terikat', $start, $end);
-        $beban_terikat = $getTotalManual(false, 'Terikat', $start, $end);
-        $pendapatan_tidak_terikat = $getTotalManual(true, 'Tidak Terikat', $start, $end);
-        $beban_tidak_terikat = $getTotalManual(false, 'Tidak Terikat', $start, $end);
+        // $pendapatan_terikat = $getTotalManual(true, 'Terikat', $start, $end);
+        // $beban_terikat = $getTotalManual(false, 'Terikat', $start, $end);
+        // $pendapatan_tidak_terikat = $getTotalManual(true, 'Tidak Terikat', $start, $end);
+        // $beban_tidak_terikat = $getTotalManual(false, 'Tidak Terikat', $start, $end);
 
-        // Saldo awal pendapatan dan beban menggunakan relationships
-        $saldoAwalPendapatan = Akun::whereHas('sub_kategori_akun.kategori_akun', function ($q) {
-            $q->where('kategori_akun', 'PENERIMAAN DAN SUMBANGAN');
-        })->sum('saldo_awal_kredit');
+        // // Saldo awal pendapatan dan beban menggunakan relationships
+        // $saldoAwalPendapatan = Akun::whereHas('sub_kategori_akun.kategori_akun', function ($q) {
+        //     $q->where('kategori_akun', 'PENERIMAAN DAN SUMBANGAN');
+        // })->sum('saldo_awal_kredit');
 
-        $saldoAwalBeban = Akun::whereHas('sub_kategori_akun.kategori_akun', function ($q) {
-            $q->where('kategori_akun', 'BEBAN');
-        })->sum('saldo_awal_debit');
+        // $saldoAwalBeban = Akun::whereHas('sub_kategori_akun.kategori_akun', function ($q) {
+        //     $q->where('kategori_akun', 'BEBAN');
+        // })->sum('saldo_awal_debit');
 
-        $total_raw = $pendapatan_terikat + $pendapatan_tidak_terikat;
-        $kenaikan_terikat = $pendapatan_terikat - $beban_terikat;
-        $kenaikan_tidak_terikat = $pendapatan_tidak_terikat - $beban_tidak_terikat;
+        // $total_raw = $pendapatan_terikat + $pendapatan_tidak_terikat;
+        // $kenaikan_terikat = $pendapatan_terikat - $beban_terikat;
+        // $kenaikan_tidak_terikat = $pendapatan_tidak_terikat - $beban_tidak_terikat;
 
-        if ($total_raw > 0) {
-            $proporsi_terikat = $pendapatan_terikat / $total_raw;
-            $proporsi_tidak_terikat = $pendapatan_tidak_terikat / $total_raw;
+        // if ($total_raw > 0) {
+        //     $proporsi_terikat = $pendapatan_terikat / $total_raw;
+        //     $proporsi_tidak_terikat = $pendapatan_tidak_terikat / $total_raw;
 
-            $kenaikan_terikat += $saldoAwalPendapatan * $proporsi_terikat - $saldoAwalBeban * $proporsi_terikat;
-            $kenaikan_tidak_terikat += $saldoAwalPendapatan * $proporsi_tidak_terikat - $saldoAwalBeban * $proporsi_tidak_terikat;
-        }
+        //     $kenaikan_terikat += $saldoAwalPendapatan * $proporsi_terikat - $saldoAwalBeban * $proporsi_terikat;
+        //     $kenaikan_tidak_terikat += $saldoAwalPendapatan * $proporsi_tidak_terikat - $saldoAwalBeban * $proporsi_tidak_terikat;
+        // }
 
-        $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan_terikat;
-        $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan_tidak_terikat;
+        // $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan_terikat;
+        // $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $kenaikan_tidak_terikat;
 
-        $data_aset_neto['dengan_pembatasan']['saldo_akhir'] =
-            $data_aset_neto['dengan_pembatasan']['saldo_awal'] +
-            $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] +
-            $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'];
+        // $data_aset_neto['dengan_pembatasan']['saldo_akhir'] =
+        //     $data_aset_neto['dengan_pembatasan']['saldo_awal'] +
+        //     $data_aset_neto['dengan_pembatasan']['kenaikan_periode_lalu'] +
+        //     $data_aset_neto['dengan_pembatasan']['kenaikan_periode_berjalan'];
 
-        $data_aset_neto['tanpa_pembatasan']['saldo_akhir'] =
-            $data_aset_neto['tanpa_pembatasan']['saldo_awal'] +
-            $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] +
-            $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'];
+        // $data_aset_neto['tanpa_pembatasan']['saldo_akhir'] =
+        //     $data_aset_neto['tanpa_pembatasan']['saldo_awal'] +
+        //     $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_lalu'] +
+        //     $data_aset_neto['tanpa_pembatasan']['kenaikan_periode_berjalan'];
 
-        // ========== LOGIKA UMUM UNTUK AKUN LAINNYA ==========
-        // Menggunakan eager loading untuk menghindari N+1 problem
-        $semua_akun = Akun::with([
-            'sub_kategori_akun.kategori_akun',
-            'detail_jurnal_umum' => function ($query) use ($start, $end, $id_unit, $id_divisi) {
-                $query->whereHas('jurnal_umum', function ($q) use ($start, $end, $id_unit, $id_divisi) {
-                    $q->whereHas('buku_besar'); // Hanya jurnal yang sudah diposting
+        // // ========== LOGIKA UMUM UNTUK AKUN LAINNYA ==========
+        // // Menggunakan eager loading untuk menghindari N+1 problem
+        // $semua_akun = Akun::with([
+        //     'sub_kategori_akun.kategori_akun',
+        //     'detail_jurnal_umum' => function ($query) use ($start, $end, $id_unit, $id_divisi) {
+        //         $query->whereHas('jurnal_umum', function ($q) use ($start, $end, $id_unit, $id_divisi) {
+        //             $q->whereHas('buku_besar'); // Hanya jurnal yang sudah diposting
                     
-                    if ($id_unit) $q->where('id_unit', $id_unit);
-                    if ($id_divisi) $q->where('id_divisi', $id_divisi);
-                });
-            },
-            'detail_jurnal_umum.jurnal_umum'
-        ])
-        ->whereHas('sub_kategori_akun.kategori_akun', function ($query) {
-            $query->whereIn('kategori_akun', ['AKTIVA', 'KEWAJIBAN', 'ASET NETO']);
-        })
-        ->get();
+        //             if ($id_unit) $q->where('id_unit', $id_unit);
+        //             if ($id_divisi) $q->where('id_divisi', $id_divisi);
+        //         });
+        //     },
+        //     'detail_jurnal_umum.jurnal_umum'
+        // ])
+        // ->whereHas('sub_kategori_akun.kategori_akun', function ($query) {
+        //     $query->whereIn('kategori_akun', ['AKTIVA', 'KEWAJIBAN', 'ASET NETO']);
+        // })
+        // ->get();
 
-        $saldo_akun = collect();
-        $totalKewajibanAsetNeto = 0;
-        $totalPeriodeLaluKewajibanAsetNeto = 0;
+        // $saldo_akun = collect();
+        // $totalKewajibanAsetNeto = 0;
+        // $totalPeriodeLaluKewajibanAsetNeto = 0;
 
-        foreach ($semua_akun as $akun) {
-            $saldo_awal_debit = $akun->saldo_awal_debit ?? 0;
-            $saldo_awal_kredit = $akun->saldo_awal_kredit ?? 0;
+        // foreach ($semua_akun as $akun) {
+        //     $saldo_awal_debit = $akun->saldo_awal_debit ?? 0;
+        //     $saldo_awal_kredit = $akun->saldo_awal_kredit ?? 0;
 
-            $mutasi_debit = 0;
-            $mutasi_kredit = 0;
-            $debit_lalu = 0;
-            $kredit_lalu = 0;
+        //     $mutasi_debit = 0;
+        //     $mutasi_kredit = 0;
+        //     $debit_lalu = 0;
+        //     $kredit_lalu = 0;
 
-            // Gunakan collection methods untuk lebih efisien
-            $detail_periode_berjalan = $akun->detail_jurnal_umum->filter(function ($detail) use ($start, $end) {
-                $jurnal = $detail->jurnal_umum;
-                return $jurnal && $jurnal->tanggal >= $start && $jurnal->tanggal <= $end;
-            });
+        //     // Gunakan collection methods untuk lebih efisien
+        //     $detail_periode_berjalan = $akun->detail_jurnal_umum->filter(function ($detail) use ($start, $end) {
+        //         $jurnal = $detail->jurnal_umum;
+        //         return $jurnal && $jurnal->tanggal >= $start && $jurnal->tanggal <= $end;
+        //     });
 
-            $detail_periode_lalu = $akun->detail_jurnal_umum->filter(function ($detail) use ($tahun_lalu) {
-                $jurnal = $detail->jurnal_umum;
-                return $jurnal && Carbon::parse($jurnal->tanggal)->year == $tahun_lalu;
-            });
+        //     $detail_periode_lalu = $akun->detail_jurnal_umum->filter(function ($detail) use ($tahun_lalu) {
+        //         $jurnal = $detail->jurnal_umum;
+        //         return $jurnal && Carbon::parse($jurnal->tanggal)->year == $tahun_lalu;
+        //     });
 
-            // Hitung mutasi periode berjalan
-            $mutasi_debit = $detail_periode_berjalan->where('debit_kredit', 'debit')->sum('nominal');
-            $mutasi_kredit = $detail_periode_berjalan->where('debit_kredit', 'kredit')->sum('nominal');
+        //     // Hitung mutasi periode berjalan
+        //     $mutasi_debit = $detail_periode_berjalan->where('debit_kredit', 'debit')->sum('nominal');
+        //     $mutasi_kredit = $detail_periode_berjalan->where('debit_kredit', 'kredit')->sum('nominal');
 
-            // Hitung mutasi periode lalu
-            $debit_lalu = $detail_periode_lalu->where('debit_kredit', 'debit')->sum('nominal');
-            $kredit_lalu = $detail_periode_lalu->where('debit_kredit', 'kredit')->sum('nominal');
+        //     // Hitung mutasi periode lalu
+        //     $debit_lalu = $detail_periode_lalu->where('debit_kredit', 'debit')->sum('nominal');
+        //     $kredit_lalu = $detail_periode_lalu->where('debit_kredit', 'kredit')->sum('nominal');
 
-            $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun;
-            $sub_kategori = $akun->sub_kategori_akun->sub_kategori_akun;
+        //     $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun;
+        //     $sub_kategori = $akun->sub_kategori_akun->sub_kategori_akun;
 
-            // ✅ KHUSUS: Untuk akun "Dengan Pembatasan" dan "Tanpa Pembatasan", gunakan perhitungan khusus
-            if ($kategori === 'ASET NETO' && $sub_kategori === 'Dengan Pembatasan') {
-                $saldo = $data_aset_neto['dengan_pembatasan']['saldo_akhir'];
-                $periode_lalu = $data_aset_neto['dengan_pembatasan']['saldo_awal'];
-            } elseif ($kategori === 'ASET NETO' && $sub_kategori === 'Tanpa Pembatasan') {
-                $saldo = $data_aset_neto['tanpa_pembatasan']['saldo_akhir'];
-                $periode_lalu = $data_aset_neto['tanpa_pembatasan']['saldo_awal'];
-            } else {
-                // Perhitungan normal untuk akun lainnya
-                if ($kategori === 'AKTIVA') {
-                    $saldo = ($saldo_awal_debit + $mutasi_debit) - ($saldo_awal_kredit + $mutasi_kredit);
-                    $periode_lalu = $saldo_awal_debit - $saldo_awal_kredit;
-                } else {
-                    // KEWAJIBAN dan ASET NETO lainnya
-                    $saldo = ($saldo_awal_kredit + $mutasi_kredit) - ($saldo_awal_debit + $mutasi_debit);
-                    $periode_lalu = $saldo_awal_kredit - $saldo_awal_debit;
-                }
-            }
+        //     // ✅ KHUSUS: Untuk akun "Dengan Pembatasan" dan "Tanpa Pembatasan", gunakan perhitungan khusus
+        //     if ($kategori === 'ASET NETO' && $sub_kategori === 'Dengan Pembatasan') {
+        //         $saldo = $data_aset_neto['dengan_pembatasan']['saldo_akhir'];
+        //         $periode_lalu = $data_aset_neto['dengan_pembatasan']['saldo_awal'];
+        //     } elseif ($kategori === 'ASET NETO' && $sub_kategori === 'Tanpa Pembatasan') {
+        //         $saldo = $data_aset_neto['tanpa_pembatasan']['saldo_akhir'];
+        //         $periode_lalu = $data_aset_neto['tanpa_pembatasan']['saldo_awal'];
+        //     } else {
+        //         // Perhitungan normal untuk akun lainnya
+        //         if ($kategori === 'AKTIVA') {
+        //             $saldo = ($saldo_awal_debit + $mutasi_debit) - ($saldo_awal_kredit + $mutasi_kredit);
+        //             $periode_lalu = $saldo_awal_debit - $saldo_awal_kredit;
+        //         } else {
+        //             // KEWAJIBAN dan ASET NETO lainnya
+        //             $saldo = ($saldo_awal_kredit + $mutasi_kredit) - ($saldo_awal_debit + $mutasi_debit);
+        //             $periode_lalu = $saldo_awal_kredit - $saldo_awal_debit;
+        //         }
+        //     }
 
-            $saldo_akun[$akun->id_akun] = (object)[
-                'saldo' => $saldo,
-                'periode_lalu' => $periode_lalu,
-            ];
+        //     $saldo_akun[$akun->id_akun] = (object)[
+        //         'saldo' => $saldo,
+        //         'periode_lalu' => $periode_lalu,
+        //     ];
 
-            // Hitung total hanya jika KEWAJIBAN dan ASET NETO
-            if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO'])) {
-                $totalKewajibanAsetNeto += $saldo;
-                $totalPeriodeLaluKewajibanAsetNeto += $periode_lalu;
-            }
-        }
+        //     // Hitung total hanya jika KEWAJIBAN dan ASET NETO
+        //     if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO'])) {
+        //         $totalKewajibanAsetNeto += $saldo;
+        //         $totalPeriodeLaluKewajibanAsetNeto += $periode_lalu;
+        //     }
+        // }
 
-        if ($request->has('export_excel')) {
-            return $this->exportExcel($semua_akun, $saldo_akun, $start, $end);
-        }
+        // if ($request->has('export_excel')) {
+        //     return $this->exportExcel($semua_akun, $saldo_akun, $start, $end);
+        // }
 
-        $units = Unit::all();
-        $divisis = Divisi::all();
+        // $units = Unit::all();
+        // $divisis = Divisi::all();
 
-        return view('neraca-saldo', compact(
-            'semua_akun', 'saldo_akun', 'units', 'divisis',
-            'id_unit', 'id_divisi',
-            'totalKewajibanAsetNeto', 'totalPeriodeLaluKewajibanAsetNeto'
-        ));
+        // return view('neraca-saldo', compact(
+        //     'semua_akun', 'saldo_akun', 'units', 'divisis',
+        //     'id_unit', 'id_divisi',
+        //     'totalKewajibanAsetNeto', 'totalPeriodeLaluKewajibanAsetNeto'
+        // ));
     }
 
 

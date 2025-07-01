@@ -8,6 +8,7 @@ use App\Models\Auditor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuditorController extends Controller
 {
@@ -47,8 +48,6 @@ class AuditorController extends Controller
      */
     public function store(Request $request)
     {
-        DB::statement("SET @current_user_id = " . auth()->id());
-
         $request->validate([
             'nama' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:user,username',
@@ -57,32 +56,30 @@ class AuditorController extends Controller
             'telp' => 'required|string|max:20',
         ]);
 
-        DB::beginTransaction();
-
         try {
-            // Set user login ID ke session MySQL untuk digunakan oleh trigger
-            DB::statement('SET @current_user_id = ' . auth()->id());
+            DB::transaction(function () use ($request) {
+                DB::statement("SET @current_user_id = " . auth()->id());
 
-            $user = User::create([
-                'nama' => $request->nama,
-                'username' => $request->username,
-                'password' => Hash::make($request->password),
-                'role' => 'auditor',
-            ]);
+                $user = User::create([
+                    'nama' => $request->nama,
+                    'username' => $request->username,
+                    'password' => Hash::make($request->password),
+                    'role' => 'auditor',
+                ]);
 
-            Auditor::create([
-                'id_auditor' => $user->id_user,
-                'email' => $request->email,
-                'telp' => $request->telp,
-            ]);
+                Auditor::create([
+                    'id_auditor' => $user->id_user,
+                    'email' => $request->email,
+                    'telp' => $request->telp,
+                ]);
+            });
 
-            DB::commit();
-            return redirect()->back()->with('success', 'Auditor berhasil didaftarkan.');
+            return back()->with('success', 'Auditor berhasil didaftarkan.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal mendaftarkan Auditor: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mendaftarkan Auditor: ' . $e->getMessage())->withInput();
         }
     }
+
 
 
 
@@ -109,41 +106,51 @@ class AuditorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        DB::statement("SET @current_user_id = " . auth()->id());
-
         $request->validate([
             'nama' => 'required|string|max:255',
             'email' => 'required|email',
             'telp' => 'required|string|max:20',
             'username' => 'required|string|max:50',
-            'new_password' => 'nullable|string|min:6|confirmed',
+            'new_password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        $auditor = Auditor::findOrFail($id);
-        $user = $auditor->user;
+        try {
+            DB::transaction(function () use ($request, $id) {
+                DB::statement("SET @current_user_id = " . auth()->id());
 
-        // Update auditor dan info kontak
-        $auditor->update([
-            'email' => $request->email,
-            'telp' => $request->telp,
-        ]);
+                $auditor = Auditor::findOrFail($id);
+                $user = $auditor->user;
 
-        // Update user info
-        $user->nama = $request->nama;
-        $user->username = $request->username;
+                // Update auditor
+                $auditor->update([
+                    'email' => $request->email,
+                    'telp' => $request->telp,
+                ]);
 
-        // Jika password baru diisi, validasi password lama dan update
-        if ($request->filled('new_password')) {
-            if (!Hash::check($request->old_password, $user->password)) {
-                return back()->with('error', 'Password lama tidak sesuai.');
-            }
+                // Update user info
+                $user->nama = $request->nama;
+                $user->username = $request->username;
 
-            $user->password = Hash::make($request->new_password);
+                // Ganti password jika diisi
+                if ($request->filled('new_password')) {
+                    if (!Hash::check($request->old_password, $user->password)) {
+                        throw ValidationException::withMessages([
+                            'old_password' => 'Password lama tidak sesuai.'
+                        ]);
+                    }
+
+                    $user->password = Hash::make($request->new_password);
+                }
+
+                $user->save();
+            });
+
+            return redirect()->route('auditor.edit', $id)->with('success', 'Data auditor berhasil diperbarui.');
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal memperbarui data auditor: ' . $e->getMessage())->withInput();
         }
-
-        $user->save();
-
-        return redirect()->route('auditor.edit', $id)->with('success', 'Data auditor berhasil diperbarui.');
     }
 
     /**

@@ -19,143 +19,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class LaporanKomprehensifController extends Controller
 {
 
-    
 
-    //Dihitung juga dari saldo awal
-    // public function index(Request $request)
-    // {
-    //     $units = Unit::all();
-    //     $divisis = Divisi::all(); 
-    //     $user = Auth::user();
-
-    //     // Ambil dari request atau fallback ke role user
-    //     $id_unit = $request->input('id_unit');
-    //     $id_divisi = $request->input('id_divisi');
-
-    //     // Auto-set id_unit / id_divisi jika belum dipilih di form
-    //     if (!$id_unit && $user->role === 'akuntan_unit') {
-    //         $id_unit = \App\Models\Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
-    //     }
-
-    //     if (!$id_divisi && $user->role === 'akuntan_divisi') {
-    //         $id_divisi = \App\Models\Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
-    //     }
-
-    //     $tanggal_mulai = $request->input('tanggal_mulai') ?? date('Y') . '-01-01';
-    //     $tanggal_selesai = $request->input('tanggal_selesai') ?? date('Y-m-d');
-
-    //     $akunList = DB::table('akun')
-    //         ->join('sub_kategori_akun', 'akun.id_sub_kategori_akun', '=', 'sub_kategori_akun.id_sub_kategori_akun')
-    //         ->join('kategori_akun', 'sub_kategori_akun.id_kategori_akun', '=', 'kategori_akun.id_kategori_akun')
-    //         ->whereIn('kategori_akun.kategori_akun', ['PENERIMAAN DAN SUMBANGAN', 'BEBAN'])
-    //         ->select(
-    //             'akun.id_akun',
-    //             'akun.akun AS nama_akun',
-    //             'kategori_akun.kategori_akun',
-    //             'akun.saldo_awal_debit',
-    //             'akun.saldo_awal_kredit'
-    //         )
-    //         ->get();
-
-    //     $pendapatan_all = [];
-    //     $beban_all = [];
-
-    //     // Helper untuk hitung total
-    //     $getTotal = function ($akun_id, $jenis_transaksi, $tanggal_mulai, $tanggal_selesai, $isPendapatan) use ($id_unit, $id_divisi) {
-    //         $query = DB::table('detail_jurnal_umum')
-    //             ->join('jurnal_umum', 'detail_jurnal_umum.id_jurnal_umum', '=', 'jurnal_umum.id_jurnal_umum')
-    //             ->where('detail_jurnal_umum.id_akun', $akun_id)
-    //             ->where('jurnal_umum.jenis_transaksi', $jenis_transaksi)
-    //             ->whereBetween('jurnal_umum.tanggal', [$tanggal_mulai, $tanggal_selesai]);
-
-    //         if ($id_unit) {
-    //             $query->where('jurnal_umum.id_unit', $id_unit);
-    //         }
-
-    //         if ($id_divisi) {
-    //             $query->where('jurnal_umum.id_divisi', $id_divisi);
-    //         }
-
-    //         return $query
-    //             ->where('detail_jurnal_umum.debit_kredit', $isPendapatan ? 'kredit' : 'debit')
-    //             ->sum('detail_jurnal_umum.nominal');
-    //     };
-
-    //     $tahun_lalu = \Carbon\Carbon::parse($tanggal_mulai)->subYear()->year;
-
-    //     foreach ($akunList as $akun) {
-    //         $isPendapatan = $akun->kategori_akun === 'PENERIMAAN DAN SUMBANGAN';
-
-    //         $total_tanpa  = $getTotal($akun->id_akun, 'tidak terikat', $tanggal_mulai, $tanggal_selesai, $isPendapatan);
-    //         $total_dengan = $getTotal($akun->id_akun, 'terikat', $tanggal_mulai, $tanggal_selesai, $isPendapatan);
-
-    //         // ✅ Jika tidak ada transaksi, ambil saldo dari tabel komprehensif akhir tahun
-    //         if ($total_tanpa == 0 && $total_dengan == 0) {
-    //             $saldo_lalu = DB::table('komprehensif_akhir_tahun')
-    //                 ->where('id_akun', $akun->id_akun)
-    //                 ->where('tahun', $tahun_lalu)
-    //                 ->first();
-
-    //             if ($saldo_lalu) {
-    //                 $total_tanpa = $saldo_lalu->saldo_akhir_tanpa_pembatasan ?? 0;
-    //                 $total_dengan = $saldo_lalu->saldo_akhir_dengan_pembatasan ?? 0;
-    //             }
-    //         }
-
-    //         $data = (object) [
-    //             'nama_akun' => $akun->nama_akun,
-    //             'total_tanpa' => $total_tanpa,
-    //             'total_dengan' => $total_dengan,
-    //             'total' => $total_tanpa + $total_dengan,
-    //         ];
-
-    //         if ($isPendapatan) {
-    //             $pendapatan_all[] = $data;
-    //         } else {
-    //             $beban_all[] = $data;
-    //         }
-    //     }
-
-
-    //     $total_pendapatan = array_sum(array_column($pendapatan_all, 'total_tanpa'));
-    //     $total_pendapatan_terikat = array_sum(array_column($pendapatan_all, 'total_dengan'));
-    //     $total_pendapatan_all = array_sum(array_column($pendapatan_all, 'total'));
-
-    //     $total_beban = array_sum(array_column($beban_all, 'total_tanpa'));
-    //     $total_beban_terikat = array_sum(array_column($beban_all, 'total_dengan'));
-    //     $total_beban_all = array_sum(array_column($beban_all, 'total'));
-
-    //     $kenaikan_penghasilan_komprehensif = $total_pendapatan_all - $total_beban_all;
-
-    //     // Export jika diminta
-    //     if ($request->has('export_excel')) {
-    //         return $this->exportExcel(
-    //             $pendapatan_all,
-    //             $beban_all,
-    //             $total_pendapatan,
-    //             $total_pendapatan_terikat,
-    //             $total_pendapatan_all,
-    //             $total_beban,
-    //             $total_beban_terikat,
-    //             $total_beban_all,
-    //             $kenaikan_penghasilan_komprehensif,
-    //             $tanggal_mulai,
-    //             $tanggal_selesai
-    //         );
-    //     }
-
-    //     return view('laporan-komprehensif', compact(
-    //         'pendapatan_all', 'beban_all',
-    //         'total_pendapatan', 'total_pendapatan_terikat', 'total_pendapatan_all',
-    //         'total_beban', 'total_beban_terikat', 'total_beban_all',
-    //         'kenaikan_penghasilan_komprehensif',
-    //         'tanggal_mulai', 'tanggal_selesai',
-    //         'units', 'divisis', 'id_unit', 'id_divisi'
-    //     ));
-    // }
-
-
-    //Dimulai dari 0
     public function index(Request $request)
     {
         $units = Unit::all();
@@ -168,11 +32,182 @@ class LaporanKomprehensifController extends Controller
 
         // Auto-set id_unit / id_divisi jika belum dipilih di form
         if (!$id_unit && $user->role === 'akuntan_unit') {
-            $id_unit = \App\Models\Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+            $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
         }
 
         if (!$id_divisi && $user->role === 'akuntan_divisi') {
-            $id_divisi = \App\Models\Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
+            $id_divisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
+        }
+
+        $tanggal_mulai = $request->input('tanggal_mulai') ?? date('Y') . '-01-01';
+        $tanggal_selesai = $request->input('tanggal_selesai') ?? date('Y-m-d');
+
+        // Coba gunakan stored procedure dulu
+        try {
+            // Panggil stored procedure dengan parameter
+            $results = DB::select('CALL hitung_komprehensif(?, ?, ?, ?)', [
+                $tanggal_mulai,
+                $tanggal_selesai,
+                $id_unit,
+                $id_divisi
+            ]);
+
+            // Pisahkan data pendapatan dan beban
+            $pendapatan_all = [];
+            $beban_all = [];
+
+            foreach ($results as $row) {
+                $saldo_awal = (float) $row->saldo_awal;
+                $total_tanpa = (float) $row->total_tanpa;
+                $total_dengan = (float) $row->total_dengan;
+                $total = $total_tanpa + $total_dengan + $saldo_awal;
+
+                $data = (object) [
+                    'nama_akun' => $row->nama_akun,
+                    'total_tanpa' => $total_tanpa,
+                    'total_dengan' => $total_dengan,
+                    'total' => $total,
+                ];
+
+                if ($row->kategori_akun === 'PENERIMAAN DAN SUMBANGAN') {
+                    $pendapatan_all[] = $data;
+                } else {
+                    $beban_all[] = $data;
+                }
+            }
+
+        } catch (\Exception $e) {
+            // Fallback ke method lama jika stored procedure gagal
+            \Log::error('Stored procedure error: ' . $e->getMessage());
+            
+            // Method lama sebagai fallback
+            $akunList = DB::table('akun')
+                ->join('sub_kategori_akun', 'akun.id_sub_kategori_akun', '=', 'sub_kategori_akun.id_sub_kategori_akun')
+                ->join('kategori_akun', 'sub_kategori_akun.id_kategori_akun', '=', 'kategori_akun.id_kategori_akun')
+                ->whereIn('kategori_akun.kategori_akun', ['PENERIMAAN DAN SUMBANGAN', 'BEBAN'])
+                ->select(
+                    'akun.id_akun',
+                    'akun.akun AS nama_akun',
+                    'kategori_akun.kategori_akun',
+                    'akun.saldo_awal_debit',
+                    'akun.saldo_awal_kredit'
+                )
+                ->get();
+
+            $pendapatan_all = [];
+            $beban_all = [];
+
+            // Helper untuk hitung total
+            $getTotal = function ($akun_id, $jenis_transaksi, $tanggal_mulai, $tanggal_selesai, $isPendapatan) use ($id_unit, $id_divisi) {
+                $query = DB::table('detail_jurnal_umum')
+                    ->join('jurnal_umum', 'detail_jurnal_umum.id_jurnal_umum', '=', 'jurnal_umum.id_jurnal_umum')
+                    ->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                        ->from('buku_besar')
+                        ->whereColumn('buku_besar.id_jurnal_umum', 'jurnal_umum.id_jurnal_umum');
+                    })
+                    ->where('detail_jurnal_umum.id_akun', $akun_id)
+                    ->where('jurnal_umum.jenis_transaksi', $jenis_transaksi)
+                    ->whereBetween('jurnal_umum.tanggal', [$tanggal_mulai, $tanggal_selesai]);
+
+                if ($id_unit) {
+                    $query->where('jurnal_umum.id_unit', $id_unit);
+                }
+
+                if ($id_divisi) {
+                    $query->where('jurnal_umum.id_divisi', $id_divisi);
+                }
+
+                return $query
+                    ->where('detail_jurnal_umum.debit_kredit', $isPendapatan ? 'kredit' : 'debit')
+                    ->sum('detail_jurnal_umum.nominal');
+            };
+
+            // Loop semua akun untuk hitung nilai
+            foreach ($akunList as $akun) {
+                $isPendapatan = $akun->kategori_akun === 'PENERIMAAN DAN SUMBANGAN';
+
+                $total_tanpa  = $getTotal($akun->id_akun, 'tidak terikat', $tanggal_mulai, $tanggal_selesai, $isPendapatan);
+                $total_dengan = $getTotal($akun->id_akun, 'terikat', $tanggal_mulai, $tanggal_selesai, $isPendapatan);
+
+                $saldo_awal = $isPendapatan
+                    ? ($akun->saldo_awal_kredit ?? 0)
+                    : ($akun->saldo_awal_debit ?? 0);
+
+                $data = (object) [
+                    'nama_akun' => $akun->nama_akun,
+                    'total_tanpa' => $total_tanpa,
+                    'total_dengan' => $total_dengan,
+                    'total' => $total_tanpa + $total_dengan + $saldo_awal,
+                ];
+
+                if ($isPendapatan) {
+                    $pendapatan_all[] = $data;
+                } else {
+                    $beban_all[] = $data;
+                }
+            }
+        }
+
+        // Hitung total-total (sama untuk both methods)
+        $total_pendapatan = array_sum(array_column($pendapatan_all, 'total_tanpa'));
+        $total_pendapatan_terikat = array_sum(array_column($pendapatan_all, 'total_dengan'));
+        $total_pendapatan_all = array_sum(array_column($pendapatan_all, 'total'));
+
+        $total_beban = array_sum(array_column($beban_all, 'total_tanpa'));
+        $total_beban_terikat = array_sum(array_column($beban_all, 'total_dengan'));
+        $total_beban_all = array_sum(array_column($beban_all, 'total'));
+
+        $kenaikan_penghasilan_komprehensif = $total_pendapatan_all - $total_beban_all;
+
+        // Export jika diminta
+        if ($request->has('export_excel')) {
+            return $this->exportExcel(
+                $pendapatan_all,
+                $beban_all,
+                $total_pendapatan,
+                $total_pendapatan_terikat,
+                $total_pendapatan_all,
+                $total_beban,
+                $total_beban_terikat,
+                $total_beban_all,
+                $kenaikan_penghasilan_komprehensif,
+                $tanggal_mulai,
+                $tanggal_selesai
+            );
+        }
+
+        return view('laporan-komprehensif', compact(
+            'pendapatan_all', 'beban_all',
+            'total_pendapatan', 'total_pendapatan_terikat', 'total_pendapatan_all',
+            'total_beban', 'total_beban_terikat', 'total_beban_all',
+            'kenaikan_penghasilan_komprehensif',
+            'tanggal_mulai', 'tanggal_selesai',
+            'units', 'divisis', 'id_unit', 'id_divisi'
+        ));
+    }
+    
+
+
+
+
+    public function indexFallback(Request $request)
+    {
+        $units = Unit::all();
+        $divisis = Divisi::all(); 
+        $user = Auth::user();
+
+        // Ambil dari request atau fallback ke role user
+        $id_unit = $request->input('id_unit');
+        $id_divisi = $request->input('id_divisi');
+
+        // Auto-set id_unit / id_divisi jika belum dipilih di form
+        if (!$id_unit && $user->role === 'akuntan_unit') {
+            $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+        }
+
+        if (!$id_divisi && $user->role === 'akuntan_divisi') {
+            $id_divisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
         }
 
         $tanggal_mulai = $request->input('tanggal_mulai') ?? date('Y') . '-01-01';
@@ -281,12 +316,6 @@ class LaporanKomprehensifController extends Controller
             'units', 'divisis', 'id_unit', 'id_divisi'
         ));
     }
-
-
-
-    
-
-    
 
 
 
