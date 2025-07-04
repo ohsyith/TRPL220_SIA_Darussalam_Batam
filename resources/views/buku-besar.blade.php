@@ -1,22 +1,31 @@
 @extends('layouts.layout')
 @push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>SIA Yayasan Darussalam | Buku Besar</title>
     <style>
         html,
-        body,
-        .page-wrapper,
-        .body-wrapper {
+        body {
             height: 100%;
-            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            /* latar abu-abu */
         }
 
+        .page-wrapper,
         .body-wrapper {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .container-fluid {
+        .container-fluid,
+        .main-content {
             flex: 1;
+        }
+
+        footer,
+        .footer {
+            margin-top: auto;
         }
     </style>
 
@@ -36,6 +45,13 @@
             border: none;
             color: white;
             /* Warna teks putih */
+        }
+    </style>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 @endpush
@@ -196,100 +212,103 @@
 
                         <br>
 
-                        @if (isset($saldo_awal))
-                            <div class="">
-                                <strong>Saldo Awal :</strong> Rp {{ number_format($saldo_awal) }}
-                            </div>
-                        @endif
+                        <div id="print-area">
 
-                        <div class="mb-3">
-                            <strong>Saldo Akhir :</strong> Rp {{ number_format($saldo_akhir) }}
-                        </div>
+                            @if (isset($saldo_awal))
+                                <div class="">
+                                    <strong>Saldo Awal :</strong> Rp {{ number_format($saldo_awal) }}
+                                </div>
+                            @endif
 
-
-                        <form method="GET" class="mb-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <label for="perPage" class="mb-0">Tampilkan</label>
-                                <select name="per_page" id="perPage" class="form-select form-select-sm w-auto"
-                                    onchange="this.form.submit()">
-                                    @foreach ([10, 25, 50, 100] as $option)
-                                        <option value="{{ $option }}"
-                                            {{ request('per_page') == $option ? 'selected' : '' }}>
-                                            {{ $option }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <span class="ms-1">data per halaman</span>
+                            <div class="mb-3">
+                                <strong>Saldo Akhir :</strong> Rp {{ number_format($saldo_akhir) }}
                             </div>
 
-                            {{-- Pertahankan parameter lain --}}
-                            <input type="hidden" name="akun" value="{{ request('akun') }}">
-                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                            <input type="hidden" name="id_unit" value="{{ request('id_unit') }}">
-                            <input type="hidden" name="id_divisi" value="{{ request('id_divisi') }}">
-                            <input type="hidden" name="search" value="{{ request('search') }}">
-                        </form>
 
-                        <table class="table text-nowrap align-middle mb-0">
-                            <thead>
-                                <tr class="border-2 border-bottom border-primary border-0">
-                                    <th scope="col" class="ps-0">Tgl</th>
-                                    <th scope="col">No Bukti</th>
-                                    <th scope="col" class="text-center">Keterangan</th>
-                                    <th scope="col" class="text-center">Jenis</th>
-                                    <th scope="col" class="text-center">Unit</th>
-                                    <th scope="col" class="text-center">Divisi</th>
-                                    <th scope="col" class="text-center">Kd Sumbangan</th>
-                                    <th scope="col" class="text-center">Kd P&H</th>
-                                    <th scope="col" class="text-center">Akun Debit (Rp)</th>
-                                    <th scope="col" class="text-center">Akun Kredit (Rp)</th>
-                                    {{-- <th scope="col" class="text-center">Jumlah</th> --}}
-                                </tr>
-                            </thead>
+                            <form method="GET" class="mb-3 no-print">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="perPage" class="mb-0">Tampilkan</label>
+                                    <select name="per_page" id="perPage" class="form-select form-select-sm w-auto"
+                                        onchange="this.form.submit()">
+                                        @foreach ([10, 25, 50, 100] as $option)
+                                            <option value="{{ $option }}"
+                                                {{ request('per_page') == $option ? 'selected' : '' }}>
+                                                {{ $option }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <span class="ms-1">data per halaman</span>
+                                </div>
 
-                            <tbody class="table-group-divider">
+                                {{-- Pertahankan parameter lain --}}
+                                <input type="hidden" name="akun" value="{{ request('akun') }}">
+                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                <input type="hidden" name="id_unit" value="{{ request('id_unit') }}">
+                                <input type="hidden" name="id_divisi" value="{{ request('id_divisi') }}">
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            </form>
 
-
-                                @foreach ($paginatedData as $detail)
-                                    <tr>
-                                        <td class="ps-0 fw-medium">{{ $detail->tanggal }}</td>
-                                        <td class="text-center fw-medium">{{ $detail->no_bukti }}</td>
-                                        <td class="text-start fw-medium">{{ $detail->keterangan }}</td>
-                                        <td class="text-center fw-medium">{{ $detail->jenis ?? '-' }}</td>
-                                        <td class="text-center fw-medium">{{ $detail->unit ?? '-' }}</td>
-                                        <td class="text-center fw-medium">{{ $detail->divisi ?? '-' }}</td>
-                                        <td class="text-center fw-medium">
-                                            {{ $detail->kode_sumbangan ?? '-' }}</td>
-                                        <td class="text-center fw-medium">{{ $detail->kode_ph ?? '-' }}
-                                        </td>
-                                        <td class="text-center fw-medium">
-                                            @if ($detail->debit_kredit === 'debit')
-                                                {{-- {{ $detail->akun ?? 'Akun Tidak Ditemukan' }} --}}
-                                                Rp {{ number_format($detail->nominal) }}
-                                            @endif
-                                        </td>
-                                        <td class="text-center fw-medium">
-                                            @if ($detail->debit_kredit === 'kredit')
-                                                {{-- {{ $detail->akun ?? 'Akun Tidak Ditemukan' }} --}}
-                                                Rp {{ number_format($detail->nominal) }}
-                                            @endif
-                                        </td>
+                            <table class="table text-nowrap align-middle mb-0">
+                                <thead>
+                                    <tr class="border-2 border-bottom border-primary border-0">
+                                        <th scope="col" class="ps-0">Tgl</th>
+                                        <th scope="col">No Bukti</th>
+                                        <th scope="col" class="text-center">Keterangan</th>
+                                        <th scope="col" class="text-center">Jenis</th>
+                                        <th scope="col" class="text-center">Unit</th>
+                                        <th scope="col" class="text-center">Divisi</th>
+                                        <th scope="col" class="text-center">Kd Sumbangan</th>
+                                        <th scope="col" class="text-center">Kd P&H</th>
+                                        <th scope="col" class="text-center">Akun Debit (Rp)</th>
+                                        <th scope="col" class="text-center">Akun Kredit (Rp)</th>
+                                        {{-- <th scope="col" class="text-center">Jumlah</th> --}}
                                     </tr>
-                                @endforeach
+                                </thead>
 
-                                {{-- Baris Total --}}
-                                <tr class="fw-bold">
-                                    <td colspan="8" class="text-end">Total</td>
-                                    <td class="text-center">Rp {{ number_format($total_debit) }}</td>
-                                    <td class="text-center">Rp {{ number_format($total_kredit) }}</td>
-                                    {{-- <td class="text-center">Rp
+                                <tbody class="table-group-divider">
+
+
+                                    @foreach ($paginatedData as $detail)
+                                        <tr>
+                                            <td class="ps-0 fw-medium">{{ $detail->tanggal }}</td>
+                                            <td class="text-center fw-medium">{{ $detail->no_bukti }}</td>
+                                            <td class="text-start fw-medium">{{ $detail->keterangan }}</td>
+                                            <td class="text-center fw-medium">{{ $detail->jenis ?? '-' }}</td>
+                                            <td class="text-center fw-medium">{{ $detail->unit ?? '-' }}</td>
+                                            <td class="text-center fw-medium">{{ $detail->divisi ?? '-' }}</td>
+                                            <td class="text-center fw-medium">
+                                                {{ $detail->kode_sumbangan ?? '-' }}</td>
+                                            <td class="text-center fw-medium">{{ $detail->kode_ph ?? '-' }}
+                                            </td>
+                                            <td class="text-center fw-medium">
+                                                @if ($detail->debit_kredit === 'debit')
+                                                    {{-- {{ $detail->akun ?? 'Akun Tidak Ditemukan' }} --}}
+                                                    Rp {{ number_format($detail->nominal) }}
+                                                @endif
+                                            </td>
+                                            <td class="text-center fw-medium">
+                                                @if ($detail->debit_kredit === 'kredit')
+                                                    {{-- {{ $detail->akun ?? 'Akun Tidak Ditemukan' }} --}}
+                                                    Rp {{ number_format($detail->nominal) }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                    {{-- Baris Total --}}
+                                    <tr class="fw-bold">
+                                        <td colspan="8" class="text-end">Total</td>
+                                        <td class="text-center">Rp {{ number_format($total_debit) }}</td>
+                                        <td class="text-center">Rp {{ number_format($total_kredit) }}</td>
+                                        {{-- <td class="text-center">Rp
                                                     {{ number_format($total_debit + $total_kredit) }}</td> --}}
-                                </tr>
-                            </tbody>
+                                    </tr>
+                                </tbody>
 
 
-                        </table>
+                            </table>
+                        </div>
 
                         <div class="mt-4">
                             {{ $paginatedData->links('pagination::bootstrap-5') }}
@@ -305,3 +324,43 @@
         </div>
     </div>
 @endsection
+
+
+@push('scripts')
+    <script>
+        function printLaporan() {
+            const content = document.getElementById("print-area").innerHTML;
+
+            const printWindow = window.open('', '', 'height=800,width=1200');
+            printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Laporan Buku Besar</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #000; padding: 6px; font-size: 11px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        thead { display: table-header-group; }
+                        tfoot { display: table-footer-group; }
+
+                        .text-center { text-align: center; }
+                        .text-end { text-align: right; }
+
+                        @media print {
+                            .no-print {
+                                display: none !important;
+                            }
+                        }
+                    </style>
+                </head>
+                <body onload="window.print(); window.close();">
+                    ${content}
+                </body>
+            </html>
+        `);
+
+            printWindow.document.close();
+        }
+    </script>
+@endpush

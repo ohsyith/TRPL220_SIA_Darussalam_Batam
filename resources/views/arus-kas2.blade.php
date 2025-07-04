@@ -1,6 +1,7 @@
 @extends('layouts.layout')
 @push('styles')
     <title>SIA Yayasan Darussalam | Laporan Neraca</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
         /* Mengatur warna hijau tua untuk tombol Export Excel */
@@ -29,17 +30,25 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title">Laporan Arus Kas</h5>
                         <div class="action-buttons">
-                            <a href="{{ route('arus-kas.index', ['tahun' => $tahun, 'export_excel' => 1]) }}"
-                                class="btn btn-success">
+                            <a href="{{ route('arus-kas2.index', [
+                                'tahun' => $tahun,
+                                'export_excel' => 1,
+                                'unit' => $id_unit,
+                                'divisi' => $id_divisi,
+                                'start_date' => $start_date,
+                                'end_date' => $end_date,
+                            ]) }}"
+                                class="btn btn-success custom-green">
                                 <i class="fas fa-file-excel me-1"></i> Export Excel
                             </a>
-                            <button class="btn btn-secondary ms-2" onclick="printLaporan()">
+
+                            <button class="btn btn-secondary custom-grey ms-2" onclick="printLaporan()">
                                 <i class="fas fa-print me-1"></i> Print
                             </button>
                         </div>
                     </div>
 
-                    <form method="GET" action="{{ route('arus-kas.index') }}">
+                    <form method="GET" action="{{ route('arus-kas2.index') }}">
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 @php
@@ -90,25 +99,27 @@
                             <div class="col-md-6">
                                 <label for="start_date" class="form-label">Dari Tanggal</label>
                                 <input type="date" class="form-control" name="start_date"
-                                    value="{{ request('start_date') }}" onchange="this.form.submit()">
+                                    value="{{ request('start_date', now()->startOfYear()->format('Y-m-d')) }}"
+                                    onchange="this.form.submit()">
+
                             </div>
 
                             <div class="col-md-6">
                                 <label for="end_date" class="form-label">Sampai Tanggal</label>
                                 <input type="date" class="form-control" name="end_date"
-                                    value="{{ request('end_date') }}" onchange="this.form.submit()">
+                                    value="{{ request('end_date', now()->format('Y-m-d')) }}"
+                                    onchange="this.form.submit()">
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-12 d-flex justify-content-end">
-                                <a href="{{ route('arus-kas.index') }}" class="btn btn-secondary mt-2">
+                                <a href="{{ route('arus-kas2.index') }}" class="btn btn-secondary mt-2">
                                     <i class="ti ti-refresh"></i> Reset
                                 </a>
                             </div>
                         </div>
                     </form>
-
 
                     <div id="print-area">
                         <table class="table table-bordered">
@@ -116,13 +127,13 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Komponen Laporan Arus Kas</th>
-                                    <th class="text-end">Tahun {{ $tahun }}</th>
+                                    <th class="text-end">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- AKTIVITAS OPERASIONAL -->
-                                <tr class="table-primary fw-bold">
-                                    <td>1</td>
+                                <tr class="table-primary  fw-bold">
+                                    <td class="text-center">1</td>
                                     <td colspan="4">Aktivitas Operasional</td>
                                 </tr>
 
@@ -131,17 +142,14 @@
                                     <td>Kenaikan/Penurunan Aset Bersih</td>
                                     <td class="text-end">
                                         @if ($laba_bersih_tahun_ini > 0)
-                                            Rp
                                             {{ number_format($laba_bersih_tahun_ini, 0, ',', '.') }}
                                         @elseif($laba_bersih_tahun_ini < 0)
-                                            (Rp
-                                            {{ number_format(abs($laba_bersih_tahun_ini), 0, ',', '.') }})
+                                            ({{ number_format(abs($laba_bersih_tahun_ini), 0, ',', '.') }})
                                         @elseif($laba_bersih_tahun_ini == 0)
                                             -
                                         @endif
                                     </td>
                                 </tr>
-
 
 
                                 <tr class="fw-bold">
@@ -162,9 +170,9 @@
                                         @if ($selisih_persediaan_perlengkapan_kantor == 0)
                                             -
                                         @elseif ($selisih_persediaan_perlengkapan_kantor > 0)
-                                            Rp {{ number_format($selisih_persediaan_perlengkapan_kantor, 0, ',', '.') }}
+                                            {{ number_format($selisih_persediaan_perlengkapan_kantor, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_persediaan_perlengkapan_kantor, 0, ',', '.') }})
+                                            ({{ number_format($selisih_persediaan_perlengkapan_kantor, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -182,9 +190,9 @@
                                         @if ($selisih_persediaan_perlengkapan_asrama == 0)
                                             -
                                         @elseif ($selisih_persediaan_perlengkapan_asrama > 0)
-                                            Rp {{ number_format($selisih_persediaan_perlengkapan_asrama, 0, ',', '.') }}
+                                            {{ number_format($selisih_persediaan_perlengkapan_asrama, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_persediaan_perlengkapan_asrama, 0, ',', '.') }})
+                                            ({{ number_format($selisih_persediaan_perlengkapan_asrama, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -201,9 +209,9 @@
                                         @if ($selisih_persediaan_atk == 0)
                                             -
                                         @elseif ($selisih_persediaan_atk > 0)
-                                            Rp {{ number_format($selisih_persediaan_atk, 0, ',', '.') }}
+                                            {{ number_format($selisih_persediaan_atk, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_persediaan_atk, 0, ',', '.') }})
+                                            ({{ number_format($selisih_persediaan_atk, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -221,9 +229,9 @@
                                         @if ($selisih_persediaan_lainnya == 0)
                                             -
                                         @elseif ($selisih_persediaan_lainnya > 0)
-                                            Rp {{ number_format($selisih_persediaan_lainnya, 0, ',', '.') }}
+                                            {{ number_format($selisih_persediaan_lainnya, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_persediaan_lainnya, 0, ',', '.') }})
+                                            ({{ number_format($selisih_persediaan_lainnya, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -239,9 +247,9 @@
                                         @if ($selisih_piutang_rekanan == 0)
                                             -
                                         @elseif ($selisih_piutang_rekanan > 0)
-                                            Rp {{ number_format($selisih_piutang_rekanan, 0, ',', '.') }}
+                                            {{ number_format($selisih_piutang_rekanan, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_piutang_rekanan, 0, ',', '.') }})
+                                            ({{ number_format($selisih_piutang_rekanan, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -256,9 +264,9 @@
                                         @if ($selisih_piutang_kegiatan == 0)
                                             -
                                         @elseif ($selisih_piutang_kegiatan > 0)
-                                            Rp {{ number_format($selisih_piutang_kegiatan, 0, ',', '.') }}
+                                            {{ number_format($selisih_piutang_kegiatan, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_piutang_kegiatan), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_piutang_kegiatan), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -273,9 +281,9 @@
                                         @if ($selisih_piutang_karyawan == 0)
                                             -
                                         @elseif ($selisih_piutang_karyawan > 0)
-                                            Rp {{ number_format($selisih_piutang_karyawan, 0, ',', '.') }}
+                                            {{ number_format($selisih_piutang_karyawan, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_piutang_karyawan), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_piutang_karyawan), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -290,9 +298,9 @@
                                         @if ($selisih_piutang_sumbangan == 0)
                                             -
                                         @elseif ($selisih_piutang_sumbangan > 0)
-                                            Rp {{ number_format($selisih_piutang_sumbangan, 0, ',', '.') }}
+                                            {{ number_format($selisih_piutang_sumbangan, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_piutang_sumbangan), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_piutang_sumbangan), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -307,9 +315,9 @@
                                         @if ($selisih_piutang_lainnya == 0)
                                             -
                                         @elseif ($selisih_piutang_lainnya > 0)
-                                            Rp {{ number_format($selisih_piutang_lainnya, 0, ',', '.') }}
+                                            {{ number_format($selisih_piutang_lainnya, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_piutang_lainnya), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_piutang_lainnya), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -330,9 +338,9 @@
                                         @if ($selisih_sewa_dibayar_dimuka == 0)
                                             -
                                         @elseif ($selisih_sewa_dibayar_dimuka > 0)
-                                            Rp {{ number_format($selisih_sewa_dibayar_dimuka, 0, ',', '.') }}
+                                            {{ number_format($selisih_sewa_dibayar_dimuka, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_sewa_dibayar_dimuka), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_sewa_dibayar_dimuka), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -348,9 +356,9 @@
                                         @if ($selisih_tabungan_pensiun_karyawan == 0)
                                             -
                                         @elseif ($selisih_tabungan_pensiun_karyawan > 0)
-                                            Rp {{ number_format($selisih_tabungan_pensiun_karyawan, 0, ',', '.') }}
+                                            {{ number_format($selisih_tabungan_pensiun_karyawan, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_tabungan_pensiun_karyawan), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_tabungan_pensiun_karyawan), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -366,9 +374,9 @@
                                         @if ($selisih_pajak_dibayar_dimuka == 0)
                                             -
                                         @elseif ($selisih_pajak_dibayar_dimuka > 0)
-                                            Rp {{ number_format($selisih_pajak_dibayar_dimuka, 0, ',', '.') }}
+                                            {{ number_format($selisih_pajak_dibayar_dimuka, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_pajak_dibayar_dimuka), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_pajak_dibayar_dimuka), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -388,9 +396,9 @@
                                         @if ($selisih_hutang_jangka_pendek == 0)
                                             -
                                         @elseif ($selisih_hutang_jangka_pendek > 0)
-                                            Rp {{ number_format($selisih_hutang_jangka_pendek, 0, ',', '.') }}
+                                            {{ number_format($selisih_hutang_jangka_pendek, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_hutang_jangka_pendek), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_hutang_jangka_pendek), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -421,9 +429,9 @@
                                         @if ($aktivitas_operasional == 0)
                                             -
                                         @elseif ($aktivitas_operasional > 0)
-                                            Rp {{ number_format($aktivitas_operasional, 0, ',', '.') }}
+                                            {{ number_format($aktivitas_operasional, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($aktivitas_operasional), 0, ',', '.') }})
+                                            ({{ number_format(abs($aktivitas_operasional), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -431,9 +439,9 @@
 
 
                                 {{-- Aktivitas Investasi --}}
-                                <tr class="table-primary fw-bold">
+                                <tr class="table-primary text-center fw-bold">
                                     <td>2</td>
-                                    <td colspan="4">Aktivitas Investasi</td>
+                                    <td colspan="4" class="text-start">Aktivitas Investasi</td>
                                 </tr>
 
                                 <tr>
@@ -453,9 +461,9 @@
                                         @if ($selisih_aset_tetap == 0)
                                             -
                                         @elseif ($selisih_aset_tetap > 0)
-                                            Rp {{ number_format($selisih_aset_tetap, 0, ',', '.') }}
+                                            {{ number_format($selisih_aset_tetap, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_aset_tetap, 0, ',', '.') }})
+                                            ({{ number_format($selisih_aset_tetap, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -470,9 +478,9 @@
                                         @if ($aktivitas_investasi == 0)
                                             -
                                         @elseif ($aktivitas_investasi > 0)
-                                            Rp {{ number_format($aktivitas_investasi, 0, ',', '.') }}
+                                            {{ number_format($aktivitas_investasi, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($aktivitas_investasi), 0, ',', '.') }})
+                                            ({{ number_format(abs($aktivitas_investasi), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -483,25 +491,26 @@
 
 
                                 {{-- Aktivitas pendanaan --}}
-                                <tr class="table-primary fw-bold">
+                                <tr class="table-primary text-center fw-bold">
                                     <td>3</td>
-                                    <td colspan="4">Aktivitas Pendanaan</td>
+                                    <td colspan="4" class="text-start">Aktivitas Pendanaan</td>
                                 </tr>
-                                
+
                                 <tr>
                                     <td></td>
                                     <td>Penambahan (Penurunan) Kewajiban Jangka Panjang</td>
                                     <td class="text-end">
                                         @php
-                                            $selisih_kewajiban_jangka_panjang = $kewajiban_jangka_panjang_lalu - $kewajiban_jangka_panjang;
+                                            $selisih_kewajiban_jangka_panjang =
+                                                $kewajiban_jangka_panjang_lalu - $kewajiban_jangka_panjang;
                                         @endphp
 
                                         @if ($selisih_kewajiban_jangka_panjang == 0)
                                             -
                                         @elseif ($selisih_kewajiban_jangka_panjang > 0)
-                                            Rp {{ number_format($selisih_kewajiban_jangka_panjang, 0, ',', '.') }}
+                                            {{ number_format($selisih_kewajiban_jangka_panjang, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($selisih_kewajiban_jangka_panjang), 0, ',', '.') }})
+                                            ({{ number_format(abs($selisih_kewajiban_jangka_panjang), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -517,9 +526,9 @@
                                         @if ($selisih_aset_neto == 0)
                                             -
                                         @elseif ($selisih_aset_neto > 0)
-                                            Rp {{ number_format($selisih_aset_neto, 0, ',', '.') }}
+                                            {{ number_format($selisih_aset_neto, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format($selisih_aset_neto, 0, ',', '.') }})
+                                            ({{ number_format($selisih_aset_neto, 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -534,16 +543,17 @@
                                         @if ($aktivitas_pendanaan == 0)
                                             -
                                         @elseif ($aktivitas_pendanaan > 0)
-                                            Rp {{ number_format($aktivitas_pendanaan, 0, ',', '.') }}
+                                            {{ number_format($aktivitas_pendanaan, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($aktivitas_pendanaan), 0, ',', '.') }})
+                                            ({{ number_format(abs($aktivitas_pendanaan), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
 
 
                                 @php
-                                    $kenaikan_penurunan_kas = $aktivitas_operasional + $aktivitas_investasi + $aktivitas_pendanaan;
+                                    $kenaikan_penurunan_kas =
+                                        $aktivitas_operasional + $aktivitas_investasi + $aktivitas_pendanaan;
                                 @endphp
                                 <tr class="table-warning fw-medium">
                                     <td></td>
@@ -552,9 +562,9 @@
                                         @if ($kenaikan_penurunan_kas == 0)
                                             -
                                         @elseif ($kenaikan_penurunan_kas > 0)
-                                            Rp {{ number_format($kenaikan_penurunan_kas, 0, ',', '.') }}
+                                            {{ number_format($kenaikan_penurunan_kas, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($kenaikan_penurunan_kas), 0, ',', '.') }})
+                                            ({{ number_format(abs($kenaikan_penurunan_kas), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -566,9 +576,9 @@
                                         @if ($saldo_kas_lalu == 0)
                                             -
                                         @elseif ($saldo_kas_lalu > 0)
-                                            Rp {{ number_format($saldo_kas_lalu, 0, ',', '.') }}
+                                            {{ number_format($saldo_kas_lalu, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($saldo_kas_lalu), 0, ',', '.') }})
+                                            ({{ number_format(abs($saldo_kas_lalu), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
@@ -580,17 +590,15 @@
                                         @if ($saldo_kas == 0)
                                             -
                                         @elseif ($saldo_kas > 0)
-                                            Rp {{ number_format($saldo_kas, 0, ',', '.') }}
+                                            {{ number_format($saldo_kas, 0, ',', '.') }}
                                         @else
-                                            (Rp {{ number_format(abs($saldo_kas), 0, ',', '.') }})
+                                            ({{ number_format(abs($saldo_kas), 0, ',', '.') }})
                                         @endif
                                     </td>
                                 </tr>
 
                             </tbody>
                         </table>
-
-
                     </div>
 
                     <!-- CSS Print -->

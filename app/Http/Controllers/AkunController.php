@@ -12,9 +12,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class AkunController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $subkategoriakun = Sub_Kategori_Akun::all();
@@ -34,22 +32,9 @@ class AkunController extends Controller
 
 
 
-    public function akunByUnit($id_unit)
-    {
-        $akun = Akun::where('id_unit', $id_unit)
-            ->orderBy('kode_akun')
-            ->get();
-
-        return response()->json($akun);
-    }
-
-
-
-    
     public function import(Request $request)
     {
         DB::statement("SET @current_user_id = " . auth()->id());
-
         try {
             $request->validate([
                 'file' => 'required|mimes:xlsx,xls'
@@ -58,20 +43,18 @@ class AkunController extends Controller
             $spreadsheet = IOFactory::load($request->file('file'));
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
-
+            
             unset($rows[0]); // Hapus header
+                $sukses = 0;
+                $gagal = 0;
+                $gagalDetail = [];
 
-            $sukses = 0;
-            $gagal = 0;
-            $gagalDetail = [];
-
+                
             foreach ($rows as $index => $row) {
                 $baris = $index + 2; // Karena header dihapus, data mulai baris ke-2 di Excel
-
                 if (empty(array_filter($row))) {
                     continue; // Lewati baris kosong
                 }
-
                 $namaSubKategori = trim($row[0]); // A
                 $kodeAkun = trim($row[1]);        // B
                 $namaAkun = trim($row[2]);        // C
@@ -85,14 +68,12 @@ class AkunController extends Controller
                     $gagalDetail[] = "Baris $baris: Sub kategori \"$namaSubKategori\" tidak ditemukan.";
                     continue;
                 }
-
-                // Validasi minimal data akun
+                // Validasi data akun
                 if (empty($kodeAkun) || empty($namaAkun)) {
                     $gagal++;
                     $gagalDetail[] = "Baris $baris: Kode akun atau nama akun kosong.";
                     continue;
                 }
-
                 // Simpan atau update akun
                 Akun::updateOrCreate(
                     ['kode_akun' => $kodeAkun],
@@ -117,8 +98,6 @@ class AkunController extends Controller
             return back()->with('error', '❌ Terjadi error: ' . $e->getMessage());
         }
     }
-
-
 
 
 
@@ -159,7 +138,7 @@ class AkunController extends Controller
     }
 
 
-    
+
     public function update(Request $request)
     {
         DB::statement("SET @current_user_id = " . auth()->id());
@@ -201,7 +180,6 @@ class AkunController extends Controller
 
 
 
-    
     public function destroy(Request $request)
     {
         DB::statement("SET @current_user_id = " . auth()->id());
@@ -219,25 +197,5 @@ class AkunController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus akun: ' . $e->getMessage());
         }
     }
-
-
-    // public function resetByUnit(Request $request)
-    // {
-    //     $id_unit = $request->input('id_unit');
-
-    //     if ($id_unit && $id_unit !== 'all') {
-    //         // Hapus semua akun milik unit tertentu
-    //         Akun::where('id_unit', $id_unit)->delete();
-
-    //         return redirect()->route('akun.index', ['unit' => $id_unit])
-    //             ->with('success', 'Semua akun dari unit tersebut berhasil dihapus.');
-    //     } else {
-    //         // Jika 'all' maka hapus semua
-    //         Akun::truncate();
-
-    //         return redirect()->route('akun.index')
-    //             ->with('success', 'Semua akun berhasil dihapus.');
-    //     }
-    // }
 
 }

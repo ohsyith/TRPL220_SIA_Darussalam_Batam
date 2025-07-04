@@ -16,7 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'hak_akses' => HakAksesMiddleware::class,
-
         ]);
     })
     

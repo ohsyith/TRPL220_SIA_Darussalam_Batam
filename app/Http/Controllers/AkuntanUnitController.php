@@ -79,6 +79,12 @@ class AkuntanUnitController extends Controller
                     // Hak Akses
                     Hak_Akses::create([
                         'id_akuntan_unit' => $user->id_user,
+                        'view_rapbs_akun' => $request->boolean('view_rapbs_akun'),
+                        'create_rapbs_akun' => $request->boolean('create_rapbs_akun'),
+                        'update_rapbs_akun' => $request->boolean('update_rapbs_akun'),
+                        'view_rapbs_kegiatan' => $request->boolean('view_rapbs_kegiatan'),
+                        'create_rapbs_kegiatan' => $request->boolean('create_rapbs_kegiatan'),
+                        'update_rapbs_kegiatan' => $request->boolean('update_rapbs_kegiatan'),
                         'view_jurnal_umum' => $request->boolean('view_jurnal_umum'),
                         'create_jurnal_umum' => $request->boolean('create_jurnal_umum'),
                         'update_jurnal_umum' => $request->boolean('update_jurnal_umum'),
@@ -105,115 +111,118 @@ class AkuntanUnitController extends Controller
 
 
 
-    public function edit($id)
-    {
-        $akuntan_unit = Akuntan_Unit::findOrFail($id);
-        $user = User::findOrFail($id);
-        $unit = Unit::all();  // Ambil semua unit
-        $akses = Hak_Akses::where('id_akuntan_unit', $id)->first();
-        // dd($akses->create_jurnal_umum );
-        return view('admin.akuntan-unit-detail', compact('akuntan_unit', 'unit', 'user', 'akses'));
-    }
+        public function edit($id)
+        {
+            $akuntan_unit = Akuntan_Unit::findOrFail($id);
+            $user = User::findOrFail($id);
+            $unit = Unit::all();  // Ambil semua unit
+            $akses = Hak_Akses::where('id_akuntan_unit', $id)->first();
+            // dd($akses->create_jurnal_umum );
+            return view('admin.akuntan-unit-detail', compact('akuntan_unit', 'unit', 'user', 'akses'));
+        }
 
 
 
-    public function update(Request $request, $id)
-    {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:user,username,' . $id . ',id_user',
-            'new_password' => 'nullable|string|min:8|confirmed',
-            'id_unit' => 'required|exists:unit,id_unit',
-            'email' => 'required|email',
-            'telp' => 'required|string',
-        ]);
+        public function update(Request $request, $id)
+        {
+            $validated = $request->validate([
+                'nama' => 'required|string|max:255',
+                'username' => 'required|string|max:255|unique:user,username,' . $id . ',id_user',
+                'new_password' => 'nullable|string|min:8|confirmed',
+                'id_unit' => 'required|exists:unit,id_unit',
+                'email' => 'required|email',
+                'telp' => 'required|string',
+            ]);
 
-        try {
-            DB::transaction(function () use ($request, $id) {
-                DB::statement('SET @current_user_id = ' . auth()->id());
+            try {
+                DB::transaction(function () use ($request, $id) {
+                    DB::statement('SET @current_user_id = ' . auth()->id());
 
-                $user = User::findOrFail($id);
-                $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $id)->firstOrFail();
-                $hakAkses = Hak_Akses::where('id_akuntan_unit', $id)->firstOrFail();
+                    $user = User::findOrFail($id);
+                    $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $id)->firstOrFail();
+                    $hakAkses = Hak_Akses::where('id_akuntan_unit', $id)->firstOrFail();
 
-                // Update password jika diisi
-                if ($request->filled('new_password')) {
-                    if (!Hash::check($request->old_password, $user->password)) {
-                        throw ValidationException::withMessages([
-                            'old_password' => 'Password lama salah.'
-                        ]);
+                    // Update password jika diisi
+                    if ($request->filled('new_password')) {
+                        if (!Hash::check($request->old_password, $user->password)) {
+                            throw ValidationException::withMessages([
+                                'old_password' => 'Password lama salah.'
+                            ]);
+                        }
+
+                        $user->password = bcrypt($request->new_password);
                     }
 
-                    $user->password = bcrypt($request->new_password);
-                }
+                    // Update user
+                    $user->nama = $request->nama;
+                    $user->username = $request->username;
+                    $user->save();
 
-                // Update user
-                $user->nama = $request->nama;
-                $user->username = $request->username;
-                $user->save();
+                    // Update akuntan_unit
+                    $akuntanUnit->update([
+                        'id_unit' => $request->id_unit,
+                        'email' => $request->email,
+                        'telp' => $request->telp,
+                    ]);
 
-                // Update akuntan_unit
-                $akuntanUnit->update([
-                    'id_unit' => $request->id_unit,
-                    'email' => $request->email,
-                    'telp' => $request->telp,
-                ]);
+                    // Update hak akses
+                    $hakAkses->update([
+                        'view_rapbs_akun' => $request->boolean('view_rapbs_akun'),
+                        'create_rapbs_akun' => $request->boolean('create_rapbs_akun'),
+                        'update_rapbs_akun' => $request->boolean('update_rapbs_akun'),
+                        'view_rapbs_kegiatan' => $request->boolean('view_rapbs_kegiatan'),
+                        'create_rapbs_kegiatan' => $request->boolean('create_rapbs_kegiatan'),
+                        'update_rapbs_kegiatan' => $request->boolean('update_rapbs_kegiatan'),
+                        'view_jurnal_umum' => $request->boolean('view_jurnal_umum'),
+                        'create_jurnal_umum' => $request->boolean('create_jurnal_umum'),
+                        'update_jurnal_umum' => $request->boolean('update_jurnal_umum'),
+                        'delete_jurnal_umum' => $request->boolean('delete_jurnal_umum'),
+                        'view_buku_besar' => $request->boolean('view_buku_besar'),
+                        'create_buku_besar' => $request->boolean('create_buku_besar'),
+                        'delete_buku_besar' => $request->boolean('delete_buku_besar'),
+                        'view_laporan_komprehensif' => $request->boolean('view_laporan_komprehensif'),
+                        'view_laporan_posisi_keuangan' => $request->boolean('view_laporan_posisi_keuangan'),
+                        'view_laporan_arus_kas' => $request->boolean('view_laporan_arus_kas'),
+                        'view_laporan_perubahan_aset_neto' => $request->boolean('view_laporan_perubahan_aset_neto'),
+                        'view_laporan_catatan_atas_laporan_keuangan' => $request->boolean('view_laporan_catatan_atas_laporan_keuangan'),
+                        'view_laporan_proyeksi_rencana_dan_realisasi_anggaran' => $request->boolean('view_laporan_proyeksi_rencana_dan_realisasi_anggaran'),
+                    ]);
+                });
 
-                // Update hak akses
-                $hakAkses->update([
-                    'view_jurnal_umum' => $request->boolean('view_jurnal_umum'),
-                    'create_jurnal_umum' => $request->boolean('create_jurnal_umum'),
-                    'update_jurnal_umum' => $request->boolean('update_jurnal_umum'),
-                    'delete_jurnal_umum' => $request->boolean('delete_jurnal_umum'),
-                    'view_buku_besar' => $request->boolean('view_buku_besar'),
-                    'create_buku_besar' => $request->boolean('create_buku_besar'),
-                    'delete_buku_besar' => $request->boolean('delete_buku_besar'),
-                    'view_laporan_komprehensif' => $request->boolean('view_laporan_komprehensif'),
-                    'view_laporan_posisi_keuangan' => $request->boolean('view_laporan_posisi_keuangan'),
-                    'view_laporan_arus_kas' => $request->boolean('view_laporan_arus_kas'),
-                    'view_laporan_perubahan_aset_neto' => $request->boolean('view_laporan_perubahan_aset_neto'),
-                    'view_laporan_catatan_atas_laporan_keuangan' => $request->boolean('view_laporan_catatan_atas_laporan_keuangan'),
-                    'view_laporan_proyeksi_rencana_dan_realisasi_anggaran' => $request->boolean('view_laporan_proyeksi_rencana_dan_realisasi_anggaran'),
-                ]);
-            });
-
-            return back()->with('success', 'Data Akuntan Unit berhasil diperbarui.');
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput();
-        } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+                return back()->with('success', 'Data Akuntan Unit berhasil diperbarui.');
+            } catch (ValidationException $e) {
+                return back()->withErrors($e->errors())->withInput();
+            } catch (\Exception $e) {
+                return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            }
         }
-    }
 
 
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        DB::beginTransaction();
+        public function destroy($id)
+        {
+            DB::beginTransaction();
 
-        try {
-            DB::statement("SET @current_user_id = " . auth()->id());
+            try {
+                DB::statement("SET @current_user_id = " . auth()->id());
 
 
-            // Hapus hak akses terlebih dahulu (foreign key constraint)
-            Hak_Akses::where('id_akuntan_unit', $id)->delete();
+                // Hapus hak akses terlebih dahulu (foreign key constraint)
+                Hak_Akses::where('id_akuntan_unit', $id)->delete();
 
-            // Hapus data akuntan unit
-            Akuntan_Unit::where('id_akuntan_unit', $id)->delete();
+                // Hapus data akuntan unit
+                Akuntan_Unit::where('id_akuntan_unit', $id)->delete();
 
-            // Hapus user
-            User::where('id_user', $id)->delete();
+                // Hapus user
+                User::where('id_user', $id)->delete();
 
-            DB::commit();
-            return redirect()->route('akuntan-unit.index')->with('success', 'Data Akuntan Unit berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+                DB::commit();
+                return redirect()->route('akuntan-unit.index')->with('success', 'Data Akuntan Unit berhasil dihapus.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+            }
         }
-    }
 
 }

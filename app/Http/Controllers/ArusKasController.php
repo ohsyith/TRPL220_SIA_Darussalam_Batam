@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Akun;
 use App\Models\Unit;
+use App\Models\Akuntan_Unit;
 use App\Models\Divisi;
 use App\Models\Jurnal_Umum;
 use Illuminate\Http\Request;
@@ -234,6 +235,248 @@ class ArusKasController extends Controller
         
     }
 
+    // private function exportExcelArusKas($request, $data)
+    // {
+    //     $spreadsheet = new Spreadsheet();
+    //     $sheet = $spreadsheet->getActiveSheet();
+
+    //     // Logo
+    //     $drawing = new Drawing();
+    //     $drawing->setName('Logo');
+    //     $drawing->setDescription('Logo');
+    //     $drawing->setPath(public_path('assets/images/logos/YDB_PNG.png'));
+    //     $drawing->setHeight(150);
+    //     $drawing->setCoordinates('A1');
+    //     $drawing->setOffsetX(5);
+    //     $drawing->setWorksheet($sheet);
+
+    //    // RichText untuk judul dan periode
+    //     $richText = new RichText();
+    //     $judulText = $richText->createTextRun("LAPORAN ARUS KAS YAYASAN DARUSSALAM BATAM\n");
+    //     $judulText->getFont()->setBold(true)->setSize(14);
+
+    //     $periodeText = $richText->createTextRun("Periode " . Carbon::parse($data['filters']['start_date'])->translatedFormat('d F Y') . " s.d. " . Carbon::parse($data['filters']['end_date'])->translatedFormat('d F Y'));
+    //     $periodeText->getFont()->setSize(10);
+
+    //     // Set ke cell
+    //     $sheet->setCellValue('A1', $richText);
+    //     $sheet->mergeCells('A1:E4');
+    //     $sheet->getRowDimension('1')->setRowHeight(60); // opsional: atur tinggi baris
+    //     $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    //     $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+    //     $sheet->getStyle('A1')->getAlignment()->setWrapText(true);
+
+        
+
+
+    //     // Header
+    //     $row = 6;
+    //     $sheet->fromArray(['No', 'Komponen Laporan Arus Kas', 'Total', 'Tahun ' . ($data['tahun'] - 1), 'Tahun ' . $data['tahun']], null, "A{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->applyFromArray([
+    //         'font' => ['bold' => true],
+    //         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '000000']],
+    //         'font' => ['color' => ['rgb' => 'FFFFFF']],
+    //         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+    //     ]);
+
+    //     $row++;
+
+    //     // Fungsi bantu format
+    //     $formatRupiah = function ($value) {
+    //         if ($value == 0) return '-';
+    //         return ($value > 0 ? '' : '(') . 'Rp ' . number_format(abs($value), 0, ',', '.') . ($value > 0 ? '' : ')');
+    //     };
+
+    //     // A. Aktivitas Operasional
+    //     $sheet->setCellValue("A{$row}", 'A');
+    //     $sheet->setCellValue("B{$row}", 'Aktivitas Operasional');
+    //     $sheet->mergeCells("B{$row}:E{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+    //     $row++;
+
+    //     // Laba bersih
+    //     $sheet->fromArray([
+    //         '', 'Kenaikan/Penurunan Aset Bersih',
+    //         $formatRupiah($data['laba_bersih']['tahun_ini']),
+    //         $formatRupiah($data['laba_bersih']['tahun_lalu']),
+    //         $formatRupiah($data['laba_bersih']['tahun_ini']),
+    //     ], null, "A{$row}");
+    //     $row++;
+
+    //     // Komponen penurunan/kenaikan aset lancar (contoh beberapa)
+    //     $items_operasional = [
+    //         'Persediaan Perlengkapan Kantor' => [
+    //             'lalu' => $data['persediaan_perlengkapan_kantor_lalu'],
+    //             'sekarang' => $data['persediaan_perlengkapan_kantor']
+    //         ],
+    //         'Persediaan Perlengkapan Asrama' => [
+    //             'lalu' => $data['persediaan_perlengkapan_asrama_lalu'],
+    //             'sekarang' => $data['persediaan_perlengkapan_asrama']
+    //         ],
+    //         'Persediaan ATK' => [
+    //             'lalu' => $data['persediaan_atk_lalu'],
+    //             'sekarang' => $data['persediaan_atk']
+    //         ],
+    //         'Persediaan Lainnya' => [
+    //             'lalu' => $data['persediaan_lainnya_lalu'],
+    //             'sekarang' => $data['persediaan_lainnya']
+    //         ],
+    //         'Piutang Rekanan' => [
+    //             'lalu' => $data['piutang_rekanan_lalu'],
+    //             'sekarang' => $data['piutang_rekanan']
+    //         ],
+    //         'Piutang Kegiatan' => [
+    //             'lalu' => $data['piutang_kegiatan_lalu'],
+    //             'sekarang' => $data['piutang_kegiatan']
+    //         ],
+    //         'Piutang Karyawan' => [
+    //             'lalu' => $data['piutang_karyawan_lalu'],
+    //             'sekarang' => $data['piutang_karyawan']
+    //         ],
+    //         'Piutang Sumbangan' => [
+    //             'lalu' => $data['piutang_sumbangan_lalu'],
+    //             'sekarang' => $data['piutang_sumbangan']
+    //         ],
+    //         'Piutang Lainnya' => [
+    //             'lalu' => $data['piutang_lainnya_lalu'],
+    //             'sekarang' => $data['piutang_lainnya']
+    //         ],
+    //         'Sewa Dibayar Dimuka' => [
+    //             'lalu' => $data['sewa_dibayar_dimuka_lalu'],
+    //             'sekarang' => $data['sewa_dibayar_dimuka']
+    //         ],
+    //         'Tabungan Pensiun Karyawan' => [
+    //             'lalu' => $data['tabungan_pensiun_karyawan_lalu'],
+    //             'sekarang' => $data['tabungan_pensiun_karyawan']
+    //         ],
+    //         'Pajak Dibayar Dimuka' => [
+    //             'lalu' => $data['pajak_dibayar_dimuka_lalu'],
+    //             'sekarang' => $data['pajak_dibayar_dimuka']
+    //         ],
+    //         'Hutang Jangka Pendek' => [
+    //             'lalu' => $data['hutang_jangka_pendek_lalu'],
+    //             'sekarang' => $data['hutang_jangka_pendek']
+    //         ]
+    //     ];
+
+
+    //     $total_operasional = $data['laba_bersih']['tahun_ini'];
+
+    //     foreach ($items_operasional as $label => $val) {
+    //         $selisih = $val['lalu'] - $val['sekarang'];
+    //         $total_operasional += $selisih;
+    //         $sheet->fromArray([
+    //             '', $label,
+    //             $formatRupiah($selisih),
+    //             $formatRupiah($val['lalu']),
+    //             $formatRupiah($val['sekarang']),
+    //         ], null, "A{$row}");
+    //         $row++;
+    //     }
+
+    //     // Total operasional
+    //     $sheet->fromArray([
+    //         '', 'Kas Bersih dari Aktivitas Operasional',
+    //         $formatRupiah($total_operasional), '-', '-'
+    //     ], null, "A{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+    //     $row++;
+
+    //     // B. Aktivitas Investasi
+    //     $sheet->setCellValue("A{$row}", 'B');
+    //     $sheet->setCellValue("B{$row}", 'Aktivitas Investasi');
+    //     $sheet->mergeCells("B{$row}:E{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+    //     $row++;
+
+    //     $selisih_aset_tetap = $data['aset_tetap_lalu'] - $data['aset_tetap'];
+    //     $sheet->fromArray([
+    //         '', 'Penambahan/Pengurangan Aset Tetap',
+    //         $formatRupiah($selisih_aset_tetap),
+    //         $formatRupiah($data['aset_tetap_lalu']),
+    //         $formatRupiah($data['aset_tetap']),
+    //     ], null, "A{$row}");
+    //     $row++;
+
+    //     $sheet->fromArray([
+    //         '', 'Kas Bersih dari Aktivitas Investasi',
+    //         $formatRupiah($selisih_aset_tetap), '-', '-'
+    //     ], null, "A{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+    //     $row++;
+
+    //     // C. Aktivitas Pendanaan
+    //     $sheet->setCellValue("A{$row}", 'C');
+    //     $sheet->setCellValue("B{$row}", 'Aktivitas Pendanaan');
+    //     $sheet->mergeCells("B{$row}:E{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+    //     $row++;
+
+    //     $selisih_kewajiban = $data['kewajiban_jangka_panjang_lalu'] - $data['kewajiban_jangka_panjang'];
+    //     $selisih_aset_neto = $data['aset_neto_lalu'] - $data['aset_neto'];
+    //     $total_pendanaan = $selisih_kewajiban + $selisih_aset_neto;
+
+    //     $sheet->fromArray([
+    //         '', 'Kewajiban Jangka Panjang',
+    //         $formatRupiah($selisih_kewajiban),
+    //         $formatRupiah($data['kewajiban_jangka_panjang_lalu']),
+    //         $formatRupiah($data['kewajiban_jangka_panjang']),
+    //     ], null, "A{$row}");
+    //     $row++;
+
+    //     $sheet->fromArray([
+    //         '', 'Aset Neto',
+    //         $formatRupiah($selisih_aset_neto),
+    //         $formatRupiah($data['aset_neto_lalu']),
+    //         $formatRupiah($data['aset_neto']),
+    //     ], null, "A{$row}");
+    //     $row++;
+
+    //     $sheet->fromArray([
+    //         '', 'Kas Bersih dari Aktivitas Pendanaan',
+    //         $formatRupiah($total_pendanaan), '-', '-'
+    //     ], null, "A{$row}");
+    //     $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+    //     $row++;
+
+    //     // Akhir: total kenaikan penurunan kas, saldo awal, saldo akhir
+    //     $kenaikan_penurunan_kas = $total_operasional + $selisih_aset_tetap + $total_pendanaan;
+
+    //     $sheet->fromArray([
+    //         '', 'Kenaikan (Penurunan) Kas (A+B+C)',
+    //         $formatRupiah($kenaikan_penurunan_kas), '-', '-'
+    //     ], null, "A{$row}"); $row++;
+
+    //     $sheet->fromArray([
+    //         '', 'Saldo Kas Awal',
+    //         $formatRupiah($data['saldo_kas_lalu']), '-', '-'
+    //     ], null, "A{$row}"); $row++;
+
+    //     $sheet->fromArray([
+    //         '', 'Saldo Kas Akhir',
+    //         $formatRupiah($data['saldo_kas']), '-', '-'
+    //     ], null, "A{$row}");
+    //     $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+
+    //     // Border
+    //     $sheet->getStyle("A6:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+    //     // Autosize
+    //     foreach (range('A', 'E') as $col) {
+    //         $sheet->getColumnDimension($col)->setAutoSize(true);
+    //     }
+
+    //     // Download
+    //     $fileName = 'Laporan_Arus_Kas_' . $data['tahun'] . '.xlsx';
+    //     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    //     header("Content-Disposition: attachment;filename=\"{$fileName}\"");
+    //     header('Cache-Control: max-age=0');
+    //     $writer = new Xlsx($spreadsheet);
+    //     $writer->save('php://output');
+    //     exit;
+    // }
+
 
 
 
@@ -243,234 +486,148 @@ class ArusKasController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
+        // Set default font
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(11);
+
         // Logo
         $drawing = new Drawing();
         $drawing->setName('Logo');
         $drawing->setDescription('Logo');
         $drawing->setPath(public_path('assets/images/logos/YDB_PNG.png'));
-        $drawing->setHeight(150);
+        $drawing->setHeight(100);
         $drawing->setCoordinates('A1');
         $drawing->setOffsetX(5);
+        // $drawing->setOffsetY(10);
         $drawing->setWorksheet($sheet);
 
-       // RichText untuk judul dan periode
+        // Judul - rich text
         $richText = new RichText();
         $judulText = $richText->createTextRun("LAPORAN ARUS KAS YAYASAN DARUSSALAM BATAM\n");
         $judulText->getFont()->setBold(true)->setSize(14);
-
         $periodeText = $richText->createTextRun("Periode " . Carbon::parse($data['filters']['start_date'])->translatedFormat('d F Y') . " s.d. " . Carbon::parse($data['filters']['end_date'])->translatedFormat('d F Y'));
         $periodeText->getFont()->setSize(10);
 
-        // Set ke cell
+        // Merge dan set judul
         $sheet->setCellValue('A1', $richText);
-        $sheet->mergeCells('A1:E4');
-        $sheet->getRowDimension('1')->setRowHeight(60); // opsional: atur tinggi baris
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getStyle('A1')->getAlignment()->setWrapText(true);
+        $sheet->mergeCells('A1:C4');
+        $sheet->getStyle('A1')->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
 
-        
+        // Set tinggi baris untuk header
+        for ($i = 1; $i <= 4; $i++) {
+            $sheet->getRowDimension($i)->setRowHeight(20);
+        }
 
-
-        // Header
-        $row = 6;
-        $sheet->fromArray(['No', 'Komponen Laporan Arus Kas', 'Total', 'Tahun ' . ($data['tahun'] - 1), 'Tahun ' . $data['tahun']], null, "A{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->applyFromArray([
-            'font' => ['bold' => true],
+        // Header tabel
+        $row = 5;
+        $sheet->setCellValue("A{$row}", 'No');
+        $sheet->setCellValue("B{$row}", 'Komponen Laporan Arus Kas');
+        // $sheet->setCellValue("C{$row}", 'Tahun ' . $data['tahun']);
+        $sheet->setCellValue("C{$row}", 'Jumlah ');
+        $sheet->getStyle("A{$row}:C{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '000000']],
-            'font' => ['color' => ['rgb' => 'FFFFFF']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
         ]);
 
         $row++;
 
-        // Fungsi bantu format
+        // Format Rupiah helper
         $formatRupiah = function ($value) {
             if ($value == 0) return '-';
-            return ($value > 0 ? '' : '(') . 'Rp ' . number_format(abs($value), 0, ',', '.') . ($value > 0 ? '' : ')');
+            return ($value > 0 ? '' : '(') . number_format(abs($value), 0, ',', '.') . ($value > 0 ? '' : ')');
         };
 
         // A. Aktivitas Operasional
-        $sheet->setCellValue("A{$row}", 'A');
-        $sheet->setCellValue("B{$row}", 'Aktivitas Operasional');
-        $sheet->mergeCells("B{$row}:E{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+        $sheet->fromArray(['1', 'Aktivitas Operasional', ''], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
         $row++;
 
-        // Laba bersih
-        $sheet->fromArray([
-            '', 'Kenaikan/Penurunan Aset Bersih',
-            $formatRupiah($data['laba_bersih']['tahun_ini']),
-            $formatRupiah($data['laba_bersih']['tahun_lalu']),
-            $formatRupiah($data['laba_bersih']['tahun_ini']),
-        ], null, "A{$row}");
+        $sheet->fromArray(['', 'Kenaikan/Penurunan Aset Bersih', $formatRupiah($data['laba_bersih']['tahun_ini'])], null, "A{$row}");
         $row++;
 
-        // Komponen penurunan/kenaikan aset lancar (contoh beberapa)
         $items_operasional = [
-            'Persediaan Perlengkapan Kantor' => [
-                'lalu' => $data['persediaan_perlengkapan_kantor_lalu'],
-                'sekarang' => $data['persediaan_perlengkapan_kantor']
-            ],
-            'Persediaan Perlengkapan Asrama' => [
-                'lalu' => $data['persediaan_perlengkapan_asrama_lalu'],
-                'sekarang' => $data['persediaan_perlengkapan_asrama']
-            ],
-            'Persediaan ATK' => [
-                'lalu' => $data['persediaan_atk_lalu'],
-                'sekarang' => $data['persediaan_atk']
-            ],
-            'Persediaan Lainnya' => [
-                'lalu' => $data['persediaan_lainnya_lalu'],
-                'sekarang' => $data['persediaan_lainnya']
-            ],
-            'Piutang Rekanan' => [
-                'lalu' => $data['piutang_rekanan_lalu'],
-                'sekarang' => $data['piutang_rekanan']
-            ],
-            'Piutang Kegiatan' => [
-                'lalu' => $data['piutang_kegiatan_lalu'],
-                'sekarang' => $data['piutang_kegiatan']
-            ],
-            'Piutang Karyawan' => [
-                'lalu' => $data['piutang_karyawan_lalu'],
-                'sekarang' => $data['piutang_karyawan']
-            ],
-            'Piutang Sumbangan' => [
-                'lalu' => $data['piutang_sumbangan_lalu'],
-                'sekarang' => $data['piutang_sumbangan']
-            ],
-            'Piutang Lainnya' => [
-                'lalu' => $data['piutang_lainnya_lalu'],
-                'sekarang' => $data['piutang_lainnya']
-            ],
-            'Sewa Dibayar Dimuka' => [
-                'lalu' => $data['sewa_dibayar_dimuka_lalu'],
-                'sekarang' => $data['sewa_dibayar_dimuka']
-            ],
-            'Tabungan Pensiun Karyawan' => [
-                'lalu' => $data['tabungan_pensiun_karyawan_lalu'],
-                'sekarang' => $data['tabungan_pensiun_karyawan']
-            ],
-            'Pajak Dibayar Dimuka' => [
-                'lalu' => $data['pajak_dibayar_dimuka_lalu'],
-                'sekarang' => $data['pajak_dibayar_dimuka']
-            ],
-            'Hutang Jangka Pendek' => [
-                'lalu' => $data['hutang_jangka_pendek_lalu'],
-                'sekarang' => $data['hutang_jangka_pendek']
-            ]
+            'Persediaan Perlengkapan Kantor' => [$data['persediaan_perlengkapan_kantor_lalu'], $data['persediaan_perlengkapan_kantor']],
+            'Persediaan Perlengkapan Asrama' => [$data['persediaan_perlengkapan_asrama_lalu'], $data['persediaan_perlengkapan_asrama']],
+            'Persediaan ATK' => [$data['persediaan_atk_lalu'], $data['persediaan_atk']],
+            'Persediaan Lainnya' => [$data['persediaan_lainnya_lalu'], $data['persediaan_lainnya']],
+            'Piutang Rekanan' => [$data['piutang_rekanan_lalu'], $data['piutang_rekanan']],
+            'Piutang Kegiatan' => [$data['piutang_kegiatan_lalu'], $data['piutang_kegiatan']],
+            'Piutang Karyawan' => [$data['piutang_karyawan_lalu'], $data['piutang_karyawan']],
+            'Piutang Sumbangan' => [$data['piutang_sumbangan_lalu'], $data['piutang_sumbangan']],
+            'Piutang Lainnya' => [$data['piutang_lainnya_lalu'], $data['piutang_lainnya']],
+            'Sewa Dibayar Dimuka' => [$data['sewa_dibayar_dimuka_lalu'], $data['sewa_dibayar_dimuka']],
+            'Tabungan Pensiun Karyawan' => [$data['tabungan_pensiun_karyawan_lalu'], $data['tabungan_pensiun_karyawan']],
+            'Pajak Dibayar Dimuka' => [$data['pajak_dibayar_dimuka_lalu'], $data['pajak_dibayar_dimuka']],
+            'Hutang Jangka Pendek' => [$data['hutang_jangka_pendek_lalu'], $data['hutang_jangka_pendek']],
         ];
 
-
         $total_operasional = $data['laba_bersih']['tahun_ini'];
-
-        foreach ($items_operasional as $label => $val) {
-            $selisih = $val['lalu'] - $val['sekarang'];
+        foreach ($items_operasional as $label => [$lalu, $sekarang]) {
+            $selisih = $lalu - $sekarang;
             $total_operasional += $selisih;
-            $sheet->fromArray([
-                '', $label,
-                $formatRupiah($selisih),
-                $formatRupiah($val['lalu']),
-                $formatRupiah($val['sekarang']),
-            ], null, "A{$row}");
+            $sheet->fromArray(['', $label, $formatRupiah($selisih)], null, "A{$row}");
             $row++;
         }
 
-        // Total operasional
-        $sheet->fromArray([
-            '', 'Kas Bersih dari Aktivitas Operasional',
-            $formatRupiah($total_operasional), '-', '-'
-        ], null, "A{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+        $sheet->fromArray(['', 'Kas Bersih dari Aktivitas Operasional', $formatRupiah($total_operasional)], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
         $row++;
 
         // B. Aktivitas Investasi
-        $sheet->setCellValue("A{$row}", 'B');
-        $sheet->setCellValue("B{$row}", 'Aktivitas Investasi');
-        $sheet->mergeCells("B{$row}:E{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+        $sheet->fromArray(['2', 'Aktivitas Investasi', ''], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
         $row++;
 
         $selisih_aset_tetap = $data['aset_tetap_lalu'] - $data['aset_tetap'];
-        $sheet->fromArray([
-            '', 'Penambahan/Pengurangan Aset Tetap',
-            $formatRupiah($selisih_aset_tetap),
-            $formatRupiah($data['aset_tetap_lalu']),
-            $formatRupiah($data['aset_tetap']),
-        ], null, "A{$row}");
+        $sheet->fromArray(['', 'Penambahan/Pengurangan Aset Tetap', $formatRupiah($selisih_aset_tetap)], null, "A{$row}");
         $row++;
 
-        $sheet->fromArray([
-            '', 'Kas Bersih dari Aktivitas Investasi',
-            $formatRupiah($selisih_aset_tetap), '-', '-'
-        ], null, "A{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+        $sheet->fromArray(['', 'Kas Bersih dari Aktivitas Investasi', $formatRupiah($selisih_aset_tetap)], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
         $row++;
 
         // C. Aktivitas Pendanaan
-        $sheet->setCellValue("A{$row}", 'C');
-        $sheet->setCellValue("B{$row}", 'Aktivitas Pendanaan');
-        $sheet->mergeCells("B{$row}:E{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
+        $sheet->fromArray(['3', 'Aktivitas Pendanaan', ''], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
         $row++;
 
         $selisih_kewajiban = $data['kewajiban_jangka_panjang_lalu'] - $data['kewajiban_jangka_panjang'];
         $selisih_aset_neto = $data['aset_neto_lalu'] - $data['aset_neto'];
         $total_pendanaan = $selisih_kewajiban + $selisih_aset_neto;
 
-        $sheet->fromArray([
-            '', 'Kewajiban Jangka Panjang',
-            $formatRupiah($selisih_kewajiban),
-            $formatRupiah($data['kewajiban_jangka_panjang_lalu']),
-            $formatRupiah($data['kewajiban_jangka_panjang']),
-        ], null, "A{$row}");
+        $sheet->fromArray(['', 'Kewajiban Jangka Panjang', $formatRupiah($selisih_kewajiban)], null, "A{$row}"); $row++;
+        $sheet->fromArray(['', 'Aset Neto', $formatRupiah($selisih_aset_neto)], null, "A{$row}"); $row++;
+        $sheet->fromArray(['', 'Kas Bersih dari Aktivitas Pendanaan', $formatRupiah($total_pendanaan)], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
         $row++;
 
-        $sheet->fromArray([
-            '', 'Aset Neto',
-            $formatRupiah($selisih_aset_neto),
-            $formatRupiah($data['aset_neto_lalu']),
-            $formatRupiah($data['aset_neto']),
-        ], null, "A{$row}");
-        $row++;
-
-        $sheet->fromArray([
-            '', 'Kas Bersih dari Aktivitas Pendanaan',
-            $formatRupiah($total_pendanaan), '-', '-'
-        ], null, "A{$row}");
-        $sheet->getStyle("A{$row}:E{$row}")->getFont()->setBold(true);
-        $row++;
-
-        // Akhir: total kenaikan penurunan kas, saldo awal, saldo akhir
-        $kenaikan_penurunan_kas = $total_operasional + $selisih_aset_tetap + $total_pendanaan;
-
-        $sheet->fromArray([
-            '', 'Kenaikan (Penurunan) Kas (A+B+C)',
-            $formatRupiah($kenaikan_penurunan_kas), '-', '-'
-        ], null, "A{$row}"); $row++;
-
-        $sheet->fromArray([
-            '', 'Saldo Kas Awal',
-            $formatRupiah($data['saldo_kas_lalu']), '-', '-'
-        ], null, "A{$row}"); $row++;
-
-        $sheet->fromArray([
-            '', 'Saldo Kas Akhir',
-            $formatRupiah($data['saldo_kas']), '-', '-'
-        ], null, "A{$row}");
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+        // Ringkasan akhir
+        $kenaikan_kas = $total_operasional + $selisih_aset_tetap + $total_pendanaan;
+        $sheet->fromArray(['', 'Kenaikan (Penurunan) Kas', $formatRupiah($kenaikan_kas)], null, "A{$row}"); $row++;
+        $sheet->fromArray(['', 'Saldo Kas Awal', $formatRupiah($data['saldo_kas_lalu'])], null, "A{$row}"); $row++;
+        $sheet->fromArray(['', 'Saldo Kas Akhir', $formatRupiah($data['saldo_kas'])], null, "A{$row}");
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
 
         // Border
-        $sheet->getStyle("A6:E{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A6:C{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-        // Autosize
-        foreach (range('A', 'E') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+        // Styling tambahan
+        $sheet->getStyle("C6:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle("B6:B{$row}")->getAlignment()->setWrapText(true);
+        $sheet->getStyle("A6:A{$row}")->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
 
-        // Download
+        // Lebar kolom
+        $sheet->getColumnDimension('A')->setWidth(5);
+        $sheet->getColumnDimension('B')->setWidth(55);
+        $sheet->getColumnDimension('C')->setWidth(38.57);
+
+        // Output
         $fileName = 'Laporan_Arus_Kas_' . $data['tahun'] . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header("Content-Disposition: attachment;filename=\"{$fileName}\"");
@@ -483,37 +640,27 @@ class ArusKasController extends Controller
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public function index2(Request $request)
     {
         $user = Auth::user();
 
         $id_unit = $request->unit;
         $id_divisi = $request->divisi;
+        $start_date = $request->input('start_date') ?? now()->startOfYear()->format('Y-m-d');
+        $end_date = $request->input('end_date') ?? now()->format('Y-m-d');
 
+        
         // Jika user akuntan_unit dan tidak memilih unit, pakai unit dari akuntan_unit
         if (!$id_unit && $user->role === 'akuntan_unit') {
-            $id_unit = \App\Models\Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+            $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
         }
 
+        
         $filters = [
             'id_unit' => $id_unit,
             'id_divisi' => $id_divisi,
-            'start_date' => $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
+            'start_date' => $start_date,
+            'end_date' => $end_date,
         ];
 
         $units = Unit::all();
@@ -557,7 +704,65 @@ class ArusKasController extends Controller
 
 
 
+        if ($request->has('export_excel')) {
+            return $this->exportExcelArusKas($request, [
+                'tahun' => $tahun,
+                'filters' => $filters,
 
+                'laba_bersih' => ['tahun_ini' => $laba_bersih],
+
+                'persediaan_perlengkapan_kantor' => $persediaan_perlengkapan_kantor['tahun_ini'],
+                'persediaan_perlengkapan_kantor_lalu' => $persediaan_perlengkapan_kantor['tahun_lalu'],
+
+                'persediaan_perlengkapan_asrama' => $persediaan_perlengkapan_asrama['tahun_ini'],
+                'persediaan_perlengkapan_asrama_lalu' => $persediaan_perlengkapan_asrama['tahun_lalu'],
+
+                'persediaan_atk' => $persediaan_atk['tahun_ini'],
+                'persediaan_atk_lalu' => $persediaan_atk['tahun_lalu'],
+
+                'persediaan_lainnya' => $persediaan_lainnya['tahun_ini'],
+                'persediaan_lainnya_lalu' => $persediaan_lainnya['tahun_lalu'],
+
+                'piutang_rekanan' => $piutang_rekanan['tahun_ini'],
+                'piutang_rekanan_lalu' => $piutang_rekanan['tahun_lalu'],
+
+                'piutang_kegiatan' => $piutang_kegiatan['tahun_ini'],
+                'piutang_kegiatan_lalu' => $piutang_kegiatan['tahun_lalu'],
+
+                'piutang_karyawan' => $piutang_karyawan['tahun_ini'],
+                'piutang_karyawan_lalu' => $piutang_karyawan['tahun_lalu'],
+
+                'piutang_sumbangan' => $piutang_sumbangan['tahun_ini'],
+                'piutang_sumbangan_lalu' => $piutang_sumbangan['tahun_lalu'],
+
+                'piutang_lainnya' => $piutang_lainnya['tahun_ini'],
+                'piutang_lainnya_lalu' => $piutang_lainnya['tahun_lalu'],
+
+                'sewa_dibayar_dimuka' => $sewa_dibayar_dimuka['tahun_ini'],
+                'sewa_dibayar_dimuka_lalu' => $sewa_dibayar_dimuka['tahun_lalu'],
+
+                'tabungan_pensiun_karyawan' => $tabungan_pensiun_karyawan['tahun_ini'],
+                'tabungan_pensiun_karyawan_lalu' => $tabungan_pensiun_karyawan['tahun_lalu'],
+
+                'pajak_dibayar_dimuka' => $pajak_dibayar_dimuka['tahun_ini'],
+                'pajak_dibayar_dimuka_lalu' => $pajak_dibayar_dimuka['tahun_lalu'],
+
+                'hutang_jangka_pendek' => $hutang_jangka_pendek['tahun_ini'],
+                'hutang_jangka_pendek_lalu' => $hutang_jangka_pendek['tahun_lalu'],
+
+                'aset_tetap' => $aset_tetap['tahun_ini'],
+                'aset_tetap_lalu' => $aset_tetap['tahun_lalu'],
+
+                'kewajiban_jangka_panjang' => $kewajiban_jangka_panjang['tahun_ini'],
+                'kewajiban_jangka_panjang_lalu' => $kewajiban_jangka_panjang['tahun_lalu'],
+
+                'aset_neto' => $aset_neto['tahun_ini'],
+                'aset_neto_lalu' => $aset_neto['tahun_lalu'],
+
+                'saldo_kas' => $saldo_kas['tahun_ini'],
+                'saldo_kas_lalu' => $saldo_kas['tahun_lalu'],
+            ]);
+        }
 
         return view('arus-kas2', [
             'tahun' => $tahun,
@@ -573,6 +778,7 @@ class ArusKasController extends Controller
                 // 'laba_bersih_tahun_ini' => $laba_bersih['tahun_ini'],
                 // 'laba_bersih_tahun_lalu' => $laba_bersih['tahun_lalu'],
                 'laba_bersih_tahun_ini' => $laba_bersih ,
+                // 'laba_bersih' => $laba_bersih,
 
 
 

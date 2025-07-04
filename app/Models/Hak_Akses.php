@@ -11,6 +11,8 @@ class Hak_Akses extends Model
     protected $table = 'hak_akses';
     protected $primaryKey = 'id_hak_akses';
     protected $fillable = ['id_akuntan_unit', 
+                            'view_rapbs_akun', 'create_rapbs_akun', 'update_rapbs_akun', 
+                            'view_rapbs_kegiatan', 'create_rapbs_kegiatan', 'update_rapbs_kegiatan',
                             'view_jurnal_umum', 'create_jurnal_umum', 'update_jurnal_umum', 'delete_jurnal_umum',
                             'view_buku_besar', 'create_buku_besar', 'delete_buku_besar',
                             'view_laporan_komprehensif',

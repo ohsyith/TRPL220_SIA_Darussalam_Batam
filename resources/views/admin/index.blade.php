@@ -5,21 +5,29 @@
 
     <style>
         html,
-        body,
-        .page-wrapper,
-        .body-wrapper {
+        body {
             height: 100%;
-            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa; /* latar abu-abu */
         }
 
+        .page-wrapper,
         .body-wrapper {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .container-fluid {
+        .container-fluid,
+        .main-content {
             flex: 1;
         }
+
+        footer,
+        .footer {
+            margin-top: auto;
+        }
+
     </style>
 @endpush
 
@@ -29,11 +37,31 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Selamat datang, {{ $user->nama }}</h5>
-                    <p class="card-text">Ini adalah halaman dashboard utama Anda.</p>
                 </div>
 
                 <div class="container mt-4">
-                    <h5 class="mb-3 ms-3">Jumlah Transaksi 30 Hari Terakhir</h5>
+                    <p class="card-text ms-4">Transaksi dalam 30 hari terakhir.</p>
+
+                    <form method="GET" action="{{ route('admin-dashboard.index') }}" class="mb-3 ms-4">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <label for="unit" class="form-label mb-0">Filter Unit:</label>
+                            </div>
+                            <div class="col-auto">
+                                <select name="unit" id="unit" class="form-select" onchange="this.form.submit()">
+                                    <option value="all" {{ request('unit') === 'all' ? 'selected' : '' }}>Semua Unit
+                                    </option>
+                                    @foreach ($units as $unit)
+                                        <option value="{{ $unit->id_unit }}"
+                                            {{ request('unit') == $unit->id_unit ? 'selected' : '' }}>
+                                            {{ $unit->kode_unit }} - {{ $unit->unit }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
                     <canvas id="transaksiChart" height="100"></canvas>
                 </div>
 

@@ -42,7 +42,7 @@ class JurnalUmumController extends Controller
 
         // Cek role akuntan_unit → ambil id_unit dari tabel akuntan_unit
         if ($user->role === 'akuntan_unit') {
-            $akuntan = \App\Models\Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
+            $akuntan = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
 
             if (!$akuntan) {
                 abort(403, 'Data Akuntan Unit tidak ditemukan');
@@ -85,9 +85,12 @@ class JurnalUmumController extends Controller
         }
 
         $perPage = $request->input('per_page', 20); // Default 20
-        $jurnalPaginated = $jurnalQuery->orderByDesc('no_bukti')
+        $jurnalPaginated = $jurnalQuery
+            ->orderByDesc('id_jurnal_umum')
             ->paginate($perPage)
             ->withQueryString();
+
+
 
         $detailjurnalumum = Detail_Jurnal_Umum::with([
                 'akun',
@@ -137,8 +140,8 @@ class JurnalUmumController extends Controller
         $drawing->setPath(public_path('assets/images/logos/YDB_PNG.png'));
         $drawing->setHeight(120);
         $drawing->setCoordinates('A1');
-        $drawing->setOffsetX(10);
-        $drawing->setOffsetY(5);
+        $drawing->setOffsetX(1000);
+        $drawing->setOffsetY(18);
         $drawing->setWorksheet($sheet);
 
         // 📅 Ambil tanggal awal & akhir dari data
@@ -154,7 +157,7 @@ class JurnalUmumController extends Controller
         $periodeText->getFont()->setSize(10);
 
         // 🧩 Merge dan isi judul
-        $sheet->mergeCells('A1:I4');
+        $sheet->mergeCells('A1:L4');
         $sheet->setCellValue('A1', $richText);
         $sheet->getStyle('A1')->getAlignment()->setWrapText(true);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -162,65 +165,69 @@ class JurnalUmumController extends Controller
         $sheet->getRowDimension('1')->setRowHeight(80);
 
         // 📋 Header tabel
-        $header = ['Tanggal', 'No Bukti', 'Akun', 'Keterangan', 'Unit', 'Divisi', 'Kegiatan', 'Sumber', 'Debit', 'Kredit'];
+        $header = ['Tanggal', 'Keterangan', 'Jenis Transaksi', 'Unit', 'Divisi', 'Kegiatan', 'Sumber Anggaran', 'Kode Sumbangan', 'Kode PH', 'Akun Debit', 'Akun Kredit', 'Nominal'];
         $sheet->fromArray($header, null, 'A6');
-        $sheet->getStyle('A6:J6')->applyFromArray([
+        $sheet->getStyle('A6:L6')->applyFromArray([
             'font' => ['bold' => true],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F2F2']],
         ]);
 
-        // 📄 Data isi
+        // 🔁 Group berdasarkan ID Jurnal Umum
+        $grouped = $detailjurnalumum->groupBy('id_jurnal_umum');
+
         $row = 7;
-        $totalDebit = 0;
-        $totalKredit = 0;
+        $totalNominal = 0;
 
-        foreach ($detailjurnalumum as $item) {
-            $tanggal = optional($item->jurnal_umum)->tanggal ?? '-';
-            $no_bukti = optional($item->jurnal_umum)->no_bukti ?? '-';
-            $akun = optional($item->akun)->akun ?? '-';
-            $keterangan = optional($item->jurnal_umum)->keterangan ?? '-';
-            $unit = optional($item->jurnal_umum->unit)->unit ?? '-';
-            $divisi = optional($item->jurnal_umum->divisi)->divisi ?? '-';
-            $kegiatan = optional($item->jurnal_umum->kegiatan)->kode_kegiatan ?? '-';
-            $sumber = optional($item->jurnal_umum->sumber_anggaran)->kode_sumbangan ?? '-';
+        foreach ($grouped as $group) {
+            $jurnal = optional($group->first()->jurnal_umum);
 
-            $debit = $item->debit_kredit === 'debit' ? $item->nominal : 0;
-            $kredit = $item->debit_kredit === 'kredit' ? $item->nominal : 0;
+            $tanggal = $jurnal->tanggal ?? '-';
+            $keterangan = $jurnal->keterangan ?? '-';
+            $jenis_transaksi = $jurnal->jenis_transaksi ?? '-';
+            $unit = optional($jurnal->unit)->unit ?? '-';
+            $divisi = optional($jurnal->divisi)->divisi ?? '-';
+            $kegiatan = optional($jurnal->kegiatan)->kegiatan ?? '-';
+            $sumber_anggaran = optional($jurnal->sumber_anggaran)->sumber_anggaran ?? '-';
+            $kode_sumbangan = $jurnal->kode_sumbangan ?? '-';
+            $kode_ph = $jurnal->kode_ph ?? '-';
 
-            $totalDebit += $debit;
-            $totalKredit += $kredit;
+            $akun_debit = $group->firstWhere('debit_kredit', 'debit')?->akun->akun ?? '-';
+            $akun_kredit = $group->firstWhere('debit_kredit', 'kredit')?->akun->akun ?? '-';
+            $nominal = $group->first()?->nominal ?? 0;
+
+            $totalNominal += $nominal;
 
             $sheet->setCellValue("A{$row}", $tanggal);
-            $sheet->setCellValue("B{$row}", $no_bukti);
-            $sheet->setCellValue("C{$row}", $akun);
-            $sheet->setCellValue("D{$row}", $keterangan);
-            $sheet->setCellValue("E{$row}", $unit);
-            $sheet->setCellValue("F{$row}", $divisi);
-            $sheet->setCellValue("G{$row}", $kegiatan);
-            $sheet->setCellValue("H{$row}", $sumber);
-            $sheet->setCellValue("I{$row}", $debit);
-            $sheet->setCellValue("J{$row}", $kredit);
+            $sheet->setCellValue("B{$row}", $keterangan);
+            $sheet->setCellValue("C{$row}", $jenis_transaksi);
+            $sheet->setCellValue("D{$row}", $unit);
+            $sheet->setCellValue("E{$row}", $divisi);
+            $sheet->setCellValue("F{$row}", $kegiatan);
+            $sheet->setCellValue("G{$row}", $sumber_anggaran);
+            $sheet->setCellValue("H{$row}", $kode_sumbangan);
+            $sheet->setCellValue("I{$row}", $kode_ph);
+            $sheet->setCellValue("J{$row}", $akun_debit);
+            $sheet->setCellValue("K{$row}", $akun_kredit);
+            $sheet->setCellValue("L{$row}", $nominal);
 
-            $sheet->getStyle("I{$row}:J{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheet->getStyle("I{$row}:J{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("L{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle("L{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
             $row++;
         }
 
-        // ➕ Total baris
-        $sheet->setCellValue("H{$row}", 'TOTAL');
-        $sheet->setCellValue("I{$row}", $totalDebit);
-        $sheet->setCellValue("J{$row}", $totalKredit);
-
-        $sheet->getStyle("H{$row}:J{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("I{$row}:J{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-        $sheet->getStyle("I{$row}:J{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        // ➕ Total
+        $sheet->setCellValue("K{$row}", 'TOTAL');
+        $sheet->setCellValue("L{$row}", $totalNominal);
+        $sheet->getStyle("K{$row}:L{$row}")->getFont()->setBold(true);
+        $sheet->getStyle("L{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("L{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
         // 📏 Border & autosize
-        $sheet->getStyle("A6:J{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        foreach (range('A', 'J') as $col) {
+        $sheet->getStyle("A6:L{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        foreach (range('A', 'L') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -234,6 +241,7 @@ class JurnalUmumController extends Controller
         $writer->save('php://output');
         exit;
     }
+
 
 
     public function create()

@@ -1,4 +1,26 @@
 @extends('layouts.layout')
+@push('styles')
+    <title>SIA Yayasan Darussalam | Laporan Perubahan Aset Neto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        /* Mengatur warna hijau tua untuk tombol Export Excel */
+        .custom-green {
+            background-color: #208a20;
+            /* Warna hijau tua */
+            border: none;
+        }
+
+        /* Mengatur warna abu-abu tua untuk tombol Print */
+        .custom-grey {
+            background-color: #8a8a8a;
+            /* Warna abu-abu tua */
+            border: none;
+            color: white;
+            /* Warna teks putih */
+        }
+    </style>
+@endpush
 
 @section('content')
     <div class="container-fluid">
@@ -138,11 +160,9 @@
                                             @if ($data['tanpa_pembatasan']['saldo_awal'] == 0)
                                                 -
                                             @elseif ($data['tanpa_pembatasan']['saldo_awal'] > 0)
-                                                Rp
                                                 {{ number_format($data['tanpa_pembatasan']['saldo_awal'], 0, ',', '.') }}
                                             @else
-                                                (Rp
-                                                {{ number_format(abs($data['tanpa_pembatasan']['saldo_awal']), 0, ',', '.') }})
+                                                ({{ number_format(abs($data['tanpa_pembatasan']['saldo_awal']), 0, ',', '.') }})
                                             @endif
                                         </td>
                                     </tr>
@@ -157,11 +177,9 @@
                                             @if ($data['tanpa_pembatasan']['kenaikan_periode_berjalan'] == 0)
                                                 -
                                             @elseif ($data['tanpa_pembatasan']['kenaikan_periode_berjalan'] > 0)
-                                                Rp
                                                 {{ number_format($data['tanpa_pembatasan']['kenaikan_periode_berjalan'], 0, ',', '.') }}
                                             @else
-                                                (Rp
-                                                {{ number_format(abs($data['tanpa_pembatasan']['kenaikan_periode_berjalan']), 0, ',', '.') }})
+                                                ({{ number_format(abs($data['tanpa_pembatasan']['kenaikan_periode_berjalan']), 0, ',', '.') }})
                                             @endif
                                         </td>
                                     </tr>
@@ -171,11 +189,9 @@
                                             @if ($data['tanpa_pembatasan']['saldo_akhir'] == 0)
                                                 -
                                             @elseif ($data['tanpa_pembatasan']['saldo_akhir'] > 0)
-                                                Rp
                                                 {{ number_format($data['tanpa_pembatasan']['saldo_akhir'], 0, ',', '.') }}
                                             @else
-                                                (Rp
-                                                {{ number_format(abs($data['tanpa_pembatasan']['saldo_akhir']), 0, ',', '.') }})
+                                                ({{ number_format(abs($data['tanpa_pembatasan']['saldo_akhir']), 0, ',', '.') }})
                                             @endif
                                         </td>
                                     </tr>
@@ -186,9 +202,9 @@
                                             @if ($total_saldo_akhir == 0)
                                                 -
                                             @elseif ($total_saldo_akhir > 0)
-                                                Rp {{ number_format($total_saldo_akhir, 0, ',', '.') }}
+                                                {{ number_format($total_saldo_akhir, 0, ',', '.') }}
                                             @else
-                                                (Rp {{ number_format(abs($total_saldo_akhir), 0, ',', '.') }})
+                                                ({{ number_format(abs($total_saldo_akhir), 0, ',', '.') }})
                                             @endif
                                         </td>
                                     </tr>

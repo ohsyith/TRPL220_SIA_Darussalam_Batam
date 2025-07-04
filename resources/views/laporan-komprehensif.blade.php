@@ -204,95 +204,94 @@
                                         <th>Akun</th>
                                         <th>Dengan Pembatasan</th>
                                         <th>Tanpa Pembatasan</th>
-                                        <th class="text-end">Jumlah (Rp)</th>
+                                        <th class="text-end">Jumlah ()</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <!-- Pendapatan -->
                                     <tr class="table-secondary">
-                                        <td colspan="4"><strong>Pendapatan</strong></td>
+                                        <td colspan="4"><strong>PENERIMAAN DAN SUMBANGAN</strong></td>
                                     </tr>
-                                    @php $total_pendapatan_all = 0; @endphp
-                                    @foreach ($pendapatan_all as $item)
-                                        <tr>
-                                            <td>&nbsp;&nbsp;&nbsp;{{ $item->nama_akun }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($item->total_dengan, 0, ',', '.') }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($item->total_tanpa, 0, ',', '.') }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($item->total, 0, ',', '.') }}</td>
+                                    @foreach ($pendapatan_all as $sub_kategori => $akuns)
+                                        <tr class="table-light">
+                                            <td colspan="4"><strong>&nbsp;&nbsp;{{ $sub_kategori }}</strong></td>
                                         </tr>
-                                        @php $total_pendapatan_all += $item->total; @endphp
+                                        @foreach ($akuns as $item)
+                                            <tr>
+                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;{{ $item->akun }}</td>
+                                                <td class="text-end">
+                                                    {{ number_format($item->total_dengan, 0, ',', '.') }}</td>
+                                                <td class="text-end">
+                                                    {{ number_format($item->total_tanpa, 0, ',', '.') }}</td>
+                                                <td class="text-end"> {{ number_format($item->total, 0, ',', '.') }}</td>
+                                            </tr>
+                                        @endforeach
                                     @endforeach
                                     <tr class="fw-bold">
                                         <td>Total Pendapatan</td>
-                                        <td class="text-end">Rp
-                                            {{ number_format($total_pendapatan_terikat, 0, ',', '.') }}
-                                        <td class="text-end">Rp
-                                            {{ number_format($total_pendapatan, 0, ',', '.') }}</td>
+                                        <td class="text-end"> {{ number_format($total_pendapatan_terikat, 0, ',', '.') }}
                                         </td>
-                                        <td class="text-end">Rp
-                                            {{ number_format($total_pendapatan_all, 0, ',', '.') }}</td>
+                                        <td class="text-end"> {{ number_format($total_pendapatan, 0, ',', '.') }}</td>
+                                        <td class="text-end"> {{ number_format($total_pendapatan_all, 0, ',', '.') }}
+                                        </td>
                                     </tr>
-
                                     <!-- Beban -->
                                     <tr class="table-secondary">
-                                        <td colspan="4"><strong>Beban</strong></td>
+                                        <td colspan="4"><strong>BEBAN</strong></td>
                                     </tr>
-                                    @php $total_beban_all = 0; @endphp
-                                    @foreach ($beban_all as $item)
-                                        <tr>
-                                            <td>&nbsp;&nbsp;&nbsp;{{ $item->nama_akun }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($item->total_dengan, 0, ',', '.') }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($item->total_tanpa, 0, ',', '.') }}</td>
-                                            
-                                            <td class="text-end">Rp
-                                                {{ number_format($item->total, 0, ',', '.') }}</td>
+                                    @foreach ($beban_all as $sub_kategori => $akuns)
+                                        <tr class="table-light">
+                                            <td colspan="4"><strong>&nbsp;&nbsp;{{ $sub_kategori }}</strong></td>
                                         </tr>
-                                        @php $total_beban_all += $item->total; @endphp
+                                        @foreach ($akuns as $item)
+                                            <tr>
+                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;{{ $item->akun }}</td>
+                                                <td class="text-end">
+                                                    {{ number_format($item->total_dengan, 0, ',', '.') }}</td>
+                                                <td class="text-end">
+                                                    {{ number_format($item->total_tanpa, 0, ',', '.') }}</td>
+                                                <td class="text-end"> {{ number_format($item->total, 0, ',', '.') }}</td>
+                                            </tr>
+                                        @endforeach
                                     @endforeach
                                     <tr class="fw-bold">
                                         <td>Total Beban</td>
-                                        <td class="text-end">Rp
-                                            {{ number_format($total_beban_terikat, 0, ',', '.') }}</td>
-                                        <td class="text-end">Rp
-                                            {{ number_format($total_beban, 0, ',', '.') }}</td>
-                                        
-                                        <td class="text-end">Rp
-                                            {{ number_format($total_beban_all, 0, ',', '.') }}</td>
+                                        <td class="text-end"> {{ number_format($total_beban_terikat, 0, ',', '.') }}</td>
+                                        <td class="text-end"> {{ number_format($total_beban, 0, ',', '.') }}</td>
+                                        <td class="text-end"> {{ number_format($total_beban_all, 0, ',', '.') }}</td>
                                     </tr>
 
+                                    
                                     <!-- Kenaikan (Penurunan) -->
                                     <tr class="table-success fw-bold">
                                         <td>KENAIKAN (PENURUNAN) PENGHASILAN KOMPREHENSIF</td>
                                         <td class="text-end">
-                                            @if ($total_pendapatan_terikat - $total_beban_terikat  == 0)
+                                            @if ($total_pendapatan_terikat - $total_beban_terikat == 0)
                                                 -
                                             @elseif ($total_pendapatan_terikat - $total_beban_terikat > 0)
-                                                Rp {{ number_format($total_pendapatan_terikat - $total_beban_terikat, 0, ',', '.') }}
+                                                
+                                                {{ number_format($total_pendapatan_terikat - $total_beban_terikat, 0, ',', '.') }}
                                             @else
-                                                (Rp {{ number_format(abs($total_pendapatan_terikat - $total_beban_terikat), 0, ',', '.') }})
+                                                (
+                                                {{ number_format(abs($total_pendapatan_terikat - $total_beban_terikat), 0, ',', '.') }})
                                             @endif
                                         </td>
                                         <td class="text-end">
                                             @if ($total_pendapatan - $total_beban == 0)
                                                 -
                                             @elseif ($total_pendapatan - $total_beban > 0)
-                                                Rp {{ number_format($total_pendapatan - $total_beban, 0, ',', '.') }}
+                                                 {{ number_format($total_pendapatan - $total_beban, 0, ',', '.') }}
                                             @else
-                                                (Rp {{ number_format(abs($total_pendapatan - $total_beban), 0, ',', '.') }})
+                                                ({{ number_format(abs($total_pendapatan - $total_beban), 0, ',', '.') }})
                                             @endif
                                         </td>
                                         <td class="text-end">
                                             @if ($kenaikan_penghasilan_komprehensif == 0)
                                                 -
                                             @elseif ($kenaikan_penghasilan_komprehensif > 0)
-                                                Rp {{ number_format($kenaikan_penghasilan_komprehensif, 0, ',', '.') }}
+                                                 {{ number_format($kenaikan_penghasilan_komprehensif, 0, ',', '.') }}
                                             @else
-                                                (Rp {{ number_format(abs($kenaikan_penghasilan_komprehensif), 0, ',', '.') }})
+                                                ({{ number_format(abs($kenaikan_penghasilan_komprehensif), 0, ',', '.') }})
                                             @endif
                                         </td>
                                     </tr>

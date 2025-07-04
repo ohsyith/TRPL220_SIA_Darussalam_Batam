@@ -35,13 +35,30 @@
                         </div>
                     @endif
 
+                    @php
+                        $user = Auth::user();
+                        $bolehImportRapbs = false;
+                        $bolehEditRapbs = false;
 
-                    <div class="mb-3">
-                        <a href="{{ asset('assets/templates/Template_Rapbs_Kegiatan.xlsx') }}"
-                            class="btn btn-link text-primary p-0" download>
-                            <i class="fas fa-download me-1"></i> Download Template Import RAPBS Kegiatan
-                        </a>
-                    </div>
+                        if ($user->role === 'admin') {
+                            $bolehImportRapbs = true;
+                            $bolehEditRapbs = true;
+                        } elseif ($user->role === 'akuntan_unit' && isset($sidebarHakAkses)) {
+                            $bolehImportRapbs =
+                                $sidebarHakAkses->create_rapbs_kegiatan && $sidebarHakAkses->update_rapbs_kegiatan ??
+                                false;
+                            $bolehEditRapbs = $sidebarHakAkses->update_rapbs_kegiatan ?? false;
+                        }
+                    @endphp
+
+                    @if ($bolehImportRapbs)
+                        <div class="mb-3">
+                            <a href="{{ asset('assets/templates/Template_Rapbs_Kegiatan.xlsx') }}"
+                                class="btn btn-link text-primary p-0" download>
+                                <i class="fas fa-download me-1"></i> Download Template Import RAPBS Kegiatan
+                            </a>
+                        </div>
+                    @endif
 
                     {{-- Baris Import + Reset --}}
                     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
@@ -120,16 +137,18 @@
                                         @endphp
 
                                         <td>
-                                            @if ($id_unit !== 'all')
-                                                <button type="button" class="btn btn-outline-warning"
-                                                    data-bs-toggle="modal" data-bs-target="#modalEditKegiatan"
-                                                    data-id_kegiatan="{{ $data->id_kegiatan }}"
-                                                    data-kode="{{ $data->kode_kegiatan }}"
-                                                    data-kegiatan="{{ $data->kegiatan }}"
-                                                    data-budget="{{ floatval($data->budget_rapbs ?? 0) }}"
-                                                    data-unit="{{ $nama_unit->unit }}" onclick="openModalEdit(this)">
-                                                    Edit
-                                                </button>
+                                            @if ($bolehImportRapbs)
+                                                @if ($id_unit !== 'all')
+                                                    <button type="button" class="btn btn-outline-warning"
+                                                        data-bs-toggle="modal" data-bs-target="#modalEditKegiatan"
+                                                        data-id_kegiatan="{{ $data->id_kegiatan }}"
+                                                        data-kode="{{ $data->kode_kegiatan }}"
+                                                        data-kegiatan="{{ $data->kegiatan }}"
+                                                        data-budget="{{ floatval($data->budget_rapbs ?? 0) }}"
+                                                        data-unit="{{ $nama_unit->unit }}" onclick="openModalEdit(this)">
+                                                        Edit
+                                                    </button>
+                                                @endif
                                             @endif
                                         </td>
 

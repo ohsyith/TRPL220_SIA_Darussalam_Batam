@@ -42,7 +42,7 @@ class KegiatanController extends Controller
                 }
 
                 // Insert atau Update jika sudah ada
-                \App\Models\Kegiatan::updateOrCreate(
+                Kegiatan::updateOrCreate(
                     ['kode_kegiatan' => $kodeKegiatan],
                     ['kegiatan' => $kegiatan]
                 );
@@ -98,7 +98,7 @@ class KegiatanController extends Controller
             // Temukan data sub kategori kegiatan berdasarkan ID yang dikirim
             $kegiatan = Kegiatan::findOrFail($request->id_kegiatan);
             
-            // Update data sub kategori kegiatan
+            // Update  kegiatan
             $kegiatan->update([
                 'kode_kegiatan' => $request->kode_kegiatan,
                 'kegiatan' => $request->kegiatan,

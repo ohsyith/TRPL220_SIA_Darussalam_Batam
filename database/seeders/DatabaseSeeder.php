@@ -12,6 +12,7 @@ use Database\Seeders\DivisiSeeder;
 use Database\Seeders\HakAksesSeeder;
 use Database\Seeders\KegiatanSeeder;
 use Database\Seeders\AkuntanUnitSeeder;
+use Database\Seeders\AuditorSeeder;
 use Database\Seeders\KategoriAkunSeeder;
 use Database\Seeders\AkuntanDivisiSeeder;
 use Database\Seeders\JenisTransaksiSeeder;
@@ -31,6 +32,7 @@ class DatabaseSeeder extends Seeder
         $this->call(DivisiSeeder::class);
         $this->call(UserSeeder::class);
         $this->call(AkuntanUnitSeeder::class);
+        $this->call(AuditorSeeder::class);
         $this->call(HakAksesSeeder::class);
         $this->call(KategoriAkunSeeder::class);
         $this->call(SubKategoriAkunSeeder::class);

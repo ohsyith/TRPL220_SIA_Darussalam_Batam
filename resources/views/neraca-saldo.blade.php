@@ -2,6 +2,7 @@
 
 @push('styles')
     <title>SIA Yayasan Darussalam | Laporan Posisi Keuangan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
         /* Mengatur warna hijau tua untuk tombol Export Excel */
@@ -165,8 +166,6 @@
                         </form>
 
 
-
-
                         <!-- Tabel Neraca Saldo -->
                         <div id="print-area">
 
@@ -176,14 +175,12 @@
                                         <th>AKUN</th>
                                         <th class="text-end">SALDO PERIODE LALU</th>
                                         <th class="text-end">SALDO</th>
-
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @php
                                         $totalSaldo = 0;
                                         $totalPeriodeLalu = 0;
-
                                     @endphp
 
                                     @foreach ($semua_akun->groupBy('sub_kategori_akun.kategori_akun.kategori_akun') as $kategori => $sub_kategoris)
@@ -222,38 +219,35 @@
                                                     $totalPeriodeLalu += $periode_lalu;
                                                 @endphp
 
-
                                                 <tr>
                                                     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $akun->akun }}</td>
                                                     <td class="text-end">
-                                                        Rp
-                                                        {{ $periode_lalu < 0 ? '(' . number_format(abs($periode_lalu)) . ')' : number_format($periode_lalu) }}
+                                                        {{ $periode_lalu < 0 ? '(' . number_format(abs($periode_lalu), 0, ',', '.') . ')' : number_format($periode_lalu, 0, ',', '.') }}
                                                     </td>
                                                     <td class="text-end">
-                                                        Rp
-                                                        {{ $saldo < 0 ? '(' . number_format(abs($saldo)) . ')' : number_format($saldo) }}
+                                                        {{ $saldo < 0 ? '(' . number_format(abs($saldo), 0, ',', '.') . ')' : number_format($saldo, 0, ',', '.') }}
                                                     </td>
                                                 </tr>
                                             @endforeach
 
                                             <tr class="table-light fw-bold">
                                                 <td class="text-end">Subtotal {{ $sub_kategori }}</td>
-                                                <td class="text-end">Rp
-                                                    {{ $subPeriodeLalu < 0 ? '(' . number_format(abs($subPeriodeLalu)) . ')' : number_format($subPeriodeLalu) }}
+                                                <td class="text-end">
+                                                    {{ $subPeriodeLalu < 0 ? '(' . number_format(abs($subPeriodeLalu), 0, ',', '.') . ')' : number_format($subPeriodeLalu, 0, ',', '.') }}
                                                 </td>
-                                                <td class="text-end">Rp
-                                                    {{ $subSaldo < 0 ? '(' . number_format(abs($subSaldo)) . ')' : number_format($subSaldo) }}
+                                                <td class="text-end">
+                                                    {{ $subSaldo < 0 ? '(' . number_format(abs($subSaldo), 0, ',', '.') . ')' : number_format($subSaldo, 0, ',', '.') }}
                                                 </td>
                                             </tr>
                                         @endforeach
 
                                         <tr class="table-warning fw-bold">
                                             <td class="text-end">Subtotal {{ strtoupper($kategori) }}</td>
-                                            <td class="text-end">Rp
-                                                {{ $kategoriPeriodeLalu < 0 ? '(' . number_format(abs($kategoriPeriodeLalu)) . ')' : number_format($kategoriPeriodeLalu) }}
+                                            <td class="text-end">
+                                                {{ $kategoriPeriodeLalu < 0 ? '(' . number_format(abs($kategoriPeriodeLalu), 0, ',', '.') . ')' : number_format($kategoriPeriodeLalu, 0, ',', '.') }}
                                             </td>
-                                            <td class="text-end">Rp
-                                                {{ $kategoriSaldo < 0 ? '(' . number_format(abs($kategoriSaldo)) . ')' : number_format($kategoriSaldo) }}
+                                            <td class="text-end">
+                                                {{ $kategoriSaldo < 0 ? '(' . number_format(abs($kategoriSaldo), 0, ',', '.') . ')' : number_format($kategoriSaldo, 0, ',', '.') }}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -261,16 +255,14 @@
                                 <tfoot class="fw-bold bg-light">
                                     <tr class="table-info">
                                         <td>Total KEWAJIBAN + ASET NETO</td>
-                                        <td class="text-end">Rp
-                                            {{ $totalPeriodeLaluKewajibanAsetNeto < 0 ? '(' . number_format(abs($totalPeriodeLaluKewajibanAsetNeto)) . ')' : number_format($totalPeriodeLaluKewajibanAsetNeto) }}
+                                        <td class="text-end">
+                                            {{ $totalPeriodeLaluKewajibanAsetNeto < 0 ? '(' . number_format(abs($totalPeriodeLaluKewajibanAsetNeto), 0, ',', '.') . ')' : number_format($totalPeriodeLaluKewajibanAsetNeto, 0, ',', '.') }}
                                         </td>
-                                        <td class="text-end">Rp
-                                            {{ $totalKewajibanAsetNeto < 0 ? '(' . number_format(abs($totalKewajibanAsetNeto)) . ')' : number_format($totalKewajibanAsetNeto) }}
+                                        <td class="text-end">
+                                            {{ $totalKewajibanAsetNeto < 0 ? '(' . number_format(abs($totalKewajibanAsetNeto), 0, ',', '.') . ')' : number_format($totalKewajibanAsetNeto, 0, ',', '.') }}
                                         </td>
                                     </tr>
                                 </tfoot>
-
-
                             </table>
 
                         </div>

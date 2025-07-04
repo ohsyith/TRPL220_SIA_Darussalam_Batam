@@ -37,7 +37,7 @@
                         </div>
                     @endif
 
-                    
+
                     <form action="{{ route('jurnal-umum.import') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="input-group">
@@ -48,7 +48,7 @@
                         </div>
                     </form>
 
-                    
+
 
 
                     <form id="form-jurnal" class="mt-5" method="post" action="/jurnal-umum">
@@ -230,12 +230,16 @@
                                 Akun</button>
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="postingBukuBesar"
-                                name="postingBukuBesar">
-                            <label class="form-check-label" for="postingBukuBesar">Posting ke Buku
-                                Besar</label>
-                        </div>
+                        @if (
+                            (Auth::user()->role === 'akuntan_unit' && isset($sidebarHakAkses) && $sidebarHakAkses->create_buku_besar) ||
+                                Auth::user()->role === 'admin')
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="postingBukuBesar"
+                                    name="postingBukuBesar">
+                                <label class="form-check-label" for="postingBukuBesar">Posting ke Buku Besar</label>
+                            </div>
+                        @endif
+
 
                         <button type="submit" class="btn btn-primary col-12">Submit</button>
                     </form>

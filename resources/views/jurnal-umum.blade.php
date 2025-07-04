@@ -1,5 +1,7 @@
 @extends('layouts.layout')
 @push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <title>SIA Yayasan Darussalam | Jurnal Umum</title>
     <style>
         .th-with-dot {
@@ -47,6 +49,21 @@
             border: none;
             color: white;
             /* Warna teks putih */
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
+    </style>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 @endpush
@@ -180,7 +197,22 @@
                                 ->diff($postedJurnalIds);
                         @endphp
 
-                        @if ($jurnalBelumDiposting->count() > 0)
+                        @php
+                            $user = Auth::user();
+                            $bolehPostingSemua = false;
+
+                            if ($user->role === 'admin') {
+                                $bolehPostingSemua = true;
+                            } elseif (
+                                $user->role === 'akuntan_unit' &&
+                                isset($sidebarHakAkses) &&
+                                $sidebarHakAkses->create_buku_besar
+                            ) {
+                                $bolehPostingSemua = true;
+                            }
+                        @endphp
+
+                        @if ($bolehPostingSemua && $jurnalBelumDiposting->count() > 0)
                             <form method="POST" action="{{ route('buku-besar.postingSemua') }}"
                                 onsubmit="return confirm('Yakin ingin memposting semua jurnal yang belum diposting?')">
                                 @csrf
@@ -189,11 +221,12 @@
 
                                 <button type="submit"
                                     class="btn btn-success d-flex align-items-center gap-2 shadow-sm rounded-pill px-4 py-2 mb-3">
-                                    <i class="ti ti-send"></i> {{-- Ganti icon sesuai font icon yang kamu pakai (misal Feather, FontAwesome, dll) --}}
+                                    <i class="ti ti-send"></i>
                                     <span class="fw-semibold">Posting Semua Jurnal</span>
                                 </button>
                             </form>
                         @endif
+
 
 
 
@@ -242,7 +275,9 @@
                                 </thead>
                                 <tbody class="table-group-divider">
                                     @php
-                                        $groupedData = $detailjurnalumum->groupBy('jurnal_umum.no_bukti');
+                                        $groupedData = $detailjurnalumum
+                                            ->sortByDesc(fn($item) => $item->jurnal_umum->id_jurnal_umum)
+                                            ->groupBy('jurnal_umum.no_bukti');
                                         $totalDebit = 0;
                                         $totalKredit = 0;
                                         $totalKeseluruhan = 0;
@@ -256,17 +291,42 @@
                                                     <th scope="row" class="ps-0 fw-medium th-with-dot"
                                                         rowspan="{{ $rowspan }}">
 
-                                                        @if (in_array($user->role, ['admin', 'akuntan_unit']))
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-start position-relative">
-                                                                @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
-                                                                    <span class="dot-red"
-                                                                        data-id="{{ $data->jurnal_umum->id_jurnal_umum }}"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#postingModal"></span>
-                                                                @endif
+                                                        <div
+                                                            class="d-flex justify-content-between align-items-start position-relative">
+                                                            @php
+                                                                $bolehPosting =
+                                                                    $user->role === 'admin' ||
+                                                                    ($user->role === 'akuntan_unit' &&
+                                                                        $sidebarHakAkses &&
+                                                                        $sidebarHakAkses->create_buku_besar);
+                                                            @endphp
 
-                                                                <div class="dropdown ellipsis-dropdown ms-auto">
+                                                            @if (!in_array($data->jurnal_umum->id_jurnal_umum, $postedJurnalIds))
+                                                                <span class="dot-red no-print"
+                                                                    data-id="{{ $data->jurnal_umum->id_jurnal_umum }}"
+                                                                    @if ($bolehPosting) data-bs-toggle="modal"
+                                                                    data-bs-target="#postingModal" @endif></span>
+                                                            @endif
+
+
+
+
+                                                            @php
+                                                                $bolehEdit =
+                                                                    $user->role === 'admin' ||
+                                                                    ($user->role === 'akuntan_unit' &&
+                                                                        $sidebarHakAkses &&
+                                                                        $sidebarHakAkses->update_jurnal_umum);
+
+                                                                $bolehHapus =
+                                                                    $user->role === 'admin' ||
+                                                                    ($user->role === 'akuntan_unit' &&
+                                                                        $sidebarHakAkses &&
+                                                                        $sidebarHakAkses->delete_jurnal_umum);
+                                                            @endphp
+
+                                                            @if ($bolehEdit || $bolehHapus)
+                                                                <div class="dropdown ellipsis-dropdown ms-auto no-print">
                                                                     <button class="btn btn-sm p-0 border-0 bg-transparent"
                                                                         type="button"
                                                                         id="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}"
@@ -276,25 +336,34 @@
                                                                     </button>
                                                                     <ul class="dropdown-menu"
                                                                         aria-labelledby="dropdownMenuButton{{ $data->jurnal_umum->id_jurnal_umum }}">
-                                                                        <li>
-                                                                            <a class="dropdown-item"
-                                                                                href="{{ url('/jurnal-umum/' . $data->jurnal_umum->id_jurnal_umum) }}">Edit</a>
-                                                                        </li>
 
-                                                                        <button type="button"
-                                                                            class="dropdown-item text-danger"
-                                                                            data-bs-toggle="modal"
-                                                                            data-bs-target="#deleteModal"
-                                                                            data-id="{{ $data->jurnal_umum->id_jurnal_umum }}">
-                                                                            Hapus
-                                                                        </button>
+                                                                        @if ($bolehEdit)
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ url('/jurnal-umum/' . $data->jurnal_umum->id_jurnal_umum) }}">
+                                                                                    Edit
+                                                                                </a>
+                                                                            </li>
+                                                                        @endif
 
+                                                                        @if ($bolehHapus)
+                                                                            <li>
+                                                                                <button type="button"
+                                                                                    class="dropdown-item text-danger"
+                                                                                    data-bs-toggle="modal"
+                                                                                    data-bs-target="#deleteModal"
+                                                                                    data-id="{{ $data->jurnal_umum->id_jurnal_umum }}">
+                                                                                    Hapus
+                                                                                </button>
+                                                                            </li>
+                                                                        @endif
 
-                                                                        </li>
                                                                     </ul>
                                                                 </div>
-                                                            </div>
-                                                        @endif
+                                                            @endif
+
+
+                                                        </div>
 
 
 
@@ -481,13 +550,41 @@
 
     <script>
         function printLaporan() {
-            const printContents = document.getElementById("print-area").innerHTML;
-            const originalContents = document.body.innerHTML;
+            const content = document.getElementById("print-area").innerHTML;
 
-            document.body.innerHTML = printContents;
-            window.print();
-            document.body.innerHTML = originalContents;
-            location.reload(); // reload ulang biar interaksi kembali normal
+            const printWindow = window.open('', '', 'height=800,width=1200');
+            printWindow.document.write(`
+    <html>
+        <head>
+            <title>Cetak Laporan Jurnal Umum</title>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 11px; }
+                th { background-color: #f2f2f2; }
+                thead { display: table-header-group; } /* agar header muncul di setiap halaman */
+                tfoot { display: table-footer-group; }
+
+                .no-print {
+                    display: none !important;
+                }
+
+                @media print {
+                    body { margin: 0; }
+                    .no-print {
+                        display: none !important;
+                    }
+                }
+            </style>
+        </head>
+        <body onload="window.print(); window.close();">
+            ${content}
+        </body>
+    </html>
+`);
+
+
+            printWindow.document.close();
         }
     </script>
 @endpush

@@ -35,32 +35,49 @@
                         </div>
                     @endif
 
-                    <div class="mb-3">
-                        <a href="{{ asset('assets/templates/Template_Rapbs_Akun.xlsx') }}"
-                            class="btn btn-link text-primary p-0" download>
-                            <i class="fas fa-download me-1"></i> Download Template Import RAPBS Akun
-                        </a>
-                    </div>
-
-                    {{-- Baris Import + Reset --}}
-                    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-
-                        {{-- Form Import --}}
-                        <form action="{{ route('budget-rapbs-akun.import') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <div class="input-group">
-                                <input type="file" name="file" class="form-control" required>
-                                <button class="btn btn-success" type="submit">
-                                    <i class="fas fa-upload me-1"></i> Import Excel
-                                </button>
-                            </div>
-                        </form>
 
 
-                    </div>
+                    @php
+                        $user = Auth::user();
+                        $bolehImportRapbs = false;
+                        $bolehEditRapbs = false;
+
+                        if ($user->role === 'admin') {
+                            $bolehImportRapbs = true;
+                            $bolehEditRapbs = true;
+                        } elseif ($user->role === 'akuntan_unit' && isset($sidebarHakAkses)) {
+                            $bolehImportRapbs =
+                                $sidebarHakAkses->create_rapbs_akun && $sidebarHakAkses->update_rapbs_akun ?? false;
+                            $bolehEditRapbs = $sidebarHakAkses->update_rapbs_akun ?? false;
+                        }
+                    @endphp
 
 
+                    @if ($bolehImportRapbs)
+                        <div class="mb-3">
+                            <a href="{{ asset('assets/templates/Template_Rapbs_Akun.xlsx') }}"
+                                class="btn btn-link text-primary p-0" download>
+                                <i class="fas fa-download me-1"></i> Download Template Import RAPBS Akun
+                            </a>
+                        </div>
 
+                        {{-- Baris Import + Reset --}}
+                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+                            {{-- Form Import --}}
+                            <form action="{{ route('budget-rapbs-akun.import') }}" method="POST"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <div class="input-group">
+                                    <input type="file" name="file" class="form-control" required>
+                                    <button class="btn btn-success" type="submit">
+                                        <i class="fas fa-upload me-1"></i> Import Excel
+                                    </button>
+                                </div>
+                            </form>
+
+
+                        </div>
+                    @endif
 
 
                     <div class="table-responsive">
@@ -68,7 +85,7 @@
                         <form method="GET" action="{{ route('budget-rapbs-akun.index') }}" class="mb-3">
                             <div class="row g-2 align-items-center">
                                 <div class="col-auto">
-                                    <label for="unit" class="form-label mb-0">Pilih Unit:</label>
+                                    <label for="unit" class="form-label mb-0">Unit:</label>
                                 </div>
 
                                 <div class="col-auto">
@@ -87,18 +104,14 @@
                                         </select>
                                     @elseif ($user->role === 'akuntan_unit')
                                         {{-- Tampilkan nama unit tanpa dropdown --}}
-                                        @php
-                                            $nama_unit = \App\Models\Unit::find($id_unit);
-                                        @endphp
-                                        <input type="text" class="form-control-plaintext"
-                                            value="{{ $nama_unit->kode_unit }} - {{ $nama_unit->unit }}" readonly>
+                                        <input type="text" class="form-control-plaintext" value="{{ $nama_unit }}"
+                                            readonly>
                                         <input type="hidden" name="unit" value="{{ $id_unit }}">
                                     @endif
+
                                 </div>
                             </div>
                         </form>
-
-
 
 
                         {{-- Data Akun --}}
@@ -128,19 +141,20 @@
                                             </a>
                                         </td>
                                         <td>
-                                            @if ($id_unit !== 'all')
-                                                <button type="button" class="btn btn-outline-warning"
-                                                    data-bs-toggle="modal" data-bs-target="#modalEditAkun"
-                                                    data-id_akun="{{ $data->id_akun }}"
-                                                    data-id_sub="{{ $data->id_sub_kategori_akun }}"
-                                                    data-kode="{{ $data->kode_akun }}" data-akun="{{ $data->akun }}"
-                                                    data-budget="{{ floatval($data->budget_rapbs ?? 0) }}"
-                                                    data-id_unit="{{ $id_unit }}" data-unit="{{ $nama_unit }}"
-                                                    onclick="openModalEdit(this)">
-                                                    Edit
-                                                </button>
+                                            @if ($bolehImportRapbs)
+                                                @if ($id_unit !== 'all')
+                                                    <button type="button" class="btn btn-outline-warning"
+                                                        data-bs-toggle="modal" data-bs-target="#modalEditAkun"
+                                                        data-id_akun="{{ $data->id_akun }}"
+                                                        data-id_sub="{{ $data->id_sub_kategori_akun }}"
+                                                        data-kode="{{ $data->kode_akun }}" data-akun="{{ $data->akun }}"
+                                                        data-budget="{{ floatval($data->budget_rapbs ?? 0) }}"
+                                                        data-id_unit="{{ $id_unit }}" data-unit="{{ $nama_unit }}"
+                                                        onclick="openModalEdit(this)">
+                                                        Edit
+                                                    </button>
+                                                @endif
                                             @endif
-
                                         </td>
 
                                     </tr>

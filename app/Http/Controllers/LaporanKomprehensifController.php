@@ -26,25 +26,17 @@ class LaporanKomprehensifController extends Controller
         $divisis = Divisi::all(); 
         $user = Auth::user();
 
-        // Ambil dari request atau fallback ke role user
         $id_unit = $request->input('id_unit');
         $id_divisi = $request->input('id_divisi');
 
-        // Auto-set id_unit / id_divisi jika belum dipilih di form
         if (!$id_unit && $user->role === 'akuntan_unit') {
             $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
-        }
-
-        if (!$id_divisi && $user->role === 'akuntan_divisi') {
-            $id_divisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
         }
 
         $tanggal_mulai = $request->input('tanggal_mulai') ?? date('Y') . '-01-01';
         $tanggal_selesai = $request->input('tanggal_selesai') ?? date('Y-m-d');
 
-        // Coba gunakan stored procedure dulu
         try {
-            // Panggil stored procedure dengan parameter
             $results = DB::select('CALL hitung_komprehensif(?, ?, ?, ?)', [
                 $tanggal_mulai,
                 $tanggal_selesai,
@@ -52,7 +44,6 @@ class LaporanKomprehensifController extends Controller
                 $id_divisi
             ]);
 
-            // Pisahkan data pendapatan dan beban
             $pendapatan_all = [];
             $beban_all = [];
 
@@ -63,24 +54,23 @@ class LaporanKomprehensifController extends Controller
                 $total = $total_tanpa + $total_dengan + $saldo_awal;
 
                 $data = (object) [
-                    'nama_akun' => $row->nama_akun,
+                    'akun' => $row->nama_akun,
                     'total_tanpa' => $total_tanpa,
                     'total_dengan' => $total_dengan,
                     'total' => $total,
                 ];
 
+                $sub = $row->sub_kategori_akun ?? '-';
                 if ($row->kategori_akun === 'PENERIMAAN DAN SUMBANGAN') {
-                    $pendapatan_all[] = $data;
+                    $pendapatan_all[$sub][] = $data;
                 } else {
-                    $beban_all[] = $data;
+                    $beban_all[$sub][] = $data;
                 }
             }
 
         } catch (\Exception $e) {
-            // Fallback ke method lama jika stored procedure gagal
             \Log::error('Stored procedure error: ' . $e->getMessage());
-            
-            // Method lama sebagai fallback
+
             $akunList = DB::table('akun')
                 ->join('sub_kategori_akun', 'akun.id_sub_kategori_akun', '=', 'sub_kategori_akun.id_sub_kategori_akun')
                 ->join('kategori_akun', 'sub_kategori_akun.id_kategori_akun', '=', 'kategori_akun.id_kategori_akun')
@@ -89,6 +79,7 @@ class LaporanKomprehensifController extends Controller
                     'akun.id_akun',
                     'akun.akun AS nama_akun',
                     'kategori_akun.kategori_akun',
+                    'sub_kategori_akun.sub_kategori_akun',
                     'akun.saldo_awal_debit',
                     'akun.saldo_awal_kredit'
                 )
@@ -97,14 +88,13 @@ class LaporanKomprehensifController extends Controller
             $pendapatan_all = [];
             $beban_all = [];
 
-            // Helper untuk hitung total
             $getTotal = function ($akun_id, $jenis_transaksi, $tanggal_mulai, $tanggal_selesai, $isPendapatan) use ($id_unit, $id_divisi) {
                 $query = DB::table('detail_jurnal_umum')
                     ->join('jurnal_umum', 'detail_jurnal_umum.id_jurnal_umum', '=', 'jurnal_umum.id_jurnal_umum')
                     ->whereExists(function ($q) {
                         $q->select(DB::raw(1))
-                        ->from('buku_besar')
-                        ->whereColumn('buku_besar.id_jurnal_umum', 'jurnal_umum.id_jurnal_umum');
+                            ->from('buku_besar')
+                            ->whereColumn('buku_besar.id_jurnal_umum', 'jurnal_umum.id_jurnal_umum');
                     })
                     ->where('detail_jurnal_umum.id_akun', $akun_id)
                     ->where('jurnal_umum.jenis_transaksi', $jenis_transaksi)
@@ -123,7 +113,6 @@ class LaporanKomprehensifController extends Controller
                     ->sum('detail_jurnal_umum.nominal');
             };
 
-            // Loop semua akun untuk hitung nilai
             foreach ($akunList as $akun) {
                 $isPendapatan = $akun->kategori_akun === 'PENERIMAAN DAN SUMBANGAN';
 
@@ -135,32 +124,42 @@ class LaporanKomprehensifController extends Controller
                     : ($akun->saldo_awal_debit ?? 0);
 
                 $data = (object) [
-                    'nama_akun' => $akun->nama_akun,
+                    'akun' => $akun->nama_akun,
                     'total_tanpa' => $total_tanpa,
                     'total_dengan' => $total_dengan,
                     'total' => $total_tanpa + $total_dengan + $saldo_awal,
                 ];
 
+                $sub = $akun->sub_kategori_akun;
                 if ($isPendapatan) {
-                    $pendapatan_all[] = $data;
+                    $pendapatan_all[$sub][] = $data;
                 } else {
-                    $beban_all[] = $data;
+                    $beban_all[$sub][] = $data;
                 }
             }
         }
 
-        // Hitung total-total (sama untuk both methods)
-        $total_pendapatan = array_sum(array_column($pendapatan_all, 'total_tanpa'));
-        $total_pendapatan_terikat = array_sum(array_column($pendapatan_all, 'total_dengan'));
-        $total_pendapatan_all = array_sum(array_column($pendapatan_all, 'total'));
+        // Hitung total
+        $total_pendapatan = $total_pendapatan_terikat = $total_pendapatan_all = 0;
+        foreach ($pendapatan_all as $akuns) {
+            foreach ($akuns as $item) {
+                $total_pendapatan += $item->total_tanpa;
+                $total_pendapatan_terikat += $item->total_dengan;
+                $total_pendapatan_all += $item->total;
+            }
+        }
 
-        $total_beban = array_sum(array_column($beban_all, 'total_tanpa'));
-        $total_beban_terikat = array_sum(array_column($beban_all, 'total_dengan'));
-        $total_beban_all = array_sum(array_column($beban_all, 'total'));
+        $total_beban = $total_beban_terikat = $total_beban_all = 0;
+        foreach ($beban_all as $akuns) {
+            foreach ($akuns as $item) {
+                $total_beban += $item->total_tanpa;
+                $total_beban_terikat += $item->total_dengan;
+                $total_beban_all += $item->total;
+            }
+        }
 
         $kenaikan_penghasilan_komprehensif = $total_pendapatan_all - $total_beban_all;
 
-        // Export jika diminta
         if ($request->has('export_excel')) {
             return $this->exportExcel(
                 $pendapatan_all,
@@ -186,9 +185,8 @@ class LaporanKomprehensifController extends Controller
             'units', 'divisis', 'id_unit', 'id_divisi'
         ));
     }
+
     
-
-
 
 
     public function indexFallback(Request $request)
@@ -371,22 +369,27 @@ class LaporanKomprehensifController extends Controller
         $sheet->getStyle("A{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('DDDDDD');
         $row++;
 
-        foreach ($pendapatan_all as $item) {
-            $sheet->setCellValue("A{$row}", '   ' . $item->nama_akun);
-            $sheet->setCellValue("B{$row}", $item->total_tanpa);
-            $sheet->setCellValue("C{$row}", $item->total_dengan);
-            $sheet->setCellValue("D{$row}", $item->total);
-            $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheet->getStyle("B{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $row++;
+        foreach ($pendapatan_all as $items) {
+            foreach ($items as $item) {
+                $sheet->setCellValue("A{$row}", '   ' . $item->akun);
+                $sheet->setCellValue("B{$row}", $item->total_tanpa);
+                $sheet->setCellValue("C{$row}", $item->total_dengan);
+                $sheet->setCellValue("D{$row}", $item->total);
+                $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+
+                $sheet->getStyle("B{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                $row++;
+            }
         }
+
 
         $sheet->setCellValue("A{$row}", 'Total Pendapatan');
         $sheet->setCellValue("B{$row}", $total_pendapatan);
         $sheet->setCellValue("C{$row}", $total_pendapatan_terikat);
         $sheet->setCellValue("D{$row}", $total_pendapatan_all);
         $sheet->getStyle("A{$row}:D{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+
         $sheet->getStyle("B{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $row++;
 
@@ -397,14 +400,19 @@ class LaporanKomprehensifController extends Controller
         $sheet->getStyle("A{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('DDDDDD');
         $row++;
 
-        foreach ($beban_all as $item) {
-            $sheet->setCellValue("A{$row}", '   ' . $item->nama_akun);
-            $sheet->setCellValue("B{$row}", $item->total_tanpa);
-            $sheet->setCellValue("C{$row}", $item->total_dengan);
-            $sheet->setCellValue("D{$row}", $item->total);
-            $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheet->getStyle("B{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $row++;
+        
+        foreach ($beban_all as $items) {
+            foreach ($items as $item) 
+            {
+                $sheet->setCellValue("A{$row}", '   ' . $item->akun);
+                $sheet->setCellValue("B{$row}", $item->total_tanpa);
+                $sheet->setCellValue("C{$row}", $item->total_dengan);
+                $sheet->setCellValue("D{$row}", $item->total);
+                $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+
+                $sheet->getStyle("B{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                $row++;
+            }
         }
 
         $sheet->setCellValue("A{$row}", 'Total Beban');
@@ -412,7 +420,8 @@ class LaporanKomprehensifController extends Controller
         $sheet->setCellValue("C{$row}", $total_beban_terikat);
         $sheet->setCellValue("D{$row}", $total_beban_all);
         $sheet->getStyle("A{$row}:D{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+
         $sheet->getStyle("B{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $row++;
 
@@ -421,7 +430,8 @@ class LaporanKomprehensifController extends Controller
         $sheet->setCellValue("D{$row}", $kenaikan_penghasilan_komprehensif);
         $sheet->getStyle("A{$row}:D{$row}")->getFont()->setBold(true);
         $sheet->getStyle("A{$row}:D{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('C6EFCE');
-        $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+
         $sheet->getStyle("D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
         // BORDER

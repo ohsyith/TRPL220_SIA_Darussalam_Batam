@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\HakAksesMiddleware;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
@@ -11,8 +12,8 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use App\Http\Middleware\RoleMiddleware; 
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-use App\Http\Middleware\RoleMiddleware; // <--- PASTIKAN BARIS INI ADA
 
 class Kernel extends HttpKernel
 {
@@ -40,7 +41,7 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'auth' => Authenticate::class,
         'guest' => RedirectIfAuthenticated::class,
-        // Tambahkan middleware lain di sini
-        'role' => RoleMiddleware::class, // <--- TAMBAHKAN BARIS INI
+        'role' => RoleMiddleware::class,
+        // 'hak_akses' => HakAksesMiddleware::class,
     ];
 }

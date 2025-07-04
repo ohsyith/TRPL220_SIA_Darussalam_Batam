@@ -66,8 +66,9 @@ Route::get('/admin', [DashboardAdminController::class, 'index'])
     ->middleware('role:admin')
     ->name('admin-dashboard.index');
 
-Route::get('/dashboard-auditor', [DashboardAdminController::class, 'index2'])
-    ->name('admin-dashboard.index');
+
+Route::get('/dashboard-auditor', [DashboardAdminController::class, 'index'])
+    ->name('auditor-dashboard.index');
 
     
 Route::get('/analisis-keuangan', [AnalisisKeuanganController::class, 'index'])
@@ -97,16 +98,14 @@ Route::delete('/akun', [AkunController::class, 'destroy'])->name('akun.destroy')
 Route::post('/akun/import', [AkunController::class, 'import'])->name('akun.import');
 Route::delete('/akun/reset', [AkunController::class, 'resetByUnit'])->name('akun.reset');
 
+
+
+
 // Budget Rapbs AKun
 Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index'])->name('budget-rapbs-akun.index');
+Route::middleware('hak_akses:view_rapbs_akun')->get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index'])->name('budget-rapbs-akun.index'); 
 Route::post('/budget-rapbs-akun/store-or-update', [BudgetRapbsAkunController::class, 'storeOrUpdate'])->name('budget-rapbs-akun.storeOrUpdate');
 Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel'])->name('budget-rapbs-akun.import');
-
-// Budget Rapbs AKun
-Route::get('/budget-rapbs-kegiatan', [BudgetRapbsKegiatanController::class, 'index'])->name('budget-rapbs-kegiatan.index');
-Route::post('/budget-rapbs-kegiatan/store-or-update', [BudgetRapbsKegiatanController::class, 'storeOrUpdate'])->name('budget-rapbs-kegiatan.storeOrUpdate');
-Route::post('/budget-rapbs-kegiatan/import', [BudgetRapbsKegiatanController::class, 'importExcel'])->name('budget-rapbs-kegiatan.import');
-
 
 
 // Kegiatan
@@ -116,6 +115,15 @@ Route::put('/kegiatan', [KegiatanController::class, 'update'])->name('kegiatan.u
 Route::delete('/kegiatan', [KegiatanController::class, 'destroy'])->name('kegiatan.destroy');
 Route::post('/kegiatan/import', [KegiatanController::class, 'import'])->name('kegiatan.import');
 Route::delete('/kegiatan/reset', [KegiatanController::class, 'resetByUnit'])->name('kegiatan.reset');
+
+
+// Budget Rapbs Kegiatan
+// Route::get('/budget-rapbs-kegiatan', [BudgetRapbsKegiatanController::class, 'index'])->name('budget-rapbs-kegiatan.index');
+Route::middleware('hak_akses:view_rapbs_kegiatan')->get('/budget-rapbs-kegiatan', [BudgetRapbsKegiatanController::class, 'index'])->name('budget-rapbs-kegiatan.index'); 
+Route::post('/budget-rapbs-kegiatan/store-or-update', [BudgetRapbsKegiatanController::class, 'storeOrUpdate'])->name('budget-rapbs-kegiatan.storeOrUpdate');
+Route::post('/budget-rapbs-kegiatan/import', [BudgetRapbsKegiatanController::class, 'importExcel'])->name('budget-rapbs-kegiatan.import');
+
+
 
 
 
@@ -137,34 +145,10 @@ Route::post('/sop/sort', [SopController::class, 'sort'])->name('sop.sort');
 
 
 
+
+
 // log-aktivitas
-Route::get('/log-aktivitas', [LogActivityController::class, 'index'])->name('log-aktivitas.index');
-
-
-
-
-
-// User 
-Route::get('/admin/buat-akun', [UserController::class, 'register_form'])
-    // ->middleware('role:admin')
-    ->name('user.register_form');
-
-
-
-//akuntan unit
-Route::get('/akuntan-unit', [AkuntanUnitController::class, 'index'])->name('akuntan-unit.index');
-Route::post('/register-akuntan-unit', [AkuntanUnitController::class, 'store'])->name('register.akuntan.unit');
-Route::get('/akuntan-unit/{id}', [AkuntanUnitController::class, 'edit'])->name('akuntan-unit.edit');
-Route::put('/akuntan-unit/{id}', [AkuntanUnitController::class, 'update'])->name('akuntan-unit.update');
-Route::delete('/akuntan-unit/{id}', [AkuntanUnitController::class, 'destroy'])->name('akuntan-unit.destroy');
-
-
-//auditor
-Route::post('/register-auditor', [AuditorController::class, 'store'])->name('register.auditor');
-Route::get('/auditor', [AuditorController::class, 'index'])->name('auditor.index');
-Route::get('/auditor/{id}', [AuditorController::class, 'edit'])->name('auditor.edit');
-Route::put('/auditor/{id}', [AuditorController::class, 'update'])->name('auditor.update');
-Route::delete('/auditor/{id}', [AuditorController::class, 'destroy'])->name('auditor.destroy');
+Route::get('/log-aktivitas', [LogActivityController::class, 'index'])->middleware('role:admin,auditor')->name('log-aktivitas.index');
 
 
 
@@ -172,6 +156,24 @@ Route::delete('/auditor/{id}', [AuditorController::class, 'destroy'])->name('aud
 
 
 
+// Kelola Akun Pengguna----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Route::middleware('role:admin')->group(function () {
+    // Register Form
+    Route::get('/admin/buat-akun', [UserController::class, 'register_form'])->name('user.register_form');
+    // Akuntan Unit
+    Route::get('/akuntan-unit', [AkuntanUnitController::class, 'index'])->name('akuntan-unit.index');
+    Route::post('/register-akuntan-unit', [AkuntanUnitController::class, 'store'])->name('register.akuntan.unit');
+    Route::get('/akuntan-unit/{id}', [AkuntanUnitController::class, 'edit'])->name('akuntan-unit.edit');
+    Route::put('/akuntan-unit/{id}', [AkuntanUnitController::class, 'update'])->name('akuntan-unit.update');
+    Route::delete('/akuntan-unit/{id}', [AkuntanUnitController::class, 'destroy'])->name('akuntan-unit.destroy');
+    // Auditor
+    Route::post('/register-auditor', [AuditorController::class, 'store'])->name('register.auditor');
+    Route::get('/auditor', [AuditorController::class, 'index'])->name('auditor.index');
+    Route::get('/auditor/{id}', [AuditorController::class, 'edit'])->name('auditor.edit');
+    Route::put('/auditor/{id}', [AuditorController::class, 'update'])->name('auditor.update');
+    Route::delete('/auditor/{id}', [AuditorController::class, 'destroy'])->name('auditor.destroy');
+});
 
 
 
@@ -179,45 +181,38 @@ Route::delete('/auditor/{id}', [AuditorController::class, 'destroy'])->name('aud
 
 
 
+// Transaksi & Pencatatan ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Input Transaksi
+Route::middleware(['auth', 'hak_akses:create_jurnal_umum'])->get('/input-transaksi', [JurnalUmumController::class, 'create']); 
+Route::middleware(['auth', 'hak_akses:create_jurnal_umum'])->post('/jurnal-umum', [JurnalUmumController::class, 'store'])->name('jurnal-umum.store'); 
+Route::middleware(['auth', 'hak_akses:create_jurnal_umum'])->post('/jurnal-umum/import', [JurnalUmumController::class, 'import'])->name('jurnal-umum.import'); 
+// Edit Jurnal
+Route::middleware(['auth', 'hak_akses:update_jurnal_umum'])->get('/jurnal-umum/{id}', [JurnalUmumController::class, 'edit'])->name('jurnal-umum.edit'); 
+Route::middleware(['auth', 'hak_akses:update_jurnal_umum'])->put('/jurnal-umum/{id}', [JurnalUmumController::class, 'update'])->name('jurnal-umum.update'); 
+// Delete Jurnal
+Route::middleware(['auth', 'hak_akses:delete_jurnal_umum'])->delete('/jurnal-umum/{id}', [JurnalUmumController::class, 'destroy'])->name('jurnal-umum.destroy'); 
+Route::middleware(['auth', 'hak_akses:view_jurnal_umum'])->get('/jurnal-umum', [JurnalUmumController::class, 'index'])->name('jurnal-umum.index'); 
+// Buku Besar
+Route::middleware(['auth', 'hak_akses:view_buku_besar'])->get('/buku-besar', [BukuBesarController::class, 'index'])->name('buku-besar.index'); 
+Route::middleware(['auth', 'hak_akses:create_buku_besar'])->post('/buku-besar', [BukuBesarController::class, 'store'])->name('buku-besar.store'); 
+Route::middleware(['auth', 'hak_akses:create_buku_besar'])->post('/buku-besar/posting-semua', [BukuBesarController::class, 'postingSemua'])->name('buku-besar.postingSemua');
 
 
 
 
 
-// Transaksi
-Route::middleware('hak_akses:create_jurnal_umum')->get('/input-transaksi', [JurnalUmumController::class, 'create']); //Halaman Laporan Komprehensif
 
+// Laporan Keuangan ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Route::get('/akun-by-unit/{id}', [AkunController::class, 'akunByUnit']);
+Route::middleware(['auth', 'hak_akses:view_laporan_komprehensif'])->get('/laporan-komprehensif', [LaporanKomprehensifController::class, 'index'])->name('laporan-komprehensif.index');
+Route::middleware(['auth', 'hak_akses:view_laporan_posisi_keuangan'])->get('/neraca-saldo', [NeracaSaldoController::class, 'index'])->name('neraca-saldo.index'); 
+Route::middleware(['auth', 'hak_akses:view_laporan_arus_kas'])->get('/arus-kas', [ArusKasController::class, 'index'])->name('arus-kas.index'); 
+Route::middleware(['auth', 'hak_akses:view_laporan_arus_kas'])->get('/arus-kas2', [ArusKasController::class, 'index2'])->name('arus-kas2.index');
+Route::middleware(['auth', 'hak_akses:view_laporan_arus_kas'])->get('/arus-kas3', [ArusKasController::class, 'index3'])->name('arus-kas3.index'); 
+Route::middleware(['auth', 'hak_akses:view_laporan_perubahan_aset_neto'])->get('/perubahan-aset-neto', [PerubahanAsetNetoController::class, 'index'])->name('perubahan-aset-neto.index');
+Route::middleware(['auth', 'hak_akses:view_laporan_proyeksi_rencana_dan_realisasi_anggaran'])->get('/prra', [PRRAController::class, 'index'])->name('prra.index'); 
 
-Route::post('/jurnal-umum', [JurnalUmumController::class, 'store']);;
-Route::post('/jurnal-umum/import', [JurnalUmumController::class, 'import'])->name('jurnal-umum.import');
-Route::get('/jurnal-umum/{id}', [JurnalUmumController::class, 'edit']);
-Route::put('/jurnal-umum/{id}', [JurnalUmumController::class, 'update']);
-Route::delete('/jurnal-umum/{id}', [JurnalUmumController::class, 'destroy'])->name('jurnal-umum.destroy');
-
-
-
-
-
-//Pencatatan
-Route::middleware('hak_akses:view_jurnal_umum')->get('/jurnal-umum', [JurnalUmumController::class, 'index'])->name('jurnal-umum.index'); 
-Route::middleware('hak_akses:view_buku_besar')->get('/buku-besar', [BukuBesarController::class, 'index'])->name('buku-besar.index'); 
-Route::middleware('hak_akses:create_buku_besar')->post('/buku-besar', [BukuBesarController::class, 'store'])->name('buku-besar.store'); 
-Route::middleware('hak_akses:create_buku_besar')->post('/buku-besar/posting-semua', [BukuBesarController::class, 'postingSemua'])->name('buku-besar.postingSemua');
-
-
-
-
-
-// laporan
-Route::middleware('hak_akses:view_laporan_komprehensif')->get('/laporan-komprehensif', [LaporanKomprehensifController::class, 'index'])->name('laporan-komprehensif.index'); //Halaman Laporan Komprehensif
-Route::middleware('hak_akses:view_laporan_posisi_keuangan')->get('/neraca-saldo', [NeracaSaldoController::class, 'index'])->name('neraca-saldo.index'); //Halaman Neraca Saldo
-Route::middleware('hak_akses:view_laporan_arus_kas')->get('/arus-kas', [ArusKasController::class, 'index'])->name('arus-kas.index'); //Halaman Arus Kas
-Route::middleware('hak_akses:view_laporan_arus_kas')->get('/arus-kas2', [ArusKasController::class, 'index2'])->name('arus-kas2.index'); //Halaman Arus Kas 2
-Route::middleware('hak_akses:view_laporan_arus_kas')->get('/arus-kas3', [ArusKasController::class, 'index3'])->name('arus-kas3.index'); //Halaman Arus Kas 2
-Route::middleware('hak_akses:view_laporan_perubahan_aset_neto')->get('/perubahan-aset-neto', [PerubahanAsetNetoController::class, 'index'])->name('perubahan-aset-neto.index'); //Halaman Perubahan Aset Neto
-Route::middleware('hak_akses:view_laporan_proyeksi_rencana_dan_realisasi_anggaran')->get('/prra', [PRRAController::class, 'index'])->name('prra.index'); //Halaman Proyeksi Rencana dan Realisasi Anggaran
 
 
 

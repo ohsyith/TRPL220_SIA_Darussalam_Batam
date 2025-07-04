@@ -430,7 +430,7 @@ class NeracaSaldoController extends Controller
             'id_unit', 'id_divisi',
             'totalKewajibanAsetNeto', 'totalPeriodeLaluKewajibanAsetNeto'
         ));
-    }
+    }   
 
 
 
@@ -732,28 +732,24 @@ class NeracaSaldoController extends Controller
         $drawing = new Drawing();
         $drawing->setName('Logo');
         $drawing->setDescription('Logo Yayasan');
-        $drawing->setPath(public_path('assets/images/logos/YDB_PNG.png')); // ✅ Pastikan path benar
-        $drawing->setHeight(100); // Tinggi gambar (px)
-        $drawing->setCoordinates('A1'); // Mulai dari A1
-        $drawing->setOffsetX(5); // Optional padding dari kiri
+        $drawing->setPath(public_path('assets/images/logos/YDB_PNG.png'));
+        $drawing->setHeight(100);
+        $drawing->setCoordinates('A1');
+        $drawing->setOffsetX(5);
         $drawing->setWorksheet($sheet);
 
         // 📝 Judul dan periode
         $judul = "POSISI KEUANGAN YAYASAN DARUSSALAM BATAM\nPeriode: " .
-                date('d/m/Y', strtotime($tanggal_mulai)) . " - " . date('d/m/Y', strtotime($tanggal_selesai));
+            date('d/m/Y', strtotime($tanggal_mulai)) . " - " . date('d/m/Y', strtotime($tanggal_selesai));
         $sheet->setCellValue('A1', $judul);
-
-        // 📐 Merge cell biar tampak sebagai header blok
         $sheet->mergeCells('A1:C4');
-
-        // 💅 Style header teks
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
         $sheet->getStyle('A1')->getAlignment()->setWrapText(true);
         $sheet->getStyle('A1')->getAlignment()
             ->setVertical(Alignment::VERTICAL_CENTER)
             ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-
+        // Header tabel
         $sheet->setCellValue('A4', 'AKUN');
         $sheet->setCellValue('B4', 'SALDO PERIODE LALU');
         $sheet->setCellValue('C4', 'SALDO');
@@ -769,8 +765,13 @@ class NeracaSaldoController extends Controller
         $row = 5;
         $totalPeriodeLalu = 0;
         $totalSaldo = 0;
+        $totalPeriodeLaluKewajibanAsetNeto = 0;
+        $totalSaldoKewajibanAsetNeto = 0;
 
         foreach ($semua_akun->groupBy('sub_kategori_akun.kategori_akun.kategori_akun') as $kategori => $sub_kategoris) {
+            $kategoriPeriodeLalu = 0;
+            $kategoriSaldo = 0;
+
             $sheet->setCellValue("A{$row}", strtoupper($kategori));
             $sheet->mergeCells("A{$row}:C{$row}");
             $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
@@ -778,13 +779,13 @@ class NeracaSaldoController extends Controller
             $row++;
 
             foreach ($sub_kategoris->groupBy('sub_kategori_akun.sub_kategori_akun') as $sub_kategori => $akuns) {
+                $subPeriodeLalu = 0;
+                $subSaldo = 0;
+
                 $sheet->setCellValue("A{$row}", "   {$sub_kategori}");
                 $sheet->mergeCells("A{$row}:C{$row}");
                 $sheet->getStyle("A{$row}:C{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F2F2F2');
                 $row++;
-
-                $subPeriodeLalu = 0;
-                $subSaldo = 0;
 
                 foreach ($akuns as $akun) {
                     $periode_lalu = $saldo_akun[$akun->id_akun]->periode_lalu ?? 0;
@@ -799,7 +800,7 @@ class NeracaSaldoController extends Controller
                     $sheet->setCellValue("B{$row}", $periode_lalu);
                     $sheet->setCellValue("C{$row}", $saldo);
 
-                    $sheet->getStyle("B{$row}:C{$row}")->getNumberFormat()->setFormatCode('#,##0');
+                    $sheet->getStyle("B{$row}:C{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
                     $sheet->getStyle("B{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                     $row++;
                 }
@@ -809,23 +810,37 @@ class NeracaSaldoController extends Controller
                 $sheet->setCellValue("B{$row}", $subPeriodeLalu);
                 $sheet->setCellValue("C{$row}", $subSaldo);
                 $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
+                $sheet->getStyle("B{$row}:C{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+                $sheet->getStyle("B{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                 $row++;
+
+                $kategoriPeriodeLalu += $subPeriodeLalu;
+                $kategoriSaldo += $subSaldo;
             }
 
             // Subtotal Kategori
             $sheet->setCellValue("A{$row}", "Subtotal " . strtoupper($kategori));
-            $sheet->setCellValue("B{$row}", ''); // Opsional: bisa dihitung ulang kalau mau
-            $sheet->setCellValue("C{$row}", '');
+            $sheet->setCellValue("B{$row}", $kategoriPeriodeLalu);
+            $sheet->setCellValue("C{$row}", $kategoriSaldo);
             $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true)->getColor()->setRGB('000000');
+            $sheet->getStyle("B{$row}:C{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+            $sheet->getStyle("B{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $row++;
+
+            // Jika kategori KEWAJIBAN atau ASET NETO, akumulasikan ke total khusus
+            if (in_array(strtoupper($kategori), ['KEWAJIBAN', 'ASET NETO'])) {
+                $totalPeriodeLaluKewajibanAsetNeto += $kategoriPeriodeLalu;
+                $totalSaldoKewajibanAsetNeto += $kategoriSaldo;
+            }
         }
 
-        // Total
-        $sheet->setCellValue("A{$row}", 'Total');
-        $sheet->setCellValue("B{$row}", $totalPeriodeLalu);
-        $sheet->setCellValue("C{$row}", $totalSaldo);
+        // Total KEWAJIBAN + ASET NETO
+        $sheet->setCellValue("A{$row}", 'Total KEWAJIBAN + ASET NETO');
+        $sheet->setCellValue("B{$row}", $totalPeriodeLaluKewajibanAsetNeto);
+        $sheet->setCellValue("C{$row}", $totalSaldoKewajibanAsetNeto);
         $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("B{$row}:C{$row}")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle("B{$row}:C{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
+        $sheet->getStyle("B{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $row++;
 
         // Border seluruh tabel
@@ -852,6 +867,7 @@ class NeracaSaldoController extends Controller
         $writer->save('php://output');
         exit;
     }
+
 
 
 }

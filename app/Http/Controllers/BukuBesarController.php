@@ -26,102 +26,6 @@ class BukuBesarController extends Controller
 {
     
 
-
-
-    // public function index(Request $request)
-    // {
-    //     $akun_id = $request->filled('akun') ? $request->akun : 1;
-    //     $start_date = $request->filled('start_date') ? $request->start_date : date('Y-01-01');
-    //     $end_date = $request->filled('end_date') ? $request->end_date : date('Y-m-d');
-
-    //     $user = Auth::user();
-
-    //     $id_unit = $request->filled('id_unit') ? $request->id_unit : null;
-    //     $id_divisi = $request->filled('id_divisi') ? $request->id_divisi : null;
-
-    //     if (!$id_unit && !$id_divisi) {
-    //         if ($user->role === 'akuntan_unit') {
-    //             $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
-    //         } elseif ($user->role === 'akuntan_divisi') {
-    //             $id_divisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
-    //         }
-    //     }
-
-    //     // Panggil prosedur dan jadikan koleksi
-    //     $detail_jurnal = collect(DB::select(
-    //         'CALL laporan_buku_besar(?, ?, ?, ?, ?)', 
-    //         [$akun_id, $start_date, $end_date, $id_unit, $id_divisi]
-    //     ));
-
-    //     // Filter pencarian
-    //     if ($request->filled('search')) {
-    //         $search = strtolower($request->search);
-    //         $detail_jurnal = $detail_jurnal->filter(function ($item) use ($search) {
-    //             return str_contains(strtolower($item->no_bukti), $search)
-    //                 || str_contains(strtolower($item->keterangan), $search)
-    //                 || str_contains(strtolower($item->akun), $search)
-    //                 || str_contains(strtolower($item->unit ?? ''), $search)
-    //                 || str_contains(strtolower($item->divisi ?? ''), $search)
-    //                 || str_contains(strtolower($item->kode_sumbangan ?? ''), $search)
-    //                 || str_contains(strtolower($item->kode_ph ?? ''), $search);
-    //         });
-    //     }
-
-    //     // Hitung total debit dan kredit sebelum paginasi
-    //     $total_debit = $detail_jurnal->where('debit_kredit', 'debit')->sum('nominal');
-    //     $total_kredit = $detail_jurnal->where('debit_kredit', 'kredit')->sum('nominal');
-
-    //     // ✅ Manual paginasi
-    //     $perPage = $request->input('per_page', 20);
-    //     $currentPage = LengthAwarePaginator::resolveCurrentPage();
-    //     $pagedData = $detail_jurnal->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-    //     $paginatedData = new LengthAwarePaginator(
-    //         $pagedData,
-    //         $detail_jurnal->count(),
-    //         $perPage,   
-    //         $currentPage,
-    //         ['path' => $request->url(), 'query' => $request->query()]
-    //     );
-
-    //     $akunList = Akun::all();
-    //     $akun = Akun::find($akun_id);
-
-    //     $saldo_awal = 0;
-    //     $saldo_akhir = 0;
-    //     $kategori = null;
-
-    //     if ($akun) {
-    //         $kategori = $akun->sub_kategori_akun->kategori_akun->kategori_akun ?? null;
-
-    //         if (in_array($kategori, ['KEWAJIBAN', 'ASET NETO', 'PENERIMAAN DAN SUMBANGAN'])) {
-    //             // Saldo normal kredit
-    //             $saldo_awal = ($akun->saldo_awal_kredit ?? 0) - ($akun->saldo_awal_debit ?? 0);
-    //             $saldo_akhir = $saldo_awal - $total_debit + $total_kredit;
-    //         } else {
-    //             // Saldo normal debit
-    //             $saldo_awal = ($akun->saldo_awal_debit ?? 0) - ($akun->saldo_awal_kredit ?? 0);
-    //             $saldo_akhir = $saldo_awal + $total_debit - $total_kredit;
-    //         }
-    //     }
-
-    //     if ($request->has('export_excel')) {
-    //         return $this->exportExcelBukuBesar($akun, $detail_jurnal, $saldo_awal, $saldo_akhir, $start_date, $end_date);
-    //     }
-
-
-    //     return view('buku-besar', compact(
-    //         'paginatedData',
-    //         'akunList',
-    //         'total_debit',
-    //         'total_kredit',
-    //         'saldo_awal',
-    //         'saldo_akhir',
-    //         'id_unit',
-    //         'id_divisi'
-    //     ));
-    // }
-
     public function index(Request $request)
     {
         $akun_id = $request->filled('akun') ? $request->akun : 1;
@@ -141,7 +45,7 @@ class BukuBesarController extends Controller
             }
         }
 
-        // Panggil prosedur dan jadikan koleksi
+        // Panggil prosedur 
         $detail_jurnal = collect(DB::select(
             'CALL laporan_buku_besar(?, ?, ?, ?, ?)', 
             [$akun_id, $start_date, $end_date, $id_unit, $id_divisi]
@@ -409,8 +313,6 @@ class BukuBesarController extends Controller
         exit;
     }
 
-
-
     public function store(Request $request)
     {
         DB::statement("SET @current_user_id = " . Auth::id());
@@ -430,9 +332,6 @@ class BukuBesarController extends Controller
         return back()->with('success', 'Berhasil diposting ke Buku Besar.');
     }
 
-
-
-
     public function postingSemua(Request $request)
     {
         DB::statement("SET @current_user_id = " . Auth::id());
@@ -440,13 +339,20 @@ class BukuBesarController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
+        $user = Auth::user();
+
         $query = Jurnal_Umum::query();
 
         if ($start_date && $end_date) {
             $query->whereBetween('tanggal', [$start_date, $end_date]);
         }
 
-        // Ambil ID jurnal yang belum diposting
+        // Jika user adalah akuntan_unit, batasi hanya jurnal dari unit dia
+        if ($user->role === 'akuntan_unit') {
+            $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+            $query->where('id_unit', $id_unit);
+        }
+
         $jurnalBelumDiposting = $query->whereDoesntHave('buku_besar')->pluck('id_jurnal_umum');
 
         try {
@@ -461,6 +367,7 @@ class BukuBesarController extends Controller
             return back()->with('error', '❌ Gagal posting: ' . $e->getMessage());
         }
     }
+
 
 
 }

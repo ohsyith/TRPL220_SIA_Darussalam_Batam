@@ -119,7 +119,15 @@
                         <!-- Access Rights Table -->
                         <div id="aksesContainer">
                             <div class="mb-4">
-                                <label class="form-label"><strong>Hak Akses</strong></label>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0"><strong>Hak Akses</strong></label>
+                                    <div class="form-check">
+                                        <label class="form-check-label ms-2" for="checkAllGlobal">
+                                            Akses Semua
+                                        </label>
+                                        <input class="form-check-input" type="checkbox" id="checkAllGlobal">
+                                    </div>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered align-middle text-center">
                                         <thead class="table-light">
@@ -134,6 +142,47 @@
                                         <tbody>
 
 
+                                            <tr>
+                                                <td class="text-start">RAPBS Akun</td>
+                                                <td>
+                                                    <input type="hidden" name="view_rapbs_akun" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="view_rapbs_akun" value="1">
+
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="create_rapbs_akun" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="create_rapbs_akun" value="1">
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="update_rapbs_akun" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="update_rapbs_akun" value="1">
+                                                </td>
+                                                <td><input class="form-check-input" type="checkbox" disabled></td>
+
+                                            </tr>
+                                            <tr>
+                                                <td class="text-start">RAPBS Kegiatan</td>
+                                                <td>
+                                                    <input type="hidden" name="view_rapbs_kegiatan" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="view_rapbs_kegiatan" value="1">
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="create_rapbs_kegiatan" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="create_rapbs_kegiatan" value="1">
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="update_rapbs_kegiatan" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="update_rapbs_kegiatan" value="1">
+                                                </td>
+                                                <td><input class="form-check-input" type="checkbox" disabled></td>
+
+                                            </tr>
                                             <tr>
                                                 <td class="text-start">Jurnal Umum</td>
                                                 <td>
@@ -272,13 +321,15 @@
                     @if (session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                aria-label="Tutup"></button>
                         </div>
                     @endif
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <strong>Gagal!</strong> {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                aria-label="Tutup"></button>
                         </div>
                     @endif
                     @if ($errors->any())
@@ -289,13 +340,14 @@
                                     <li>{{ $error }}</li>
                                 @endforeach
                             </ul>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                aria-label="Tutup"></button>
                         </div>
                     @endif
 
 
 
-                    
+
                     <form method="post" action="{{ route('register.auditor') }}">
                         @csrf
                         <div class="mb-3">
@@ -369,6 +421,20 @@
         }, 4000); // 4000 milidetik = 4 detik
     </script>
 
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkAll = document.getElementById('checkAllGlobal');
+            checkAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (!cb.disabled && cb.name !== 'checkAllGlobal') {
+                        cb.checked = checkAll.checked;
+                    }
+                });
+            });
+        });
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

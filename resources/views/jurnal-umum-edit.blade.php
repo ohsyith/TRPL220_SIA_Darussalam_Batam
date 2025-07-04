@@ -175,13 +175,28 @@
                                 Akun</button>
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="postingBukuBesar"
-                                name="postingBukuBesar" {{ $jurnalUmum->buku_besar ? 'checked' : '' }}>
+                        @php
+                            $user = Auth::user();
+                            $bolehPosting = false;
 
-                            <label class="form-check-label" for="postingBukuBesar">Posting ke Buku
-                                Besar</label>
-                        </div>
+                            if ($user->role === 'admin') {
+                                $bolehPosting = true;
+                            } elseif ($user->role === 'akuntan_unit' && isset($sidebarHakAkses)) {
+                                $bolehPosting =
+                                    $sidebarHakAkses->create_buku_besar || $sidebarHakAkses->delete_buku_besar;
+                            }
+                        @endphp
+
+                        @if ($bolehPosting)
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="postingBukuBesar"
+                                    name="postingBukuBesar" {{ $jurnalUmum->buku_besar ? 'checked' : '' }}>
+                                <label class="form-check-label" for="postingBukuBesar">Posting ke Buku Besar</label>
+                            </div>
+                        @endif
+
+
+
 
                         <button type="submit" class="btn btn-primary col-12">Simpan</button>
                     </form>

@@ -1,6 +1,31 @@
 @extends('layouts.layout')
 @push('styles')
     <title>SIA Yayasan Darussalam | Akuntan Unit</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background-color: #f8f9fa; /* latar abu-abu */
+        }
+
+        .page-wrapper,
+        .body-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container-fluid,
+        .main-content {
+            flex: 1;
+        }
+
+        footer,
+        .footer {
+            margin-top: auto;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -133,6 +158,54 @@
                                         <tbody>
 
 
+                                            <tr>
+                                                <td class="text-start">RAPBS Akun</td>
+                                                <td>
+                                                    <input type="hidden" name="view_rapbs_akun" value="0">
+                                                    <input class="form-check-input" type="checkbox" name="view_rapbs_akun"
+                                                        value="1" @checked(old('view_rapbs_akun', $akses->view_rapbs_akun ?? false))>
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="create_rapbs_akun" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="create_rapbs_akun" value="1"
+                                                        @checked(old('create_rapbs_akun', $akses->create_rapbs_akun ?? false))>
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="update_rapbs_akun" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="update_rapbs_akun" value="1"
+                                                        @checked(old('update_rapbs_akun', $akses->update_rapbs_akun ?? false))>
+                                                </td>
+                                                <td>
+                                                    <input class="form-check-input" type="checkbox" disabled>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="text-start">RAPBS Kegiatan</td>
+                                                <td>
+                                                    <input type="hidden" name="view_rapbs_kegiatan" value="0">
+                                                    <input class="form-check-input" type="checkbox" name="view_rapbs_kegiatan"
+                                                        value="1" @checked(old('view_rapbs_kegiatan', $akses->view_rapbs_kegiatan ?? false))>
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="create_rapbs_kegiatan" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="create_rapbs_kegiatan" value="1"
+                                                        @checked(old('create_rapbs_kegiatan', $akses->create_rapbs_kegiatan ?? false))>
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" name="update_rapbs_kegiatan" value="0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="update_rapbs_kegiatan" value="1"
+                                                        @checked(old('update_rapbs_kegiatan', $akses->update_rapbs_kegiatan ?? false))>
+                                                </td>
+                                                <td>
+                                                    <input class="form-check-input" type="checkbox" disabled>
+                                                </td>
+                                            </tr>
+                                            
                                             <tr>
                                                 <td class="text-start">Jurnal Umum</td>
                                                 <td>

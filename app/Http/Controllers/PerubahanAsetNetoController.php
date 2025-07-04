@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Akun;
-use App\Models\Akuntan_Unit;
-use App\Models\Detail_Jurnal_Umum;
 use App\Models\Unit;
 use App\Models\Divisi;
+use App\Models\Akuntan_Unit;
 use Illuminate\Http\Request;
+use App\Models\Detail_Jurnal_Umum;
 use Illuminate\Support\Facades\DB;
 use App\Models\Perubahan_Aset_Neto;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class PerubahanAsetNetoController extends Controller
 {
@@ -303,6 +306,8 @@ class PerubahanAsetNetoController extends Controller
         $id_unit = $request->unit;
         $id_divisi = $request->divisi;
 
+        
+
         // Set default unit/divisi dari role user
         if (!$id_unit && $user->role === 'akuntan_unit') {
             $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
@@ -325,7 +330,7 @@ class PerubahanAsetNetoController extends Controller
             $q->where('sub_kategori_akun', 'Tanpa Pembatasan')
         )->first();
 
-        // Hitung saldo awal
+        // Hitung 
         $data = [
             'dengan_pembatasan' => [
                 'saldo_awal' => $akunDengan ? $akunDengan->saldo_awal_kredit - $akunDengan->saldo_awal_debit : 0,
@@ -341,6 +346,7 @@ class PerubahanAsetNetoController extends Controller
             ],
         ];
 
+        
         // === PANGGIL STORED PROCEDURE UNTUK KENAIKAN BERJALAN ===
         try {
             $hasil = DB::select('CALL hitung_kenaikan_aset_neto(?, ?, ?, ?)', [
@@ -391,36 +397,49 @@ class PerubahanAsetNetoController extends Controller
     }
 
 
-
     public function export_excel($data, $total_saldo_akhir, $tanggal_mulai, $tanggal_selesai)
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // 🖼️ Sisipkan gambar/logo
-        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        // 📝 Set default font
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(11);
+
+        // 🖼️ Logo
+        $drawing = new Drawing();
         $drawing->setName('Logo');
-        $drawing->setDescription('Logo Yayasan');
+        $drawing->setDescription('Logo');
         $drawing->setPath(public_path('assets/images/logos/YDB_PNG.png'));
         $drawing->setHeight(100);
         $drawing->setCoordinates('A1');
         $drawing->setOffsetX(5);
         $drawing->setWorksheet($sheet);
 
-        // 📝 Tulis teks judul
-        $judul = "LAPORAN PERUBAHAN ASET NETO YAYASAN DARUSSALAM BATAM\nPeriode: " .
-            date('d/m/Y', strtotime($tanggal_mulai)) . " - " . date('d/m/Y', strtotime($tanggal_selesai));
-        $sheet->setCellValue('A1', $judul);
+        // 📌 Judul dengan RichText
+        $richText = new RichText();
+        $judul = $richText->createTextRun("LAPORAN PERUBAHAN ASET NETO YAYASAN DARUSSALAM BATAM\n");
+        $judul->getFont()->setBold(true)->setSize(14);
 
-        // 📐 Merge dan style header
+        $periode = $richText->createTextRun("Periode " .
+            Carbon::parse($tanggal_mulai)->translatedFormat('d F Y') .
+            " s.d. " .
+            Carbon::parse($tanggal_selesai)->translatedFormat('d F Y'));
+        $periode->getFont()->setSize(10);
+
+        // 🧾 Atur merge dan alignment
+        $sheet->setCellValue('A1', $richText);
         $sheet->mergeCells('A1:B4');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A1')->getAlignment()->setWrapText(true);
         $sheet->getStyle('A1')->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
             ->setVertical(Alignment::VERTICAL_CENTER)
-            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            ->setWrapText(true);
 
-        $row = 6;
+        // 🧱 Tinggi baris header
+        for ($i = 1; $i <= 4; $i++) {
+            $sheet->getRowDimension($i)->setRowHeight(20);
+        }
+
+        $row = 5;
 
         // 🟩 Header bagian 1
         $sheet->setCellValue("A{$row}", 'Aset Neto Dengan Pembatasan Sumber Daya');
@@ -462,13 +481,6 @@ class PerubahanAsetNetoController extends Controller
         $row++;
 
         // 📊 Data bagian 2
-        $items = [
-            'Saldo Awal' => 'saldo_awal',
-            'Kenaikan (Penurunan) Aset Neto Periode Lalu' => 'kenaikan_periode_lalu',
-            'Kenaikan (Penurunan) Aset Neto Periode Berjalan' => 'kenaikan_periode_berjalan',
-            'Saldo Akhir Aset Neto Tanpa Pembatasan' => 'saldo_akhir',
-        ];
-
         foreach ($items as $label => $key) {
             $sheet->setCellValue("A{$row}", $label);
             $sheet->setCellValue("B{$row}", $data['tanpa_pembatasan'][$key]);
@@ -482,17 +494,16 @@ class PerubahanAsetNetoController extends Controller
             $row++;
         }
 
-        // ✅ Total
+        // ✅ Total saldo akhir keseluruhan
         $sheet->setCellValue("A{$row}", 'Total Saldo Akhir Aset Neto');
         $sheet->setCellValue("B{$row}", $total_saldo_akhir);
         $sheet->getStyle("A{$row}:B{$row}")->getFont()->setBold(true);
         $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('#,##0');
         $sheet->getStyle("B{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
-        // 📏 Auto Size
-        foreach (range('A', 'B') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+        // 📏 Kolom
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setWidth(52.0); // Kurang lebih 369px
 
         // 📄 Footer info
         $row += 2;
@@ -500,7 +511,20 @@ class PerubahanAsetNetoController extends Controller
         $sheet->mergeCells("A{$row}:B{$row}");
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // 📥 Output
+        // 🔲 Border seluruh data
+        $lastDataRow = $row - 3;
+        $sheet->getStyle("A6:B{$lastDataRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        // 🔠 Alignment dan wrap
+        $sheet->getStyle("A6:A{$lastDataRow}")->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+            ->setVertical(Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
+        $sheet->getStyle("B6:B{$lastDataRow}")->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_RIGHT)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+
+        // 📤 Output
         $fileName = 'Perubahan_Aset_Neto_' . date('d-m-Y', strtotime($tanggal_mulai)) . '_' . date('d-m-Y', strtotime($tanggal_selesai)) . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header("Content-Disposition: attachment;filename=\"{$fileName}\"");
@@ -510,6 +534,5 @@ class PerubahanAsetNetoController extends Controller
         $writer->save('php://output');
         exit;
     }
-
 
 }

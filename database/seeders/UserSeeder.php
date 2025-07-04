@@ -27,10 +27,7 @@ class UserSeeder extends Seeder
             ['nama' => 'Unit ASMA', 'username' => 'unit_asma', 'password' => Hash::make(12345678), 'role' => 'akuntan_unit'],
             ['nama' => 'Unit SMAIT', 'username' => 'unit_smait', 'password' => Hash::make(12345678), 'role' => 'akuntan_unit'],
 
-            ['nama' => 'Divisi Kurikulum', 'username' => 'divisi_kurikulum', 'password' => Hash::make(12345678), 'role' => 'akuntan_divisi'],
-            ['nama' => 'Divisi Kesiswaan', 'username' => 'divisi_kesiswaan', 'password' => Hash::make(12345678), 'role' => 'akuntan_divisi'],
-            ['nama' => "Divisi Qur'an", 'username' => 'divisi_quran', 'password' => Hash::make(12345678), 'role' => 'akuntan_divisi'],
-            ['nama' => "Divisi Umum", 'username' => 'divisi_umum', 'password' => Hash::make(12345678), 'role' => 'akuntan_divisi'],
+            ['nama' => "Auditor", 'username' => 'auditor', 'password' => Hash::make(12345678), 'role' => 'auditor'],
         ];       
 
         foreach ($user as $data) {

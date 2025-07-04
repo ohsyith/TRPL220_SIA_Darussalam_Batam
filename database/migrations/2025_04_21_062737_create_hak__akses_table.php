@@ -17,13 +17,23 @@ return new class extends Migration
             $table->unsignedBigInteger('id_akuntan_unit');
             $table->foreign('id_akuntan_unit')->references('id_akuntan_unit')->on('akuntan_unit');
 
+            $table->boolean('view_rapbs_akun');
+            $table->boolean('create_rapbs_akun');
+            $table->boolean('update_rapbs_akun');
+
+            $table->boolean('view_rapbs_kegiatan');
+            $table->boolean('create_rapbs_kegiatan');
+            $table->boolean('update_rapbs_kegiatan');
+
             $table->boolean('view_jurnal_umum');
             $table->boolean('create_jurnal_umum');
             $table->boolean('update_jurnal_umum');
             $table->boolean('delete_jurnal_umum');
+
             $table->boolean('view_buku_besar');
             $table->boolean('create_buku_besar');
             $table->boolean('delete_buku_besar');
+            
             $table->boolean('view_laporan_komprehensif');
             $table->boolean('view_laporan_posisi_keuangan');
             $table->boolean('view_laporan_arus_kas');

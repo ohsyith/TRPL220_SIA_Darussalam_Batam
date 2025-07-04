@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Akun;
-use App\Models\Akuntan_Unit;
 use App\Models\Unit;
 use App\Models\Divisi;
 use App\Models\Kegiatan;
+use App\Models\Akuntan_Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class PRRAController extends Controller
@@ -99,7 +101,6 @@ class PRRAController extends Controller
             }
         }
 
-
         // Jika ada permintaan export
         if ($request->has('export_excel')) {
             return $this->exportExcel($groupedData, $berdasarkan, $startDate, $endDate);
@@ -119,6 +120,10 @@ class PRRAController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
+        // Set default font
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(11);
+
+        // 🖼️ Sisipkan logo
         $drawing = new Drawing();
         $drawing->setName('Logo');
         $drawing->setDescription('Logo Yayasan');
@@ -128,13 +133,25 @@ class PRRAController extends Controller
         $drawing->setOffsetX(10);
         $drawing->setWorksheet($sheet);
 
-        $judul = "LAPORAN PROYEKSI RENCANA REALISASI ANGGARAN YAYASAN DARUSSALAM BATAM\nPeriode: " . date('d/m/Y', strtotime($start)) . " - " . date('d/m/Y', strtotime($end));
-        $sheet->setCellValue('A1', $judul);
-        $sheet->mergeCells('A1:E5');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A1')->getAlignment()->setWrapText(true);
-        $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // 📌 Header judul dan periode (RichText)
+        $richText = new RichText();
+        $judulText = $richText->createTextRun("LAPORAN PROYEKSI RENCANA REALISASI ANGGARAN YAYASAN DARUSSALAM BATAM\n");
+        $judulText->getFont()->setBold(true)->setSize(14);
+        $periodeText = $richText->createTextRun("Periode " . Carbon::parse($start)->translatedFormat('d F Y') . " s.d. " . Carbon::parse($end)->translatedFormat('d F Y'));
+        $periodeText->getFont()->setSize(10);
 
+        $sheet->setCellValue('A1', $richText);
+        $sheet->mergeCells('A1:E5');
+        $sheet->getStyle('A1')->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
+
+        for ($i = 1; $i <= 5; $i++) {
+            $sheet->getRowDimension($i)->setRowHeight(20);
+        }
+
+        // 🔠 Header tabel
         $row = 7;
         $headers = ['Nama', 'Budget RAPBS', 'Realisasi', 'Selisih', 'Persentase Capaian'];
         foreach ($headers as $i => $header) {
@@ -150,6 +167,7 @@ class PRRAController extends Controller
         ]);
         $row++;
 
+        // 📊 Isi data
         foreach ($groupedData as $kategori => $sub) {
             $sheet->setCellValue("A{$row}", strtoupper($kategori));
             $sheet->mergeCells("A{$row}:E{$row}");
@@ -170,7 +188,7 @@ class PRRAController extends Controller
                     $sheet->setCellValue("D{$row}", $selisih);
                     $sheet->setCellValue("E{$row}", $persen / 100);
 
-                    $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0');
+                    $sheet->getStyle("B{$row}:D{$row}")->getNumberFormat()->setFormatCode('#,##0;(#,##0)');
                     $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('0.00%');
                     $sheet->getStyle("B{$row}:E{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                     $row++;
@@ -178,16 +196,24 @@ class PRRAController extends Controller
             }
         }
 
+        // 🔲 Border seluruh data
         $sheet->getStyle("A7:E" . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-        foreach (range('A', 'E') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+        // 📐 Lebar kolom
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
+        $sheet->getColumnDimension('E')->setWidth(36.5); // Kurang lebih 250px
 
+
+        
+        // 📄 Footer info
         $sheet->setCellValue("A{$row}", 'Sistem Informasi Akuntansi | ' . date('Y'));
         $sheet->mergeCells("A{$row}:E{$row}");
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
+        // 📥 Output
         $fileName = 'Laporan_PRRA_' . date('d-m-Y', strtotime($start)) . '_sd_' . date('d-m-Y', strtotime($end)) . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header("Content-Disposition: attachment; filename=\"{$fileName}\"");
@@ -197,6 +223,7 @@ class PRRAController extends Controller
         $writer->save('php://output');
         exit;
     }
+
 
 
 

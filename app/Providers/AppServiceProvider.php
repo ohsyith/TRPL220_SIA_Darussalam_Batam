@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             if (Auth::check()) {
                 $user = Auth::user();
                 $hak_akses = null;
-                $sidebarSop = collect(); // inisialisasi kosong biar aman
+                $sidebarSop = collect(); 
 
                 try {
                     if ($user->role === 'akuntan_unit') {

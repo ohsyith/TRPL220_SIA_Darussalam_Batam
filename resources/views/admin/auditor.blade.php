@@ -4,21 +4,29 @@
 
     <style>
         html,
-        body,
-        .page-wrapper,
-        .body-wrapper {
+        body {
             height: 100%;
-            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa; /* latar abu-abu */
         }
 
+        .page-wrapper,
         .body-wrapper {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .container-fluid {
+        .container-fluid,
+        .main-content {
             flex: 1;
         }
+
+        footer,
+        .footer {
+            margin-top: auto;
+        }
+
     </style>
 
     <style>

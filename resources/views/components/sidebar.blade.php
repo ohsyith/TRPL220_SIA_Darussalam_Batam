@@ -125,7 +125,8 @@
 
                 <!-- Menu Pencatatan dan Laporan hanya untuk user selain admin -->
 
-                @if (in_array($role, ['akuntan_unit']))
+                @props(['role', 'hak_akses'])
+                @if ($role == 'akuntan_unit')
                     <li class="sidebar-item">
                         <a class="sidebar-link has-arrow d-flex align-items-center fw-semibold"
                             href="javascript:void(0)" aria-expanded="false"
@@ -135,16 +136,22 @@
                                 data-icon-down="mdi:chevron-down" data-icon-up="mdi:chevron-up"></iconify-icon>
                         </a>
                         <ul class="collapse first-level">
-                            <li class="sidebar-item">
-                                <a href="/budget-rapbs-akun" class="sidebar-link">
-                                    <span class="hide-menu">RAPBS Akun</span>
-                                </a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a href="/budget-rapbs-kegiatan" class="sidebar-link">
-                                    <span class="hide-menu">RAPBS Kegiatan</span>
-                                </a>
-                            </li>
+                            @if (in_array($role, ['akuntan_unit']) && optional($hak_akses)->view_rapbs_akun)
+                                <li class="sidebar-item">
+                                    <a href="/budget-rapbs-akun" class="sidebar-link">
+                                        <span class="hide-menu">RAPBS Akun</span>
+                                    </a>
+                                </li>
+                            @endif
+
+                            @if (in_array($role, ['akuntan_unit']) && optional($hak_akses)->view_rapbs_kegiatan)
+                                <li class="sidebar-item">
+                                    <a href="/budget-rapbs-kegiatan" class="sidebar-link">
+                                        <span class="hide-menu">RAPBS Kegiatan</span>
+                                    </a>
+                                </li>
+                            @endif
+
                         </ul>
                     </li>
                 @endif
@@ -154,7 +161,6 @@
 
 
 
-                @props(['role', 'hak_akses'])
 
 
                 <li class="sidebar-item">
@@ -212,7 +218,10 @@
                                 'url' => '/laporan-komprehensif',
                                 'label' => 'Komprehensif',
                             ],
-                            'view_laporan_posisi_keuangan' => ['url' => '/neraca-saldo', 'label' => 'Posisi Keuangan'],
+                            'view_laporan_posisi_keuangan' => [
+                                'url' => '/neraca-saldo',
+                                'label' => 'Posisi Keuangan',
+                            ],
                             'view_laporan_arus_kas' => ['url' => '/arus-kas2', 'label' => 'Arus Kas'],
                             'view_laporan_perubahan_aset_neto' => [
                                 'url' => '/perubahan-aset-neto',

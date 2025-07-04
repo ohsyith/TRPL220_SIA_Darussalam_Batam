@@ -52,12 +52,14 @@
                             <div class="col-md-3">
                                 <label>Dari Tanggal </label>
                                 <input type="date" name="start_date" class="form-control"
-                                    value="{{ request('start_date') }}" onchange="submitFilter()">
+                                    value="{{ request('start_date') ?? \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d') }}"
+                                    onchange="submitFilter()">
                             </div>
 
                             <div class="col-md-3">
                                 <label>Sampai Tanggal </label>
-                                <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}"
+                                <input type="date" name="end_date" class="form-control"
+                                    value="{{ request('end_date') ?? \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d') }}"
                                     onchange="submitFilter()">
                             </div>
                         </div>
@@ -118,7 +120,8 @@
 
                             @foreach ($log_aktivitas as $data)
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
+                                    <td>{{ ($log_aktivitas->currentPage() - 1) * $log_aktivitas->perPage() + $loop->iteration }}
+                                    </td>
                                     <td>{{ \Carbon\Carbon::parse($data->created_at)->translatedFormat('d F Y H:i') }}
                                     </td>
                                     <td>{{ $data->user->username }}</td>
@@ -129,6 +132,9 @@
 
                         </tbody>
                     </table>
+                    <div class="mt-3">
+                        {{ $log_aktivitas->links('pagination::bootstrap-5') }}
+                    </div>
 
 
                 </div>

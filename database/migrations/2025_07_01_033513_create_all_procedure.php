@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        
         DB::unprepared("
             DROP PROCEDURE IF EXISTS hitung_neraca;
 
@@ -81,69 +82,65 @@ return new class extends Migration
             )
             BEGIN
                 SELECT 
+                    akun.kode_akun,
                     akun.akun AS nama_akun,
+                    ska.kode_sub_kategori_akun,
+                    ska.sub_kategori_akun,
                     kategori_akun.kategori_akun,
-                    
+
                     COALESCE(SUM(CASE 
-                        WHEN ju.jenis_transaksi = 'tidak terikat' 
-                        AND dju.debit_kredit = CASE 
-                            WHEN kategori_akun.kategori_akun = 'PENERIMAAN DAN SUMBANGAN' 
-                            THEN 'kredit' 
-                            ELSE 'debit' 
-                        END
-                        THEN dju.nominal 
-                        ELSE 0 
-                    END), 0) as total_tanpa,
-                    
+                        WHEN dju.jenis_transaksi = 'tidak terikat' 
+                            AND dju.debit_kredit = 
+                                CASE 
+                                    WHEN kategori_akun.kategori_akun = 'PENERIMAAN DAN SUMBANGAN' THEN 'kredit'
+                                    ELSE 'debit'
+                                END
+                    THEN dju.nominal ELSE 0 END), 0) AS total_tanpa,
+
                     COALESCE(SUM(CASE 
-                        WHEN ju.jenis_transaksi = 'terikat' 
-                        AND dju.debit_kredit = CASE 
-                            WHEN kategori_akun.kategori_akun = 'PENERIMAAN DAN SUMBANGAN' 
-                            THEN 'kredit' 
-                            ELSE 'debit' 
-                        END
-                        THEN dju.nominal 
-                        ELSE 0 
-                    END), 0) as total_dengan,
-                    
+                        WHEN dju.jenis_transaksi = 'terikat' 
+                            AND dju.debit_kredit = 
+                                CASE 
+                                    WHEN kategori_akun.kategori_akun = 'PENERIMAAN DAN SUMBANGAN' THEN 'kredit'
+                                    ELSE 'debit'
+                                END
+                    THEN dju.nominal ELSE 0 END), 0) AS total_dengan,
+
                     CASE 
                         WHEN kategori_akun.kategori_akun = 'PENERIMAAN DAN SUMBANGAN' 
                         THEN COALESCE(akun.saldo_awal_kredit, 0)
                         ELSE COALESCE(akun.saldo_awal_debit, 0)
-                    END as saldo_awal
-                    
+                    END AS saldo_awal
+
                 FROM akun
-                INNER JOIN sub_kategori_akun ska 
-                    ON akun.id_sub_kategori_akun = ska.id_sub_kategori_akun
-                INNER JOIN kategori_akun 
-                    ON ska.id_kategori_akun = kategori_akun.id_kategori_akun
-                
-                LEFT JOIN detail_jurnal_umum dju 
-                    ON akun.id_akun = dju.id_akun
-                LEFT JOIN jurnal_umum ju 
-                    ON dju.id_jurnal_umum = ju.id_jurnal_umum
-                    AND ju.tanggal BETWEEN p_tanggal_mulai AND p_tanggal_selesai
-                    -- Filter berdasarkan unit jika diberikan
-                    AND (p_id_unit IS NULL OR ju.id_unit = p_id_unit)
-                    -- Filter berdasarkan divisi jika diberikan
-                    AND (p_id_divisi IS NULL OR ju.id_divisi = p_id_divisi)
-                    -- Pastikan ada di buku besar
-                    AND EXISTS (
-                        SELECT 1 FROM buku_besar bb 
-                        WHERE bb.id_jurnal_umum = ju.id_jurnal_umum
-                    )
-                
+                JOIN sub_kategori_akun ska ON akun.id_sub_kategori_akun = ska.id_sub_kategori_akun
+                JOIN kategori_akun ON ska.id_kategori_akun = kategori_akun.id_kategori_akun
+                LEFT JOIN (
+                    SELECT 
+                        dju.id_akun, dju.nominal, dju.debit_kredit, ju.jenis_transaksi
+                    FROM detail_jurnal_umum dju
+                    JOIN jurnal_umum ju ON ju.id_jurnal_umum = dju.id_jurnal_umum
+                    WHERE ju.tanggal BETWEEN p_tanggal_mulai AND p_tanggal_selesai
+                        AND EXISTS (SELECT 1 FROM buku_besar bb WHERE bb.id_jurnal_umum = ju.id_jurnal_umum)
+                        AND (p_id_unit IS NULL OR ju.id_unit = p_id_unit)
+                        AND (p_id_divisi IS NULL OR ju.id_divisi = p_id_divisi)
+                ) dju ON akun.id_akun = dju.id_akun
+
+                WHERE kategori_akun.kategori_akun IN ('PENERIMAAN DAN SUMBANGAN', 'BEBAN')
+
                 GROUP BY 
-                    akun.id_akun, 
-                    akun.akun, 
+                    akun.id_akun, akun.kode_akun, akun.akun,
+                    ska.kode_sub_kategori_akun, ska.sub_kategori_akun,
                     kategori_akun.kategori_akun,
-                    akun.saldo_awal_kredit, 
-                    akun.saldo_awal_debit
-                
+                    akun.saldo_awal_kredit, akun.saldo_awal_debit
+
                 ORDER BY 
-                    kategori_akun.kategori_akun, 
-                    akun.akun;
+                    kategori_akun.kategori_akun,
+                    ska.kode_sub_kategori_akun,
+                    akun.kode_akun;
             END;
+
+
         ");
 
         DB::unprepared("
@@ -191,7 +188,6 @@ return new class extends Migration
 
         DB::unprepared("
             DROP PROCEDURE IF EXISTS laporan_buku_besar;
-
             CREATE PROCEDURE laporan_buku_besar(
                 IN akun_id_param INT,
                 IN start_date_param DATE,
@@ -225,7 +221,6 @@ return new class extends Migration
                     AND (id_divisi_param IS NULL OR ju.id_divisi = id_divisi_param)
                 ORDER BY ju.tanggal, ju.no_bukti;
             END;
-
         ");
 
         DB::unprepared("
@@ -341,9 +336,6 @@ return new class extends Migration
 
 
         ");
-
-
-
 
     }
 

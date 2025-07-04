@@ -2,6 +2,7 @@
 
 @push('styles')
     <title>SIA Yayasan Darussalam | Laporan Neraca</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
         /* Mengatur warna hijau tua untuk tombol Export Excel */
@@ -87,7 +88,7 @@
                                 'start_date' => request('start_date'),
                                 'end_date' => request('end_date'),
                             ]) }}"
-                                class="btn btn-success">
+                                class="btn btn-success custom-green">
                                 <i class="fas fa-file-excel me-1"></i> Export Excel
                             </a>
 
@@ -225,15 +226,15 @@
                                                     <td class="text-start">{{ $item->nama_akun ?? $item->nama_kegiatan }}
                                                     </td>
                                                     <td class="text-end text-narrow">
-                                                        Rp
+                                                        
                                                         {{ $item->budget_rapbs < 0 ? '(' . number_format(abs($item->budget_rapbs), 0, ',', '.') . ')' : number_format($item->budget_rapbs, 0, ',', '.') }}
                                                     </td>
                                                     <td class="text-end text-narrow">
-                                                        Rp
+                                                        
                                                         {{ $item->realisasi < 0 ? '(' . number_format(abs($item->realisasi), 0, ',', '.') . ')' : number_format($item->realisasi, 0, ',', '.') }}
                                                     </td>
                                                     <td class="text-end text-narrow">
-                                                        Rp
+                                                        
                                                         {{ $item->selisih < 0 ? '(' . number_format(abs($item->selisih), 0, ',', '.') . ')' : number_format($item->selisih, 0, ',', '.') }}
                                                     </td>
                                                     <td class="text-end text-narrow">

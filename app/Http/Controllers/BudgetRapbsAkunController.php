@@ -18,7 +18,7 @@ class BudgetRapbsAkunController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-
+        
         if (in_array($user->role, ['admin', 'auditor'])) {
             $id_unit = $request->get('unit', 'all');
             $units = Unit::all();
@@ -71,8 +71,6 @@ class BudgetRapbsAkunController extends Controller
 
 
 
-
-
     public function storeOrUpdate(Request $request)
     {
         DB::statement("SET @current_user_id = " . auth()->id());
@@ -111,23 +109,36 @@ class BudgetRapbsAkunController extends Controller
         $spreadsheet = IOFactory::load($file->getRealPath());
         $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
-        // Mapping semua akun dan unit di awal (hindari query berulang dalam loop)
+        $user = Auth::user();
         $akunMap = Akun::pluck('id_akun', 'kode_akun');
-        $unitMap = Unit::pluck('id_unit', 'kode_unit');
+
+        // Jika admin/auditor, butuh unitMap
+        $unitMap = $user->role == 'admin' ? Unit::pluck('id_unit', 'kode_unit') : null;
 
         try {
-            DB::transaction(function () use ($rows, $akunMap, $unitMap) {
+            DB::transaction(function () use ($rows, $akunMap, $unitMap, $user) {
+                $id_unit = null;
+                if ($user->role === 'akuntan_unit') {
+                    $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+                }
+
                 foreach ($rows as $index => $row) {
-                    if ($index === 1) continue; // Lewati header
+                    if ($index === 1) continue;
 
                     $kode_akun = trim($row['A']);
                     $budget = (int) $row['C'];
-                    $kode_unit = trim($row['D']);
 
                     $id_akun = $akunMap[$kode_akun] ?? null;
-                    $id_unit = $unitMap[$kode_unit] ?? null;
 
-                    if (!$id_akun || !$id_unit) continue;
+                    if ($user->role === 'akuntan_unit') {
+                        // Unit dari login
+                        if (!$id_akun || !$id_unit) continue;
+                    } else {
+                        // Unit dari Excel
+                        $kode_unit = trim($row['D']);
+                        $id_unit = $unitMap[$kode_unit] ?? null;
+                        if (!$id_akun || !$id_unit) continue;
+                    }
 
                     Budget_Rapbs_Akun::updateOrCreate(
                         [

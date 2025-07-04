@@ -87,10 +87,11 @@ class BudgetRapbsKegiatanController extends Controller
 
 
     
-
     public function importExcel(Request $request)
     {
         DB::statement("SET @current_user_id = " . auth()->id());
+
+        $user = Auth::user();
 
         $request->validate([
             'file' => 'required|mimes:xlsx,xls'
@@ -99,23 +100,25 @@ class BudgetRapbsKegiatanController extends Controller
         $file = $request->file('file');
         $spreadsheet = IOFactory::load($file->getRealPath());
         $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
-
-        // Mapping kegiatan dan unit (hindari query dalam loop)
         $kegiatanMap = Kegiatan::pluck('id_kegiatan', 'kode_kegiatan');
-        $unitMap = Unit::pluck('id_unit', 'kode_unit');
-
+        $unitMap = in_array($user->role, ['admin']) ? Unit::pluck('id_unit', 'kode_unit') : null;
         try {
-            DB::transaction(function () use ($rows, $kegiatanMap, $unitMap) {
-                foreach ($rows as $index => $row) {
-                    if ($index === 1) continue; // skip header
+            DB::transaction(function () use ($rows, $kegiatanMap, $unitMap, $user) {
+                $id_unit = null;
 
+                if ($user->role === 'akuntan_unit') {
+                    $id_unit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->value('id_unit');
+                }
+
+                foreach ($rows as $index => $row) {
+                    if ($index === 1) continue;
                     $kode_kegiatan = trim($row['A']);
                     $budget = (int) $row['C'];
-                    $kode_unit = trim($row['D']);
-
                     $id_kegiatan = $kegiatanMap[$kode_kegiatan] ?? null;
-                    $id_unit = $unitMap[$kode_unit] ?? null;
-
+                    if ($user->role === 'admin') {
+                        $kode_unit = trim($row['D']);
+                        $id_unit = $unitMap[$kode_unit] ?? null;
+                    }
                     if (!$id_kegiatan || !$id_unit) continue;
 
                     Budget_Rapbs_Kegiatan::updateOrCreate(
@@ -135,7 +138,6 @@ class BudgetRapbsKegiatanController extends Controller
             return back()->with('error', 'Gagal import: ' . $e->getMessage());
         }
     }
-
 
 
 
