@@ -210,14 +210,17 @@
                                             <div class="mb-3">
                                                 <label for="edit_budget_rapbs_akun" class="form-label">Budget
                                                     RAPBS</label>
-                                                <input type="number" name="budget_rapbs_akun"
+                                                <input type="text" name="budget_rapbs_akun_display"
                                                     id="edit_budget_rapbs_akun" class="form-control" required>
+                                                <input type="hidden" name="budget_rapbs_akun"
+                                                    id="budget_rapbs_akun_hidden">
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Update</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -249,4 +252,15 @@
             document.getElementById('edit_nama_unit').value = btn.dataset.unit;
         }
     </script>
+    <script>
+    const inputDisplay = document.getElementById('edit_budget_rapbs_akun');
+    const inputHidden = document.getElementById('budget_rapbs_akun_hidden');
+
+    inputDisplay.addEventListener('input', function () {
+        let angka = this.value.replace(/\D/g, ''); // Hapus semua non-digit
+        this.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Format 3 digit titik
+        inputHidden.value = angka; // Set nilai bersih ke input hidden
+    });
+</script>
+
 @endpush

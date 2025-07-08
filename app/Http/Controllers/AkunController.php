@@ -51,6 +51,7 @@ class AkunController extends Controller
 
                 
             foreach ($rows as $index => $row) {
+
                 $baris = $index + 2; // Karena header dihapus, data mulai baris ke-2 di Excel
                 if (empty(array_filter($row))) {
                     continue; // Lewati baris kosong
@@ -58,8 +59,8 @@ class AkunController extends Controller
                 $namaSubKategori = trim($row[0]); // A
                 $kodeAkun = trim($row[1]);        // B
                 $namaAkun = trim($row[2]);        // C
-                $saldoDebit = floatval($row[3]);  // D
-                $saldoKredit = floatval($row[4]); // E
+                $saldoDebit = (float) str_replace(',', '', $row[3]);
+                $saldoKredit = (float) str_replace(',', '', $row[4]);
 
                 // Validasi sub kategori
                 $subKategori = Sub_Kategori_Akun::where('sub_kategori_akun', $namaSubKategori)->first();

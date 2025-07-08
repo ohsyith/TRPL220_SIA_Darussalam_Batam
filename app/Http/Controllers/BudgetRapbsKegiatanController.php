@@ -113,7 +113,9 @@ class BudgetRapbsKegiatanController extends Controller
                 foreach ($rows as $index => $row) {
                     if ($index === 1) continue;
                     $kode_kegiatan = trim($row['A']);
-                    $budget = (int) $row['C'];
+                    // $budget = (int) $row['C'];
+                    $budget = (float) str_replace(',', '', $row['C']);
+
                     $id_kegiatan = $kegiatanMap[$kode_kegiatan] ?? null;
                     if ($user->role === 'admin') {
                         $kode_unit = trim($row['D']);

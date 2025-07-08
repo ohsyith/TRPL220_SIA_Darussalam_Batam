@@ -166,9 +166,10 @@
 
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Simpan</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -200,14 +201,14 @@
                                         </td>
                                         <td>
                                             <a href="javascript:void(0)" class="link-primary text-dark fw-medium d-block">
-                                                Rp
+
                                                 {{ $data->saldo_awal_debit < 0 ? '(' . number_format(abs($data->saldo_awal_debit), 0, ',', '.') . ')' : number_format($data->saldo_awal_debit, 0, ',', '.') }}
 
                                             </a>
                                         </td>
                                         <td>
                                             <a href="javascript:void(0)" class="link-primary text-dark fw-medium d-block">
-                                                Rp
+
                                                 {{ $data->saldo_awal_kredit < 0 ? '(' . number_format(abs($data->saldo_awal_kredit), 0, ',', '.') . ')' : number_format($data->saldo_awal_kredit, 0, ',', '.') }}
 
                                             </a>
@@ -309,9 +310,10 @@
 
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Update</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -336,9 +338,10 @@
                                             <p>Apakah Anda yakin ingin menghapus akun ini?</p>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-danger">Hapus</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-danger">Hapus</button>
+
                                         </div>
                                     </div>
                                 </form>

@@ -126,8 +126,9 @@ class BudgetRapbsAkunController extends Controller
                     if ($index === 1) continue;
 
                     $kode_akun = trim($row['A']);
-                    $budget = (int) $row['C'];
-
+                    // $budget = (int) $row['C'];
+                    $budget = (float) str_replace(',', '', $row['C']);
+                    
                     $id_akun = $akunMap[$kode_akun] ?? null;
 
                     if ($user->role === 'akuntan_unit') {

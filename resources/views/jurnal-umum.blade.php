@@ -219,11 +219,13 @@
                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                 <input type="hidden" name="end_date" value="{{ request('end_date') }}">
 
-                                <button type="submit"
-                                    class="btn btn-success d-flex align-items-center gap-2 shadow-sm rounded-pill px-4 py-2 mb-3">
+                                <button type="button"
+                                    class="btn btn-success d-flex align-items-center gap-2 shadow-sm rounded-pill px-4 py-2 mb-3"
+                                    data-bs-toggle="modal" data-bs-target="#postingSemuaModal">
                                     <i class="ti ti-send"></i>
                                     <span class="fw-semibold">Posting Semua Jurnal</span>
                                 </button>
+
                             </form>
                         @endif
 
@@ -415,14 +417,14 @@
                                                 <td class="text-center fw-medium border-2">
                                                     @if ($data->debit_kredit === 'debit')
                                                         {{ $data->akun->akun ?? 'Akun Tidak Ditemukan' }}
-                                                        (Rp {{ number_format($data->nominal) }})
+                                                        ({{ number_format($data->nominal) }})
                                                         @php $totalDebit += $data->nominal; @endphp
                                                     @endif
                                                 </td>
                                                 <td class="text-center fw-medium border-2">
                                                     @if ($data->debit_kredit === 'kredit')
                                                         {{ $data->akun->akun ?? 'Akun Tidak Ditemukan' }}
-                                                        (Rp {{ number_format($data->nominal) }})
+                                                        ({{ number_format($data->nominal) }})
                                                         @php $totalKredit += $data->nominal; @endphp
                                                     @endif
                                                 </td>
@@ -434,8 +436,8 @@
                                     <!-- Row Total -->
                                     <tr class="fw-bold bg-light">
                                         <td colspan="10" class="text-end">Total</td>
-                                        <td class="text-center">Rp {{ number_format($totalDebit) }}</td>
-                                        <td class="text-center">Rp {{ number_format($totalKredit) }}</td>
+                                        <td class="text-center">{{ number_format($totalDebit) }}</td>
+                                        <td class="text-center">{{ number_format($totalKredit) }}</td>
                                     </tr>
 
                                 </tbody>
@@ -446,6 +448,38 @@
                             {{ $jurnalPaginated->links('pagination::bootstrap-5') }}
                         </div>
 
+
+
+                        {{-- modal posting semua --}}
+                        <div class="modal fade" id="postingSemuaModal" tabindex="-1"
+                            aria-labelledby="postingSemuaModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-sm modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="postingSemuaModalLabel">Konfirmasi</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        Yakin ingin memposting semua jurnal yang belum diposting ke Buku Besar?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form id="postingSemuaForm" method="POST"
+                                            action="{{ route('buku-besar.postingSemua') }}">
+                                            @csrf
+                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm"
+                                                    data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-primary btn-sm">Posting
+                                                    Semua</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
 
 

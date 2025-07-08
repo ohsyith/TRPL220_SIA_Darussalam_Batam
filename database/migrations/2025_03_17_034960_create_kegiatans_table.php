@@ -11,29 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('akun', function (Blueprint $table) {
-        //     $table->bigIncrements('id_akun');
-        //     $table->string('kode_akun')->unique();;
-        //     $table->string('akun');
-        //     $table->integer('saldo_awal_debit');
-        //     $table->integer('saldo_awal_kredit');
-        //     $table->integer('budget_rapbs');
-
-        //     $table->unsignedBigInteger('id_sub_kategori_akun');
-        //     $table->foreign('id_sub_kategori_akun')->references('id_sub_kategori_akun')->on('sub_kategori_akun');
-            
-        //     $table->timestamps();
-        // });
-
         Schema::create('kegiatan', function (Blueprint $table) {
             $table->bigIncrements('id_kegiatan');
             $table->string('kode_kegiatan');
             $table->string('kegiatan');
-            // $table->integer('budget_rapbs');
-
-            // $table->unsignedBigInteger('id_unit');
-            // $table->foreign('id_unit')->references('id_unit')->on('unit');
-
             $table->timestamps();
         });
     }

@@ -103,9 +103,10 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Simpan</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -143,7 +144,7 @@
                                     <button class="accordion-button collapsed flex-grow-1 text-start" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#collapse{{ $data->id_sop }}"
                                         aria-expanded="false" aria-controls="collapse{{ $data->id_sop }}">
-                                        {{ $loop->iteration }}. {{ $data->keterangan }}
+                                        {{ $data->keterangan }}
                                     </button>
 
                                     {{-- Tombol Edit hanya untuk admin --}}
@@ -190,7 +191,8 @@
 
                                                     <div class="mb-3">
                                                         <label for="file" class="form-label">Ganti File
-                                                            (Opsional)</label>
+                                                            (Opsional)
+                                                        </label>
                                                         <input type="file" name="file" class="form-control">
                                                         <small class="text-muted">Biarkan kosong jika tidak ingin mengganti
                                                             file.</small>
@@ -198,10 +200,10 @@
                                                 </div>
                                                 <div class="modal-footer justify-content-between">
                                                     <div>
-                                                        <button type="submit" class="btn btn-primary">Simpan
-                                                            Perubahan</button>
                                                         <button type="button" class="btn btn-secondary"
                                                             data-bs-dismiss="modal">Batal</button>
+                                                        <button type="submit" class="btn btn-primary">Simpan</button>
+
                                                     </div>
                                                 </div>
                                             </form>

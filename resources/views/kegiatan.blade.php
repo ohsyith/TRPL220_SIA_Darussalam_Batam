@@ -48,8 +48,8 @@
 
                     {{-- Link download template --}}
                     <div class="mb-3">
-                        <a href="{{ asset('assets/templates/Template_Kegiatan.xlsx') }}" class="btn btn-link text-primary p-0"
-                            download>
+                        <a href="{{ asset('assets/templates/Template_Kegiatan.xlsx') }}"
+                            class="btn btn-link text-primary p-0" download>
                             <i class="fas fa-download me-1"></i> Download Template Import Kegiatan
                         </a>
                     </div>
@@ -71,7 +71,7 @@
                             Tambah Kegiatan
                         </button>
 
-                        
+
                     </div>
 
 
@@ -81,17 +81,17 @@
                     <div class="modal fade" id="modalResetKegiatan" tabindex="-1" aria-labelledby="modalResetKegiatanLabel"
                         aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
-                            
+
                         </div>
                     </div>
 
 
                     <br><br>
-                    
+
                     <div class="table-responsive">
 
 
-                        
+
 
 
                         <!-- Modal Tambah -->
@@ -118,12 +118,13 @@
                                                 <input type="text" name="kegiatan" class="form-control" required>
                                             </div>
 
-                                            
+
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Simpan</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -210,9 +211,10 @@
 
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Update</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -237,9 +239,10 @@
                                             <p>Apakah Anda yakin ingin menghapus kegiatan ini?</p>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-danger">Hapus</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-danger">Hapus</button>
+
                                         </div>
                                     </div>
                                 </form>

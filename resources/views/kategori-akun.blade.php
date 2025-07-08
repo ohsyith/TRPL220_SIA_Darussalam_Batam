@@ -7,7 +7,8 @@
         body {
             height: 100%;
             margin: 0;
-            background-color: #f8f9fa; /* latar abu-abu */
+            background-color: #f8f9fa;
+            /* latar abu-abu */
         }
 
         .page-wrapper,
@@ -105,9 +106,10 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Simpan</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -187,9 +189,10 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Update</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Update</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -216,9 +219,10 @@
                                             <p>Apakah Anda yakin ingin menghapus kategori akun ini?</p>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-danger">Hapus</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-danger">Hapus</button>
+
                                         </div>
                                     </div>
                                 </form>

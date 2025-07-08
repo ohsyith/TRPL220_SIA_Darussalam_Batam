@@ -103,9 +103,10 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Simpan</button>
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+
                                         </div>
                                     </div>
                                 </form>
@@ -190,7 +191,8 @@
 
                                                     <div class="mb-3">
                                                         <label for="file" class="form-label">Ganti File
-                                                            (Opsional)</label>
+                                                            (Opsional)
+                                                        </label>
                                                         <input type="file" name="file" class="form-control">
                                                         <small class="text-muted">Biarkan kosong jika tidak ingin mengganti
                                                             file.</small>
@@ -198,10 +200,10 @@
                                                 </div>
                                                 <div class="modal-footer justify-content-between">
                                                     <div>
-                                                        <button type="submit" class="btn btn-primary">Simpan
-                                                            Perubahan</button>
                                                         <button type="button" class="btn btn-secondary"
                                                             data-bs-dismiss="modal">Batal</button>
+                                                        <button type="submit" class="btn btn-primary">Simpan</button>
+
                                                     </div>
                                                 </div>
                                             </form>
